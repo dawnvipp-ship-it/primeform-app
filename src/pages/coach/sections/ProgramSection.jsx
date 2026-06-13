@@ -8,7 +8,7 @@ import {
 import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader } from '../../../components/ui/primitives'
 import { IconPlus, IconTrash } from '../../../components/ui/Icons'
 
-const EX_EMPTY = { exercise_name: '', group_label: '', sets: '', reps: '', tempo: '', rest: '', rpe: '', video_url: '', coaching_cue: '' }
+const EX_EMPTY = { exercise_name: '', group_label: '', sets: '', reps: '', tempo: '', rest: '', rpe: '', load: '', video_url: '', coaching_cue: '', notes: '' }
 
 export default function ProgramSection({ clientId }) {
   const { db } = useAuth()
@@ -127,9 +127,11 @@ export default function ProgramSection({ clientId }) {
               <Field label="Tempo"><Input value={exModal.ex.tempo || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, tempo: e.target.value } })} placeholder="2010" /></Field>
               <Field label="Nghỉ"><Input value={exModal.ex.rest || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, rest: e.target.value } })} placeholder="90s" /></Field>
               <Field label="RPE"><Input value={exModal.ex.rpe || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, rpe: e.target.value } })} placeholder="8" /></Field>
+              <Field label="Mức tạ"><Input value={exModal.ex.load || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, load: e.target.value } })} placeholder="20kg / BW" /></Field>
             </div>
             <Field label="Video URL"><Input value={exModal.ex.video_url || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, video_url: e.target.value } })} placeholder="https://…" /></Field>
             <Field label="Coaching cue"><Textarea value={exModal.ex.coaching_cue || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, coaching_cue: e.target.value } })} /></Field>
+            <Field label="Ghi chú (drop set, kỹ thuật…)"><Textarea value={exModal.ex.notes || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, notes: e.target.value } })} placeholder="VD: set cuối drop set 2 lần" /></Field>
             <button className="btn btn-primary btn-block" onClick={saveEx} disabled={busy}>{busy ? 'Đang lưu…' : 'Lưu bài tập'}</button>
           </div>
         )}

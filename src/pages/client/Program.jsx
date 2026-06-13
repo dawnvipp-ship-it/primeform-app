@@ -26,6 +26,7 @@ function ExerciseCard({ ex }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
         <Spec label="Sets" value={ex.sets} />
         <Spec label="Reps" value={ex.reps} />
+        <Spec label="Mức tạ" value={ex.load} />
         <Spec label="Tempo" value={ex.tempo} />
         <Spec label="Nghỉ" value={ex.rest} />
         <Spec label="RPE" value={ex.rpe} />
@@ -33,6 +34,11 @@ function ExerciseCard({ ex }) {
       {ex.coaching_cue && (
         <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.6, borderLeft: '2px solid var(--pf-line)', paddingLeft: 12 }}>
           {ex.coaching_cue}
+        </p>
+      )}
+      {ex.notes && (
+        <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--pf-accent)', borderLeft: '2px solid var(--pf-accent)', paddingLeft: 12 }}>
+          {ex.notes}
         </p>
       )}
       {ex.video_url && (
