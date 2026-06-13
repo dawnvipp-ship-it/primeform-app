@@ -1,0 +1,65 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+
+export default function Login() {
+  const { loginClient } = useAuth()
+  const navigate = useNavigate()
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function submit() {
+    if (!code.trim() || busy) return
+    setBusy(true); setErr('')
+    try {
+      await loginClient(code)
+      navigate('/app', { replace: true })
+    } catch (e) {
+      setErr(e.message || 'Mã không hợp lệ')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="center-screen">
+      <div className="fade-in" style={{ width: '100%', maxWidth: 380 }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>Private Training</div>
+          <div className="pf-display" style={{ fontSize: 44, letterSpacing: '-0.02em' }}>Prime Form</div>
+          <div className="muted" style={{ marginTop: 12, fontSize: 14 }}>
+            Nhập mã truy cập để xem chương trình của bạn.
+          </div>
+        </div>
+
+        <input
+          className="input"
+          placeholder="MÃ TRUY CẬP"
+          value={code}
+          autoCapitalize="characters"
+          autoCorrect="off"
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          onKeyDown={(e) => e.key === 'Enter' && submit()}
+          style={{ textAlign: 'center', letterSpacing: '0.18em', fontSize: 16 }}
+        />
+
+        {err && (
+          <div style={{ color: 'var(--pf-danger)', fontSize: 13, marginTop: 10, textAlign: 'center' }}>
+            {err}
+          </div>
+        )}
+
+        <button className="btn btn-primary btn-block" onClick={submit} disabled={busy} style={{ marginTop: 16 }}>
+          {busy ? 'Đang mở…' : 'Vào chương trình'}
+        </button>
+
+        <div style={{ textAlign: 'center', marginTop: 28 }}>
+          <button className="btn-quiet" style={{ fontSize: 12, letterSpacing: '.08em' }} onClick={() => navigate('/coach/login')}>
+            Đăng nhập huấn luyện viên
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

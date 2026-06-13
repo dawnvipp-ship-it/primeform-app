@@ -1,0 +1,87 @@
+import { useAuth } from '../../context/AuthContext'
+import { useAsync } from '../../hooks/useAsync'
+import { getMyClient } from '../../data/clients'
+import { listProgressLogs, listPhotos, signedPhotoUrl } from '../../data/progress'
+import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
+
+const ACCENT = '#E8D8C3'
+
+function Chart({ title, unit, dataKey, rows }) {
+  const points = rows
+    .filter((r) => r[dataKey] != null)
+    .map((r) => ({ date: r.log_date?.slice(5), value: Number(r[dataKey]) }))
+  if (points.length === 0) return null
+  return (
+    <Card>
+      <Eyebrow muted>{title}</Eyebrow>
+      <div style={{ height: 180, marginTop: 14 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={points} margin={{ top: 6, right: 6, left: -18, bottom: 0 }}>
+            <XAxis dataKey="date" tick={{ fill: '#5A564F', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#5A564F', fontSize: 11 }} axisLine={false} tickLine={false} width={40} domain={['auto', 'auto']} />
+            <Tooltip
+              contentStyle={{ background: '#1A1917', border: '1px solid rgba(232,216,195,.12)', borderRadius: 8, color: '#F2EEE8' }}
+              labelStyle={{ color: '#8C877E' }}
+              formatter={(v) => [`${v}${unit}`, '']}
+            />
+            <Line type="monotone" dataKey="value" stroke={ACCENT} strokeWidth={2} dot={{ r: 3, fill: ACCENT }} activeDot={{ r: 4 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+  )
+}
+
+export default function Progress() {
+  const { db } = useAuth()
+  const { data, loading } = useAsync(async () => {
+    const me = await getMyClient(db)
+    if (!me) return null
+    const [logs, photos] = await Promise.all([listProgressLogs(db, me.id), listPhotos(db, me.id)])
+    const withUrls = await Promise.all(
+      photos.map(async (p) => ({ ...p, url: await signedPhotoUrl(db, p.photo_path).catch(() => null) }))
+    )
+    return { logs, photos: withUrls }
+  }, [db])
+
+  if (loading) return <div className="screen"><InlineLoader /></div>
+  if (!data) return <div className="screen"><Empty title="Không tìm thấy hồ sơ." /></div>
+
+  const { logs, photos } = data
+  const hasLogs = logs.length > 0
+
+  return (
+    <div className="screen stack fade-in">
+      <div>
+        <Eyebrow>Theo dõi</Eyebrow>
+        <h1 style={{ fontSize: 28, marginTop: 6 }}>Tiến độ</h1>
+      </div>
+
+      {!hasLogs && photos.length === 0 ? (
+        <Empty title="Chưa có dữ liệu tiến độ" hint="Số liệu sẽ xuất hiện sau các buổi đo." />
+      ) : (
+        <>
+          <Chart title="Cân nặng" unit=" kg" dataKey="weight" rows={logs} />
+          <Chart title="Body fat" unit="%" dataKey="body_fat" rows={logs} />
+
+          {photos.length > 0 && (
+            <div className="stack">
+              <Eyebrow muted>Hình ảnh</Eyebrow>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {photos.map((p) => (
+                  <div key={p.id}>
+                    <div style={{ aspectRatio: '3/4', borderRadius: 10, overflow: 'hidden', background: 'var(--pf-surface-2)', border: '1px solid var(--pf-line)' }}>
+                      {p.url && <img src={p.url} alt={`Tuần ${p.week}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                    </div>
+                    <div className="eyebrow eyebrow-muted" style={{ marginTop: 6 }}>Tuần {p.week}{p.angle ? ` · ${p.angle}` : ''}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
