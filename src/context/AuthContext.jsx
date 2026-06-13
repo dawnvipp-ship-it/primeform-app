@@ -1,89 +1,65 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
-import { supabase, makeClientPortalClient } from '../lib/supabase'
+import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react'
+import { supabase } from '../lib/supabase'
 import * as authApi from '../data/auth'
 
 const AuthCtx = createContext(null)
-const CLIENT_KEY = 'pf-client-session'
-
-function decodeExp(token) {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.exp ? payload.exp * 1000 : 0
-  } catch {
-    return 0
-  }
-}
-
-function loadStoredClient() {
-  try {
-    const raw = localStorage.getItem(CLIENT_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    if (!parsed?.token || decodeExp(parsed.token) < Date.now()) {
-      localStorage.removeItem(CLIENT_KEY)
-      return null
-    }
-    return parsed
-  } catch {
-    return null
-  }
-}
 
 export function AuthProvider({ children }) {
   const [status, setStatus] = useState('loading') // loading | authed | anon
   const [role, setRole] = useState(null)           // client | coach
-  const [client, setClient] = useState(null)       // { id, full_name }
-  const [token, setToken] = useState(null)
+  const [client, setClient] = useState(null)
   const [coachUser, setCoachUser] = useState(null)
+  const resolving = useRef(false)
 
-  // Bootstrap: prefer an existing coach session, else a stored client session.
+  const applyResolved = useCallback((r) => {
+    if (r.role === 'coach') { setRole('coach'); setCoachUser(r.user); setClient(null); setStatus('authed') }
+    else if (r.role === 'client') { setRole('client'); setClient(r.client); setCoachUser(null); setStatus('authed') }
+    else { setRole(null); setClient(null); setCoachUser(null); setStatus('anon') }
+  }, [])
+
   useEffect(() => {
     let active = true
     ;(async () => {
-      const session = await authApi.getCoachSession()
+      const session = await authApi.getSession()
       if (!active) return
-      if (session?.user) {
-        setRole('coach'); setCoachUser(session.user); setStatus('authed'); return
-      }
-      const stored = loadStoredClient()
-      if (stored) {
-        setRole('client'); setClient(stored.client); setToken(stored.token); setStatus('authed'); return
-      }
-      setStatus('anon')
+      if (!session?.user) { setStatus('anon'); return }
+      const r = await authApi.resolveRole()
+      if (active) applyResolved(r)
     })()
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) => {
-      if (sess?.user) { setRole('coach'); setCoachUser(sess.user); setStatus('authed') }
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_e, sess) => {
+      if (resolving.current) return
+      if (!sess?.user) { setRole(null); setClient(null); setCoachUser(null); setStatus('anon'); return }
+      const r = await authApi.resolveRole()
+      applyResolved(r)
     })
     return () => { active = false; sub?.subscription?.unsubscribe?.() }
-  }, [])
+  }, [applyResolved])
 
   const loginClient = useCallback(async (code) => {
-    const res = await authApi.clientLogin(code)
-    localStorage.setItem(CLIENT_KEY, JSON.stringify({ token: res.token, client: res.client }))
-    setRole('client'); setClient(res.client); setToken(res.token); setStatus('authed')
+    resolving.current = true
+    try {
+      const c = await authApi.clientLogin(code)
+      setRole('client'); setClient(c); setCoachUser(null); setStatus('authed')
+    } finally { resolving.current = false }
   }, [])
 
   const loginCoach = useCallback(async (email, password) => {
-    const res = await authApi.coachLogin(email, password)
-    setRole('coach'); setCoachUser(res.user); setStatus('authed')
+    resolving.current = true
+    try {
+      const res = await authApi.coachLogin(email, password)
+      setRole('coach'); setCoachUser(res.user); setClient(null); setStatus('authed')
+    } finally { resolving.current = false }
   }, [])
 
   const logout = useCallback(async () => {
-    if (role === 'coach') await authApi.coachLogout()
-    localStorage.removeItem(CLIENT_KEY)
-    setRole(null); setClient(null); setToken(null); setCoachUser(null); setStatus('anon')
-  }, [role])
-
-  // The db client every query should use, chosen by role.
-  const db = useMemo(() => {
-    if (role === 'client' && token) return makeClientPortalClient(token)
-    return supabase // coach (authed) or anon
-  }, [role, token])
+    await authApi.logout()
+    setRole(null); setClient(null); setCoachUser(null); setStatus('anon')
+  }, [])
 
   const value = useMemo(() => ({
-    status, role, client, coachUser, db, loginClient, loginCoach, logout,
-  }), [status, role, client, coachUser, db, loginClient, loginCoach, logout])
+    status, role, client, coachUser, db: supabase, loginClient, loginCoach, logout,
+  }), [status, role, client, coachUser, loginClient, loginCoach, logout])
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
 }

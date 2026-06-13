@@ -1,25 +1,23 @@
 import { supabase } from '../lib/supabase'
 
-/**
- * Client login by access code.
- * Calls the `client-login` edge function, which verifies the code server-side
- * (the frontend never queries client_code directly) and returns a scoped JWT.
- */
+// Client login by access code → native Supabase session (V1.3).
 export async function clientLogin(code) {
   const { data, error } = await supabase.functions.invoke('client-login', {
     body: { code: String(code || '').trim().toUpperCase() },
   })
   if (error) {
-    // Edge function returns 401 with a message for bad codes
     let msg = 'Mã không hợp lệ'
-    try {
-      const ctx = await error.context?.json?.()
-      if (ctx?.error) msg = ctx.error
-    } catch (_) { /* ignore */ }
+    try { const ctx = await error.context?.json?.(); if (ctx?.error) msg = ctx.error } catch (_) {}
     throw new Error(msg)
   }
-  if (!data?.token) throw new Error('Mã không hợp lệ hoặc đã bị khoá')
-  return data // { token, client: { id, full_name } }
+  if (!data?.session?.access_token) throw new Error(data?.error || 'Mã không hợp lệ hoặc đã bị khoá')
+  // Establish the session on the shared client.
+  const { error: sErr } = await supabase.auth.setSession({
+    access_token: data.session.access_token,
+    refresh_token: data.session.refresh_token,
+  })
+  if (sErr) throw new Error(sErr.message)
+  return data.client // { id, full_name }
 }
 
 export async function coachLogin(email, password) {
@@ -28,11 +26,23 @@ export async function coachLogin(email, password) {
   return data
 }
 
-export async function coachLogout() {
+export async function logout() {
   await supabase.auth.signOut()
 }
 
-export async function getCoachSession() {
+export async function getSession() {
   const { data } = await supabase.auth.getSession()
   return data?.session ?? null
+}
+
+// Decide whether the logged-in user is a coach or a client.
+export async function resolveRole() {
+  const { data: u } = await supabase.auth.getUser()
+  const user = u?.user
+  if (!user) return { role: null }
+  const { data: coach } = await supabase.from('coaches').select('id').eq('id', user.id).maybeSingle()
+  if (coach) return { role: 'coach', user }
+  const { data: cli } = await supabase.from('clients').select('id, full_name').eq('auth_user_id', user.id).maybeSingle()
+  if (cli) return { role: 'client', client: cli, user }
+  return { role: null, user }
 }

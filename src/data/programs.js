@@ -57,3 +57,14 @@ export async function deleteExercise(db, id) {
   const { error } = await db.from('program_exercises').delete().eq('id', id)
   if (error) throw error
 }
+
+// Replace ALL exercises for a program day (used by the paste editor).
+export async function setDayExercises(db, programId, exercises) {
+  const del = await db.from('program_exercises').delete().eq('program_id', programId)
+  if (del.error) throw del.error
+  if (!exercises.length) return []
+  const rows = exercises.map((ex, i) => ({ program_id: programId, order_index: i, ...ex }))
+  const { data, error } = await db.from('program_exercises').insert(rows).select('*')
+  if (error) throw error
+  return data
+}

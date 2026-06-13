@@ -39,12 +39,9 @@ export default function Dashboard() {
       <div style={{ position: 'relative', margin: '0 calc(var(--s4) * -1)', height: 150, overflow: 'hidden' }}>
         <img src={lounge} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(11,11,11,.45), #0B0B0B)' }} />
-        <div className="row-between" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '0 var(--s4) var(--s4)' }}>
-          <div className="row" style={{ gap: 10 }}>
-            <img src={logo} alt="" style={{ width: 30, height: 'auto' }} />
-            <span className="eyebrow">Private Studio</span>
-          </div>
-          <button className="btn-quiet" onClick={async () => { await logout(); navigate('/'); }} title="Đăng xuất"><IconLogout /></button>
+        <div className="row" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '0 var(--s4) var(--s4)', gap: 10 }}>
+          <img src={logo} alt="" style={{ width: 30, height: 'auto' }} />
+          <span className="eyebrow">Private Studio</span>
         </div>
       </div>
 
