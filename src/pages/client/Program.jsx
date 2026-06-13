@@ -9,7 +9,7 @@ import { IconPlay } from '../../components/ui/Icons'
 function Spec({ label, value }) {
   if (!value) return null
   return (
-    <div style={{ minWidth: 56 }}>
+    <div style={{ minWidth: 52 }}>
       <div className="eyebrow eyebrow-muted">{label}</div>
       <div style={{ fontWeight: 600, marginTop: 4, fontSize: 14 }}>{value}</div>
     </div>
@@ -18,9 +18,12 @@ function Spec({ label, value }) {
 
 function ExerciseCard({ ex }) {
   return (
-    <Card className="stack">
-      <div className="pf-display" style={{ fontSize: 18 }}>{ex.exercise_name}</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18 }}>
+    <Card className="stack" style={{ padding: 'var(--s4)' }}>
+      <div className="row" style={{ gap: 10, alignItems: 'baseline' }}>
+        {ex.group_label && <span className="tag tag-accent" style={{ padding: '2px 8px' }}>{ex.group_label}</span>}
+        <div className="pf-display" style={{ fontSize: 18 }}>{ex.exercise_name}</div>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
         <Spec label="Sets" value={ex.sets} />
         <Spec label="Reps" value={ex.reps} />
         <Spec label="Tempo" value={ex.tempo} />
@@ -52,6 +55,8 @@ export default function Program() {
 
   if (loading) return <div className="screen"><InlineLoader /></div>
   const programs = data?.programs || []
+  const cur = programs[active]
+  const phaseLine = cur ? [cur.phase, cur.week && `Tuần ${cur.week}`].filter(Boolean).join(' · ') : ''
 
   return (
     <div className="screen stack fade-in">
@@ -82,17 +87,15 @@ export default function Program() {
             ))}
           </div>
 
-          {programs[active] && (
+          {cur && (
             <>
-              <div className="muted" style={{ fontSize: 13 }}>
-                {[programs[active].phase, programs[active].week && `Tuần ${programs[active].week}`].filter(Boolean).join(' · ')}
+              <div className="row-between" style={{ alignItems: 'flex-end' }}>
+                <div className="pf-display" style={{ fontSize: 20 }}>{cur.workout_day}</div>
+                {phaseLine && <div className="eyebrow eyebrow-muted">{phaseLine}</div>}
               </div>
-              {(programs[active].program_exercises || []).map((ex) => (
-                <ExerciseCard key={ex.id} ex={ex} />
-              ))}
-              {(programs[active].program_exercises || []).length === 0 && (
-                <Empty title="Chưa có bài tập cho ngày này" />
-              )}
+              <div className="divider" />
+              {(cur.program_exercises || []).map((ex) => <ExerciseCard key={ex.id} ex={ex} />)}
+              {(cur.program_exercises || []).length === 0 && <Empty title="Chưa có bài tập cho ngày này" />}
             </>
           )}
         </>

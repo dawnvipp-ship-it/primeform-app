@@ -8,7 +8,7 @@ import {
 import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader } from '../../../components/ui/primitives'
 import { IconPlus, IconTrash } from '../../../components/ui/Icons'
 
-const EX_EMPTY = { exercise_name: '', sets: '', reps: '', tempo: '', rest: '', rpe: '', video_url: '', coaching_cue: '' }
+const EX_EMPTY = { exercise_name: '', group_label: '', sets: '', reps: '', tempo: '', rest: '', rpe: '', video_url: '', coaching_cue: '' }
 
 export default function ProgramSection({ clientId }) {
   const { db } = useAuth()
@@ -83,7 +83,7 @@ export default function ProgramSection({ clientId }) {
           {(d.program_exercises || []).map((ex) => (
             <div key={ex.id} className="row-between" style={{ padding: '6px 0' }}>
               <div onClick={() => setExModal({ programId: d.id, ex: { ...ex } })} style={{ cursor: 'pointer', flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{ex.exercise_name}</div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{ex.group_label ? `${ex.group_label} · ` : ''}{ex.exercise_name}</div>
                 <div className="muted" style={{ fontSize: 12 }}>
                   {[ex.sets && `${ex.sets} sets`, ex.reps && `${ex.reps} reps`, ex.rpe && `RPE ${ex.rpe}`].filter(Boolean).join(' · ')}
                 </div>
@@ -117,7 +117,10 @@ export default function ProgramSection({ clientId }) {
       <Modal open={!!exModal} onClose={() => setExModal(null)} title={exModal?.ex?.id ? 'Sửa bài tập' : 'Thêm bài tập'}>
         {exModal && (
           <div className="stack">
-            <Field label="Tên bài tập"><Input value={exModal.ex.exercise_name} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, exercise_name: e.target.value } })} /></Field>
+            <div className="field-grid">
+              <Field label="Nhóm (A1, A2…)"><Input value={exModal.ex.group_label || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, group_label: e.target.value.toUpperCase() } })} placeholder="A1" /></Field>
+              <Field label="Tên bài tập"><Input value={exModal.ex.exercise_name} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, exercise_name: e.target.value } })} /></Field>
+            </div>
             <div className="field-grid">
               <Field label="Sets"><Input value={exModal.ex.sets || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, sets: e.target.value } })} placeholder="3" /></Field>
               <Field label="Reps"><Input value={exModal.ex.reps || ''} onChange={(e) => setExModal({ ...exModal, ex: { ...exModal.ex, reps: e.target.value } })} placeholder="8-12" /></Field>

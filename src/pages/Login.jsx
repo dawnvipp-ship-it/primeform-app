@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import logo from '../assets/logo.png'
+import heroBg from '../assets/studio-hero.jpg'
 
 export default function Login() {
   const { loginClient } = useAuth()
@@ -23,11 +25,18 @@ export default function Login() {
   }
 
   return (
-    <div className="center-screen">
-      <div className="fade-in" style={{ width: '100%', maxWidth: 380 }}>
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>Private Training</div>
-          <div className="pf-display" style={{ fontSize: 44, letterSpacing: '-0.02em' }}>Prime Form</div>
+    <div style={{ position: 'relative', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      {/* Studio photo, darkened */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+        <img src={heroBg} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.32 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(11,11,11,.65) 0%, rgba(11,11,11,.82) 55%, #0B0B0B 100%)' }} />
+      </div>
+
+      <div className="fade-in" style={{ position: 'relative', width: '100%', maxWidth: 380 }}>
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <img src={logo} alt="Prime Form" style={{ width: 64, height: 'auto', margin: '0 auto 18px', display: 'block' }} />
+          <div className="eyebrow" style={{ marginBottom: 12 }}>Private Training</div>
+          <div className="pf-display" style={{ fontSize: 42, letterSpacing: '-0.02em' }}>Prime Form</div>
           <div className="muted" style={{ marginTop: 12, fontSize: 14 }}>
             Nhập mã truy cập để xem chương trình của bạn.
           </div>
@@ -45,9 +54,7 @@ export default function Login() {
         />
 
         {err && (
-          <div style={{ color: 'var(--pf-danger)', fontSize: 13, marginTop: 10, textAlign: 'center' }}>
-            {err}
-          </div>
+          <div style={{ color: 'var(--pf-danger)', fontSize: 13, marginTop: 10, textAlign: 'center' }}>{err}</div>
         )}
 
         <button className="btn btn-primary btn-block" onClick={submit} disabled={busy} style={{ marginTop: 16 }}>

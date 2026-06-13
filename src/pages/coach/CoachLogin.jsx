@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import logo from '../../assets/logo.png'
 
 export default function CoachLogin() {
   const { loginCoach } = useAuth()
@@ -27,6 +28,7 @@ export default function CoachLogin() {
     <div className="center-screen">
       <div className="fade-in" style={{ width: '100%', maxWidth: 360 }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <img src={logo} alt="" style={{ width: 48, height: 'auto', margin: '0 auto 16px', display: 'block' }} />
           <div className="eyebrow" style={{ marginBottom: 12 }}>Huấn luyện viên</div>
           <div className="pf-display" style={{ fontSize: 34 }}>Prime Form</div>
         </div>
