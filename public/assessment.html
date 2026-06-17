@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Prime Form · Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --obsidian: #0A0A0A;
+  --surface:  #111111;
+  --surface2: #1A1A1A;
+  --surface3: #252525;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+  --bone:     #F5F1EA;
+  --muted:    rgba(245,241,234,0.4);
+  --secondary:rgba(245,241,234,0.7);
+  --gold:     #C9A961;
+  --gold-dim: rgba(201,169,97,0.12);
+  --gold-border: rgba(201,169,97,0.3);
+  --green:    #4CAF50;
+  --red:      #F44336;
+  --red-dim:  rgba(244,67,54,0.10);
+  --red-border:rgba(244,67,54,0.30);
+  --orange:   #FF9800;
+  --safe-b:   env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--obsidian);color:var(--bone);font-family:'Montserrat',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--obsidian);z-index:1000;}
+.login-box{width:300px;text-align:center;padding:40px 32px;background:var(--surface);border:1px solid var(--border);border-radius:20px;}
+.login-logo{width:52px;height:52px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.login-brand{font-size:13px;font-weight:800;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;}
+.login-sub{font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-bottom:28px;}
+.login-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--bone);font-size:16px;padding:13px 16px;outline:none;font-family:inherit;text-align:center;letter-spacing:4px;margin-bottom:12px;transition:border-color .2s;}
+.login-input:focus{border-color:var(--gold);}
+.login-btn{width:100%;padding:13px;background:var(--gold);border:none;border-radius:10px;color:var(--obsidian);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px;}
+.login-btn:active{opacity:.8;}
+.login-err{font-size:12px;color:var(--red);margin-top:10px;min-height:16px;}
+
+/* APP */
+#app{display:none;flex-direction:column;height:100%;position:fixed;inset:0;}
+#app.show{display:flex;}
+
+/* TOPBAR */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;padding-top:max(12px,env(safe-area-inset-top,12px));}
+.topbar-brand{display:flex;align-items:center;gap:10px;}
+.topbar-name{font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;}
+.topbar-right{display:flex;align-items:center;gap:14px;}
+.clock{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
+.save-badge{font-size:10px;letter-spacing:.5px;color:var(--muted);transition:color .3s;}
+.save-badge.saving{color:var(--gold);}
+.save-badge.saved{color:var(--green);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.save-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);animation:blink 1.4s infinite;margin-right:4px;}
+
+/* SCROLL */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px 60px;}
+
+/* STEP BAR */
+.step-bar{display:flex;align-items:flex-start;margin-bottom:24px;}
+.step-item{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;}
+.step-item:not(:last-child)::after{content:'';position:absolute;top:14px;left:50%;width:100%;height:1px;background:var(--border2);z-index:0;}
+.step-item.done:not(:last-child)::after{background:rgba(201,169,97,.4);}
+.step-dot{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);position:relative;z-index:1;transition:all .2s;flex-shrink:0;}
+.step-dot.active{background:var(--gold);border-color:var(--gold);color:var(--obsidian);}
+.step-dot.done{background:rgba(201,169,97,.2);border-color:rgba(201,169,97,.5);color:var(--gold);}
+.step-lbl{font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-top:5px;text-align:center;}
+.step-item.active .step-lbl{color:var(--gold);}
+
+/* STEP PANELS */
+.step-panel{display:none;}
+.step-panel.active{display:block;}
+.step-eyebrow{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.step-title{font-size:20px;font-weight:300;letter-spacing:-.2px;margin-bottom:20px;}
+
+/* FORM */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+input[type=text],input[type=tel],input[type=number],input[type=date],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--bone);font-size:15px;padding:12px 14px;outline:none;font-family:inherit;-webkit-appearance:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);}
+select option{background:var(--surface2);}
+textarea{resize:none;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:7px;}
+.pill{padding:7px 14px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit;-webkit-appearance:none;}
+.pill:active{transform:scale(.96);}
+.pill.sel{border-color:var(--gold);background:var(--gold-dim);color:var(--gold);}
+
+/* PAIN TAGS */
+.pain-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.pain-tag{padding:7px 13px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit;}
+.pain-tag.sel{border-color:var(--red);background:rgba(244,67,54,.1);color:var(--red);}
+.pain-tag.sel-none{border-color:var(--green);background:rgba(76,175,80,.1);color:var(--green);}
+
+/* SCORE BUTTONS */
+.score-btns{display:flex;gap:6px;}
+.score-btn{width:38px;height:38px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;}
+.score-btn.s1.active{border-color:var(--red);background:rgba(244,67,54,.15);color:var(--red);}
+.score-btn.s2.active{border-color:var(--orange);background:rgba(255,152,0,.15);color:var(--orange);}
+.score-btn.s3.active{border-color:var(--green);background:rgba(76,175,80,.15);color:var(--green);}
+
+/* RED FLAG BLOCK */
+.flag-block{background:var(--red-dim);border:1px solid var(--red-border);border-radius:14px;padding:16px;margin-bottom:20px;}
+.flag-block-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.flag-q{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(244,67,54,.15);}
+.flag-q:last-of-type{border-bottom:none;padding-bottom:0;}
+.flag-text{font-size:12px;line-height:1.6;flex:1;color:var(--secondary);}
+.flag-btns{display:flex;gap:6px;flex-shrink:0;}
+.flag-btn{padding:6px 13px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;}
+.flag-btn.yes.active{border-color:var(--red);background:rgba(244,67,54,.2);color:var(--red);}
+.flag-btn.no.active{border-color:var(--green);background:rgba(76,175,80,.15);color:var(--green);}
+
+/* REFER OUT BANNER */
+.refer-banner{display:none;background:rgba(244,67,54,.08);border:1px solid var(--red-border);border-radius:14px;padding:20px;margin-bottom:20px;text-align:center;}
+.refer-banner.show{display:block;}
+.refer-title{font-size:13px;font-weight:700;color:var(--red);letter-spacing:.5px;margin-bottom:8px;}
+.refer-text{font-size:12px;color:var(--secondary);line-height:1.6;margin-bottom:16px;}
+.btn-refer{display:inline-block;padding:12px 28px;background:var(--red);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:opacity .2s;}
+.btn-refer:active{opacity:.8;}
+.btn-refer:disabled{opacity:.4;cursor:not-allowed;}
+
+/* PHASE ROW */
+.phase-row{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;}
+.phase-badge{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);white-space:nowrap;padding-top:2px;min-width:56px;}
+.phase-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.phase-fields{flex:1;}
+.phase-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--bone);font-size:14px;padding:6px 0;outline:none;font-family:inherit;transition:border-color .2s;}
+.phase-input:focus{border-bottom-color:var(--gold);}
+.phase-input::placeholder{color:var(--muted);}
+
+/* BUTTONS */
+.btn-primary{width:100%;padding:14px;background:var(--gold);border:none;border-radius:12px;color:var(--obsidian);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.3px;transition:opacity .2s;margin-top:8px;}
+.btn-primary:active{opacity:.8;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-back{padding:14px 20px;background:transparent;border:1px solid var(--border2);border-radius:12px;color:var(--secondary);font-size:14px;cursor:pointer;font-family:inherit;transition:background .2s;display:none;}
+.btn-back:active{background:var(--surface2);}
+.nav-row{display:flex;gap:10px;margin-top:20px;}
+.nav-row .btn-primary{margin-top:0;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:flex-end;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-sheet{width:100%;max-width:680px;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--border2);padding:24px 20px calc(24px + var(--safe-b));max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px;}
+.modal-eyebrow{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.modal-title{font-size:18px;font-weight:300;margin-bottom:18px;}
+.snapshot-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--secondary);margin-bottom:16px;font-family:'Montserrat',monospace;max-height:340px;overflow-y:auto;}
+.modal-actions{display:flex;gap:10px;}
+.modal-actions .btn-primary{margin-top:0;}
+.btn-outline{flex:1;padding:14px;background:transparent;border:1px solid var(--gold-border);border-radius:12px;color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;}
+.btn-outline:active{background:var(--gold-dim);}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(24px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface3);border:1px solid var(--border2);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;white-space:nowrap;z-index:1000;transition:transform .3s ease,opacity .3s;opacity:0;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.success{color:var(--green);border-color:rgba(76,175,80,.3);}
+.toast.error{color:var(--red);border-color:rgba(244,67,54,.3);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="24" height="24" viewBox="0 0 28 28" fill="none"><path d="M14 4L4 10v14h6v-8h8v8h6V10L14 4z" stroke="#C9A961" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="login-brand">Prime Form</div>
+    <div class="login-sub">Body Diagnostic</div>
+    <input class="login-input" type="password" id="pw" placeholder="••••••" autocomplete="off">
+    <button class="login-btn" onclick="tryLogin()">Vào →</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 4L4 10v14h6v-8h8v8h6V10L14 4z" stroke="#C9A961" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="topbar-name">Assessment</span>
+    </div>
+    <div class="topbar-right">
+      <span id="save-badge" class="save-badge"></span>
+      <span class="clock" id="clock"></span>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    <div class="step-bar" id="step-bar"></div>
+
+    <!-- A: CONTEXT -->
+    <div class="step-panel active" id="ast-a">
+      <div class="step-eyebrow">A · Context</div>
+      <div class="step-title">Thông tin & Mục tiêu</div>
+      <div class="grid2">
+        <div class="field"><label>Họ & Tên *</label><input type="text" id="a-name" placeholder="Nguyễn Văn A"></div>
+        <div class="field"><label>SĐT</label><input type="tel" id="a-phone" placeholder="+84901234567"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Ngày *</label><input type="date" id="a-date"></div>
+        <div class="field"><label>HLV phụ trách</label>
+          <select id="a-hlv">
+            <option value="">Chọn HLV...</option>
+            <option>Anthony</option><option>Minh</option><option>Linh</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Mục tiêu (đúng lời khách nói)</label><textarea id="a-goal" rows="2" placeholder="Ghi lại chính xác câu khách nói..."></textarea></div>
+      <div class="field"><label>Tại sao NGAY BÂY GIỜ?</label><textarea id="a-why-now" rows="2" placeholder="Điều gì thay đổi khiến họ quyết định đúng lúc này?"></textarea></div>
+      <div class="field"><label>Ưu tiên thực sự</label>
+        <div class="pills" id="a-priority">
+          <button class="pill" data-val="Giảm đau">Giảm đau</button>
+          <button class="pill" data-val="Tư thế">Tư thế</button>
+          <button class="pill" data-val="Giảm mỡ">Giảm mỡ</button>
+          <button class="pill" data-val="Sức mạnh">Sức mạnh</button>
+          <button class="pill" data-val="Longevity">Longevity</button>
+        </div>
+      </div>
+      <div class="field"><label>Timeline</label>
+        <div class="pills" id="a-timeline">
+          <button class="pill" data-val="1-2 tháng">1–2 tháng</button>
+          <button class="pill" data-val="3-4 tháng">3–4 tháng</button>
+          <button class="pill" data-val="6 tháng+">6 tháng+</button>
+          <button class="pill" data-val="Mở">Mở</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- B: BASELINE -->
+    <div class="step-panel" id="ast-b">
+      <div class="step-eyebrow">B · Baseline</div>
+      <div class="step-title">Thể trạng & Lịch sử</div>
+      <div class="grid2">
+        <div class="field"><label>Tuổi</label><input type="number" id="b-age" placeholder="35"></div>
+        <div class="field"><label>Cân nặng (kg)</label><input type="number" id="b-weight" placeholder="70"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Chiều cao (cm)</label><input type="number" id="b-height" placeholder="165"></div>
+        <div class="field"><label>BMI</label><input type="text" id="b-bmi" readonly placeholder="—" style="color:var(--gold);background:var(--surface3);cursor:default;"></div>
+      </div>
+      <div class="field"><label>Số buổi/tuần mong muốn</label>
+        <div class="pills" id="b-sessions">
+          <button class="pill" data-val="2">2</button><button class="pill" data-val="3">3</button>
+          <button class="pill" data-val="4">4</button><button class="pill" data-val="5+">5+</button>
+        </div>
+      </div>
+      <div class="field"><label>Thể lực hiện tại</label>
+        <div class="pills" id="b-fitness">
+          <button class="pill" data-val="Rất thấp">Rất thấp</button>
+          <button class="pill" data-val="Thấp">Thấp</button>
+          <button class="pill" data-val="TB">Trung bình</button>
+          <button class="pill" data-val="Khá">Khá</button>
+          <button class="pill" data-val="Tốt">Tốt</button>
+        </div>
+      </div>
+      <div class="field"><label>Tiền sử tập luyện</label>
+        <div class="pills" id="b-history">
+          <button class="pill" data-val="Chưa từng">Chưa từng</button>
+          <button class="pill" data-val="Bỏ ngang">Đã tập, bỏ ngang</button>
+          <button class="pill" data-val="Tự tập">Tự tập gym</button>
+          <button class="pill" data-val="Đã có PT">Đã có PT</button>
+        </div>
+      </div>
+      <div class="field" id="prev-wrap"><label>Đã từng thử gì? (kể cụ thể)</label><textarea id="b-prev" rows="2" placeholder="VD: Tập California 6 tháng 2023, yoga 2 tháng..."></textarea></div>
+      <div class="field" id="stopped-wrap" style="display:none;"><label>Tại sao dừng?</label><textarea id="b-stopped" rows="2" placeholder="VD: Mất động lực, không thấy kết quả, lưng đau hơn..."></textarea></div>
+    </div>
+
+    <!-- C: RED FLAGS + PAIN -->
+    <div class="step-panel" id="ast-c">
+      <div class="step-eyebrow">C · Screening</div>
+      <div class="step-title">Red Flag & Đau</div>
+
+      <div class="flag-block">
+        <div class="flag-block-title"><span>⚠</span> Kiểm tra chống chỉ định (PAR-Q+)</div>
+        <div class="flag-q">
+          <div class="flag-text">Bác sĩ từng nói bạn có vấn đề tim mạch và chỉ nên vận động có giám sát y tế?</div>
+          <div class="flag-btns"><button class="flag-btn yes" onclick="flagAns(0,'yes',this)">Có</button><button class="flag-btn no" onclick="flagAns(0,'no',this)">Không</button></div>
+        </div>
+        <div class="flag-q">
+          <div class="flag-text">Bạn bị đau ngực khi nghỉ ngơi hoặc khi vận động trong tháng vừa qua?</div>
+          <div class="flag-btns"><button class="flag-btn yes" onclick="flagAns(1,'yes',this)">Có</button><button class="flag-btn no" onclick="flagAns(1,'no',this)">Không</button></div>
+        </div>
+        <div class="flag-q">
+          <div class="flag-text">Bạn bị chóng mặt, mất thăng bằng hoặc ngất trong 12 tháng gần đây?</div>
+          <div class="flag-btns"><button class="flag-btn yes" onclick="flagAns(2,'yes',this)">Có</button><button class="flag-btn no" onclick="flagAns(2,'no',this)">Không</button></div>
+        </div>
+        <div class="flag-q">
+          <div class="flag-text">Bạn có chấn thương xương/khớp mà bác sĩ chưa cho phép vận động trở lại?</div>
+          <div class="flag-btns"><button class="flag-btn yes" onclick="flagAns(3,'yes',this)">Có</button><button class="flag-btn no" onclick="flagAns(3,'no',this)">Không</button></div>
+        </div>
+        <div class="flag-q">
+          <div class="flag-text">Bạn đang mang thai hoặc có bệnh mãn tính chưa được bác sĩ kiểm soát?</div>
+          <div class="flag-btns"><button class="flag-btn yes" onclick="flagAns(4,'yes',this)">Có</button><button class="flag-btn no" onclick="flagAns(4,'no',this)">Không</button></div>
+        </div>
+      </div>
+
+      <div class="refer-banner" id="refer-banner">
+        <div class="refer-title">⛔ CHỐNG CHỈ ĐỊNH — REFER OUT</div>
+        <div class="refer-text">Khách có yếu tố chống chỉ định.<br>Cần bác sĩ clearance trước khi bắt đầu chương trình.</div>
+        <div class="field" style="margin-bottom:14px;text-align:left;">
+          <label>Ghi chú (câu nào Yes)</label>
+          <textarea id="c-flag-notes" rows="2" placeholder="VD: Q2 — đau ngực khi leo cầu thang tuần trước..."></textarea>
+        </div>
+        <button class="btn-refer" id="btn-refer" onclick="submitReferOut()">Lưu & Refer Out →</button>
+      </div>
+
+      <div id="pain-section">
+        <div class="field"><label>Vùng đau / khó chịu</label>
+          <div class="pain-grid" id="c-pain">
+            <button class="pain-tag" data-val="Cổ">Cổ</button>
+            <button class="pain-tag" data-val="Vai T">Vai (T)</button>
+            <button class="pain-tag" data-val="Vai P">Vai (P)</button>
+            <button class="pain-tag" data-val="Lưng trên">Lưng trên</button>
+            <button class="pain-tag" data-val="Lưng dưới">Lưng dưới</button>
+            <button class="pain-tag" data-val="Hông T">Hông (T)</button>
+            <button class="pain-tag" data-val="Hông P">Hông (P)</button>
+            <button class="pain-tag" data-val="Gối T">Gối (T)</button>
+            <button class="pain-tag" data-val="Gối P">Gối (P)</button>
+            <button class="pain-tag" data-val="Cổ chân">Cổ chân</button>
+            <button class="pain-tag" data-val="Khác">Khác</button>
+            <button class="pain-tag" id="c-no-pain" data-val="none">Không có</button>
+          </div>
+        </div>
+        <div class="field"><label>Mô tả chi tiết</label><textarea id="c-desc" rows="2" placeholder="Đau khi nào, kiểu gì, lan không, bao lâu rồi..."></textarea></div>
+        <div class="field"><label>Mức độ đau (0–10)</label><div style="display:flex;gap:5px;flex-wrap:wrap;" id="c-scale"></div></div>
+        <div class="field"><label>Nhận định nhanh (1 câu)</label><input type="text" id="c-dx" placeholder="VD: Lower-cross do ngồi nhiều..."></div>
+      </div>
+    </div>
+
+    <!-- D: MOVEMENT -->
+    <div class="step-panel" id="ast-d">
+      <div class="step-eyebrow">D · Movement</div>
+      <div class="step-title">Kiểm tra chuyển động</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">1 = Không được · 2 = Có bù trừ · 3 = Kiểm soát tốt</div>
+      <div id="movement-list"></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+        <span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Tổng điểm</span>
+        <div style="display:flex;align-items:baseline;gap:6px;">
+          <span style="font-size:24px;font-weight:300;" id="total-score">—</span>
+          <span style="font-size:12px;color:var(--muted);">/ 18</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- E: DIAGNOSIS -->
+    <div class="step-panel" id="ast-e">
+      <div class="step-eyebrow">E · Diagnosis</div>
+      <div class="step-title">Chẩn đoán & Phản hồi</div>
+      <div class="field"><label style="color:rgba(244,67,54,.8);">Rủi ro nếu không can thiệp · 1</label><input type="text" id="e-risk1" placeholder="VD: Đau lưng tăng tần suất → mất ngủ mãn tính"></div>
+      <div class="field"><label style="color:rgba(244,67,54,.8);">Rủi ro nếu không can thiệp · 2</label><input type="text" id="e-risk2" placeholder="VD: Compensation → chấn thương khi vận động"></div>
+      <div class="field"><label>Điểm mạnh của khách</label><textarea id="e-strength" rows="2" placeholder="VD: Ankle mobility tốt, mindset committed..."></textarea></div>
+      <div class="field"><label>Drill / Demo hiệu quả nhất</label><input type="text" id="e-drill" placeholder="VD: 90/90 hip rotation 2x5/bên"></div>
+      <div class="field"><label>Cảm nhận sau can thiệp</label>
+        <div class="pills" id="e-response">
+          <button class="pill" data-val="Nhẹ hơn">Nhẹ hơn</button>
+          <button class="pill" data-val="Kiểm soát tốt">Kiểm soát tốt</button>
+          <button class="pill" data-val="Ít đau">Ít đau</button>
+          <button class="pill" data-val="Ngạc nhiên">Ngạc nhiên</button>
+        </div>
+      </div>
+      <div class="field"><label>Quote khách</label><input type="text" id="e-quote" placeholder='"Ủa sao tôi thấy nhẹ hơn vậy..."'></div>
+      <div class="field"><label>Câu Reframe cho khách</label><textarea id="e-reframe" rows="2" placeholder="VD: Anh không yếu core, anh mất kiểm soát hông nên core gồng bù..."></textarea></div>
+    </div>
+
+    <!-- F: PROGRAM -->
+    <div class="step-panel" id="ast-f">
+      <div class="step-eyebrow">F · Program</div>
+      <div class="step-title">Lộ trình đề xuất</div>
+
+      <div class="phase-row">
+        <div><div class="phase-badge">Phase I</div><div class="phase-sub">Foundation</div></div>
+        <div class="phase-fields">
+          <div class="field"><label>Mục tiêu</label><input class="phase-input" id="f-p1g" placeholder="Phục hồi control · kỹ thuật nền"></div>
+          <div class="grid2">
+            <div class="field"><label>Thời gian</label><input class="phase-input" id="f-p1t" placeholder="4–6 tuần"></div>
+            <div class="field"><label>Buổi/tuần</label><input class="phase-input" id="f-p1s" placeholder="3"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-row">
+        <div><div class="phase-badge">Phase II</div><div class="phase-sub">Build</div></div>
+        <div class="phase-fields">
+          <div class="field"><label>Mục tiêu</label><input class="phase-input" id="f-p2g" placeholder="Tăng tải · hình thể"></div>
+          <div class="grid2">
+            <div class="field"><label>Thời gian</label><input class="phase-input" id="f-p2t" placeholder="6–8 tuần"></div>
+            <div class="field"><label>Buổi/tuần</label><input class="phase-input" id="f-p2s" placeholder="3"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" style="margin:4px 0 14px;">
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--secondary);cursor:pointer;">
+          <input type="checkbox" id="f-p3-toggle" onchange="togglePh3()" style="width:auto;background:transparent;border:none;padding:0;margin:0;accent-color:var(--gold);width:16px;height:16px;">
+          Đề xuất Phase III
+        </label>
+      </div>
+      <div id="f-p3-block" style="display:none;">
+        <div class="phase-row">
+          <div><div class="phase-badge">Phase III</div><div class="phase-sub">Peak</div></div>
+          <div class="phase-fields">
+            <div class="field"><label>Mục tiêu</label><input class="phase-input" id="f-p3g" placeholder="Performance · lifestyle"></div>
+            <div class="grid2">
+              <div class="field"><label>Thời gian</label><input class="phase-input" id="f-p3t" placeholder="8–12 tuần"></div>
+              <div class="field"><label>Buổi/tuần</label><input class="phase-input" id="f-p3s" placeholder="3–4"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field"><label style="color:var(--gold);">Chẩn đoán cốt lõi · Bắt buộc</label><textarea id="f-dx" rows="2" style="border-color:var(--gold-border);" placeholder="1 câu tổng kết bằng ngôn ngữ của khách..."></textarea></div>
+      <div class="field"><label>Kết luận (nói cho khách nghe)</label><textarea id="f-conclusion" rows="2" placeholder="Trình bày lộ trình..."></textarea></div>
+      <div class="field"><label>Follow-up</label><input type="text" id="f-followup" placeholder="VD: Gửi Phase I program + meal trong 24h"></div>
+    </div>
+
+    <!-- NAV -->
+    <div class="nav-row">
+      <button class="btn-back" id="btn-back" onclick="nav(-1)">←</button>
+      <button class="btn-primary" id="btn-next" onclick="nav(1)">Tiếp theo →</button>
+    </div>
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<!-- SNAPSHOT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-eyebrow">Client Snapshot</div>
+    <div class="modal-title">Xem trước & Lưu</div>
+    <div class="snapshot-box" id="snapshot-box"></div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="copySnap()">📋 Copy</button>
+      <button class="btn-primary" id="btn-save" onclick="saveSheet()" style="margin-top:0;">Lưu vào Sheet →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG — thay GAS_URL sau khi deploy Apps Script ──────
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbx8aO1cJc0qb0viLKlvZuS358UcKMmnzuxvr79gdlsViuVaI-qLVJ_r0rLuBGRNwEV9dA/exec';
+const PASSWORD = 'primeform2026';
+
+// ── STATE ─────────────────────────────────────────────────
+let step       = 0;
+let scores     = {};
+let flags      = [null,null,null,null,null];
+let sid        = null;   // draft session_id
+let snapData   = null;   // pending submit payload
+
+const STEPS = [
+  {id:'a',lbl:'Context'},{id:'b',lbl:'Baseline'},{id:'c',lbl:'Screen'},
+  {id:'d',lbl:'Movement'},{id:'e',lbl:'Diagnosis'},{id:'f',lbl:'Program'},
+];
+
+// ── LOGIN ─────────────────────────────────────────────────
+function tryLogin() {
+  if (document.getElementById('pw').value === PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').classList.add('show');
+    init();
+  } else {
+    document.getElementById('login-err').textContent = 'Sai mật khẩu';
+    document.getElementById('pw').value = '';
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') tryLogin();
+});
+
+// ── INIT ──────────────────────────────────────────────────
+function init() {
+  buildBar(); buildMovement(); buildPainScale();
+  document.getElementById('a-date').value = new Date().toISOString().slice(0,10);
+  initPills(); initPainTags();
+  ['b-weight','b-height'].forEach(id => document.getElementById(id).addEventListener('input', calcBMI));
+  document.querySelectorAll('#b-history .pill').forEach(p => {
+    p.addEventListener('click', () => {
+      const show = ['Bỏ ngang','Tự tập','Đã có PT'].includes(p.dataset.val);
+      document.getElementById('stopped-wrap').style.display = show ? 'block' : 'none';
+    });
+  });
+
+  // Draft session
+  sid = localStorage.getItem('pf_sid');
+  if (!sid) {
+    sid = 'as_draft_' + [...crypto.getRandomValues(new Uint8Array(8))].map(b=>b.toString(16).padStart(2,'0')).join('');
+    localStorage.setItem('pf_sid', sid);
+  } else { loadDraft(); }
+
+  setInterval(autoSave, 10000);
+  setInterval(() => {
+    const d = new Date();
+    document.getElementById('clock').textContent = d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+  }, 1000);
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── STEP BAR ──────────────────────────────────────────────
+function buildBar() {
+  const bar = document.getElementById('step-bar');
+  STEPS.forEach((s,i) => {
+    const el = document.createElement('div');
+    el.className = 'step-item' + (i===0?' active':'');
+    el.id = 'si'+i;
+    el.innerHTML = `<div class="step-dot${i===0?' active':''}" id="sd${i}">${s.id.toUpperCase()}</div><div class="step-lbl">${s.lbl}</div>`;
+    bar.appendChild(el);
+  });
+}
+
+function refreshBar() {
+  STEPS.forEach((_,i) => {
+    document.getElementById('sd'+i).className = 'step-dot'+(i===step?' active':i<step?' done':'');
+    document.getElementById('si'+i).className = 'step-item'+(i===step?' active':i<step?' done':'');
+  });
+}
+
+// ── NAVIGATION ────────────────────────────────────────────
+function nav(dir) {
+  const next = step + dir;
+  if (next < 0) return;
+  if (next >= STEPS.length) { showSnap(); return; }
+  if (dir > 0 && !validate()) return;
+
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('ast-' + STEPS[next].id).classList.add('active');
+  step = next; refreshBar();
+
+  document.getElementById('btn-back').style.display = step === 0 ? 'none' : 'block';
+  document.getElementById('btn-next').textContent = step === STEPS.length-1 ? 'Xem & Lưu →' : 'Tiếp theo →';
+  document.getElementById('content').scrollTop = 0;
+}
+
+function validate() {
+  if (step === 0 && !document.getElementById('a-name').value.trim()) {
+    toast('Nhập tên khách hàng', 'error'); return false;
+  }
+  if (step === 5 && !document.getElementById('f-dx').value.trim()) {
+    toast('Cần nhập Chẩn đoán cốt lõi', 'error'); return false;
+  }
+  return true;
+}
+
+// ── PILLS ─────────────────────────────────────────────────
+function initPills() {
+  document.querySelectorAll('.pills').forEach(g => {
+    g.querySelectorAll('.pill').forEach(p => {
+      p.addEventListener('click', () => {
+        g.querySelectorAll('.pill').forEach(x => x.classList.remove('sel'));
+        p.classList.add('sel');
+      });
+    });
+  });
+}
+const getSel = id => document.querySelector('#'+id+' .pill.sel')?.dataset.val || '';
+
+// ── PAIN TAGS ─────────────────────────────────────────────
+function initPainTags() {
+  document.querySelectorAll('.pain-tag').forEach(t => {
+    t.addEventListener('click', function() {
+      if (this.id === 'c-no-pain') {
+        document.querySelectorAll('.pain-tag:not(#c-no-pain)').forEach(x => x.classList.remove('sel'));
+        this.classList.toggle('sel-none');
+      } else {
+        document.getElementById('c-no-pain').classList.remove('sel-none');
+        this.classList.toggle('sel');
+      }
+    });
+  });
+}
+function getPainAreas() {
+  const s = [...document.querySelectorAll('#c-pain .pain-tag.sel')].map(t=>t.dataset.val);
+  if (s.length) return s.join(', ');
+  if (document.querySelector('#c-no-pain.sel-none')) return 'Không có';
+  return '';
+}
+function getPainLevel() {
+  return document.querySelector('#c-scale button[data-sel]')?.textContent || '';
+}
+
+// ── BMI ───────────────────────────────────────────────────
+function calcBMI() {
+  const w = parseFloat(document.getElementById('b-weight').value);
+  const h = parseFloat(document.getElementById('b-height').value);
+  document.getElementById('b-bmi').value = (w && h) ? (w/Math.pow(h/100,2)).toFixed(1) : '';
+}
+
+// ── PAIN SCALE ────────────────────────────────────────────
+function buildPainScale() {
+  const el = document.getElementById('c-scale');
+  for (let i=0; i<=10; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    btn.style.cssText='width:34px;height:34px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .2s;';
+    btn.onclick = function() {
+      el.querySelectorAll('button').forEach(b => { b.style.borderColor='var(--border)'; b.style.background='transparent'; b.style.color='var(--secondary)'; delete b.dataset.sel; });
+      this.style.borderColor='var(--red)'; this.style.background='rgba(244,67,54,.15)'; this.style.color='var(--red)'; this.dataset.sel='1';
+    };
+    el.appendChild(btn);
+  }
+}
+
+// ── MOVEMENT ──────────────────────────────────────────────
+function buildMovement() {
+  const moves = [
+    ['overhead','Overhead Reach','Vai · Lưng trên'],
+    ['squat','Squat Pattern','Gối · Hông'],
+    ['hinge','Hip Hinge','Lưng dưới · Hamstring'],
+    ['balance','Single-Leg Balance','Cổ chân · Stability'],
+    ['push','Push / Pull','Thân trên · Scapula'],
+    ['core','Core Stability','Plank · Dead bug'],
+  ];
+  document.getElementById('movement-list').innerHTML = moves.map(([id,name,focus]) => `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div><div style="font-size:13px;font-weight:600;">${name}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${focus}</div></div>
+        <div class="score-btns">
+          <button class="score-btn s1" onclick="setScore('${id}',1,this)">1</button>
+          <button class="score-btn s2" onclick="setScore('${id}',2,this)">2</button>
+          <button class="score-btn s3" onclick="setScore('${id}',3,this)">3</button>
+        </div>
+      </div>
+      <input type="text" id="note-${id}" placeholder="Ghi chú quan sát..." style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;color:var(--bone);font-size:12px;padding:8px 12px;outline:none;font-family:inherit;">
+    </div>`).join('');
+}
+
+function setScore(id, val, btn) {
+  btn.closest('.score-btns').querySelectorAll('.score-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  scores[id] = val;
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  const el = document.getElementById('total-score');
+  el.textContent = total;
+  el.style.color = total>=15?'var(--green)':total>=10?'var(--orange)':'var(--red)';
+}
+
+// ── PHASE III TOGGLE ──────────────────────────────────────
+function togglePh3() {
+  document.getElementById('f-p3-block').style.display = document.getElementById('f-p3-toggle').checked ? 'block' : 'none';
+}
+
+// ── RED FLAG ──────────────────────────────────────────────
+function flagAns(q, ans, btn) {
+  btn.closest('.flag-btns').querySelectorAll('.flag-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  flags[q] = ans;
+  const hasYes = flags.some(f=>f==='yes');
+  document.getElementById('refer-banner').classList.toggle('show', hasYes);
+  const ps = document.getElementById('pain-section');
+  ps.style.opacity = hasYes ? '0.35' : '1';
+  ps.style.pointerEvents = hasYes ? 'none' : '';
+}
+
+async function submitReferOut() {
+  const notes = document.getElementById('c-flag-notes').value.trim();
+  if (!notes) { toast('Ghi chú câu nào Yes trước', 'error'); return; }
+  const btn = document.getElementById('btn-refer');
+  btn.disabled = true; btn.textContent = 'Đang lưu...';
+  const d = collect(); d.red_flag = true; d.red_flag_notes = notes; d.sales_status = 'REFER OUT';
+  const res = await gasPost({action:'submit_assessment', data:d});
+  btn.disabled = false; btn.textContent = 'Lưu & Refer Out →';
+  if (!res.error) {
+    toast('✓ Đã lưu — ' + d.client_name + ' cần Refer Out', 'success');
+    await gasPost({action:'delete_draft', session_id:sid});
+    newSession(); resetForm();
+  } else { toast('Lỗi: ' + res.error, 'error'); }
+}
+
+// ── SNAPSHOT ──────────────────────────────────────────────
+function genSnap(d) {
+  const ph3 = d.phase3_recommended ?
+    `NEXT NEXT: Phase III ${d.phase3_goal} · ${d.phase3_sessions}/tuần\n` : '';
+  return `CLIENT SNAPSHOT — ${d.client_name}
+Date: ${d.assess_date} · HLV: ${d.hlv}
+
+Main Goal: ${d.goal_raw}
+Why Now: ${d.why_now}
+Pain: ${d.pain_areas} · Level ${d.pain_level}/10
+
+ROOT PROBLEM: ${d.core_diagnosis}
+Movement Score: ${d.total_score}/18
+Limitation: ${d.movement_notes}
+Strength: ${d.strength}
+
+RISK 1: ${d.risk_1}
+RISK 2: ${d.risk_2}
+Reframe: "${d.reframe_statement}"
+Client Quote: "${d.client_quote}"
+
+RECOMMENDED: Phase I ${d.phase1_duration} · ${d.phase1_sessions}/tuần
+NEXT: Phase II ${d.phase2_duration} · ${d.phase2_sessions}/tuần
+${ph3}
+→ HANDOFF: prime-form-sales (Section 5 debrief)`;
+}
+
+function showSnap() {
+  if (!validate()) return;
+  snapData = collect();
+  document.getElementById('snapshot-box').textContent = genSnap(snapData);
+  document.getElementById('modal').classList.add('show');
+}
+
+function copySnap() {
+  const text = document.getElementById('snapshot-box').textContent;
+  navigator.clipboard?.writeText(text).then(()=>toast('✓ Đã copy snapshot','success')).catch(()=>{
+    const t=document.createElement('textarea'); t.value=text; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); toast('✓ Đã copy','success');
+  });
+}
+
+async function saveSheet() {
+  if (!snapData) return;
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = 'Đang lưu...';
+  const res = await gasPost({action:'submit_assessment', data:snapData});
+  btn.disabled = false; btn.textContent = 'Lưu vào Sheet →';
+  if (!res.error) {
+    toast('✓ Assessment đã lưu thành công', 'success');
+    await gasPost({action:'delete_draft', session_id:sid});
+    newSession();
+    document.getElementById('modal').classList.remove('show');
+    resetForm();
+  } else { toast('Lỗi: ' + res.error, 'error'); }
+}
+
+// ── COLLECT ───────────────────────────────────────────────
+function collect() {
+  const w = parseFloat(document.getElementById('b-weight').value)||null;
+  const h = parseFloat(document.getElementById('b-height').value)||null;
+  const bmi = (w&&h) ? parseFloat((w/Math.pow(h/100,2)).toFixed(1)) : null;
+  const total = Object.values(scores).reduce((a,b)=>a+b,0)||null;
+  const moveNotes = ['overhead','squat','hinge','balance','push','core']
+    .map(id=>{const n=document.getElementById('note-'+id)?.value;return n?`${id}: ${n}`:null;}).filter(Boolean).join(' | ');
+  const ph3 = document.getElementById('f-p3-toggle').checked;
+  const val = id => document.getElementById(id)?.value||'';
+  return {
+    timestamp: new Date().toISOString(),
+    assessment_id: 'AS-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+Math.floor(Math.random()*900+100),
+    assess_date: val('a-date'), hlv: val('a-hlv'),
+    client_name: val('a-name'), client_phone: val('a-phone'),
+    goal_raw: val('a-goal'), why_now: val('a-why-now'),
+    priority: getSel('a-priority'), timeline: getSel('a-timeline'),
+    age: parseInt(val('b-age'))||null, weight_kg:w, height_cm:h, bmi,
+    sessions_per_week: getSel('b-sessions'), fitness_level: getSel('b-fitness'),
+    training_history: getSel('b-history'),
+    previous_attempts: val('b-prev'), why_stopped: val('b-stopped'),
+    red_flag: false, red_flag_notes: '',
+    pain_areas: getPainAreas(), pain_description: val('c-desc'),
+    pain_level: getPainLevel(), coach_quick_dx: val('c-dx'),
+    score_overhead: scores.overhead||null, score_squat: scores.squat||null,
+    score_hinge: scores.hinge||null, score_balance: scores.balance||null,
+    score_push: scores.push||null, score_core: scores.core||null,
+    total_score: total, movement_notes: moveNotes,
+    risk_1: val('e-risk1'), risk_2: val('e-risk2'),
+    strength: val('e-strength'), best_drill: val('e-drill'),
+    client_response: getSel('e-response'), client_quote: val('e-quote'),
+    reframe_statement: val('e-reframe'),
+    phase1_goal: val('f-p1g'), phase1_duration: val('f-p1t'), phase1_sessions: val('f-p1s'),
+    phase2_goal: val('f-p2g'), phase2_duration: val('f-p2t'), phase2_sessions: val('f-p2s'),
+    phase3_recommended: ph3,
+    phase3_goal: ph3?val('f-p3g'):'', phase3_duration: ph3?val('f-p3t'):'', phase3_sessions: ph3?val('f-p3s'):'',
+    core_diagnosis: val('f-dx'), conclusion: val('f-conclusion'), follow_up: val('f-followup'),
+    sales_status: 'pending', sales_notes: '', package_sold: '', revenue_vnd: '',
+  };
+}
+
+// ── AUTO-SAVE DRAFT ───────────────────────────────────────
+async function autoSave() {
+  const name = document.getElementById('a-name').value.trim();
+  if (!name) return;
+  setSave('saving');
+  try {
+    await gasPost({action:'save_draft', session_id:sid, hlv:document.getElementById('a-hlv').value, client_name:name, step_at:step, data:collect()});
+    setSave('saved');
+    setTimeout(()=>setSave(''), 3000);
+  } catch(e) { setSave(''); }
+}
+
+async function loadDraft() {
+  try {
+    const res = await fetch(GAS_URL+'?action=load_draft&session_id='+sid);
+    const j = await res.json();
+    if (!j.data) return;
+    restore(j.data);
+    if (j.step_at != null) {
+      step = Math.max(0, +j.step_at);
+      document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+      document.getElementById('ast-'+STEPS[step].id).classList.add('active');
+      refreshBar();
+      document.getElementById('btn-back').style.display = step===0?'none':'block';
+      document.getElementById('btn-next').textContent = step===STEPS.length-1?'Xem & Lưu →':'Tiếp theo →';
+    }
+    toast('↩ Draft khôi phục','success');
+  } catch(e) {}
+}
+
+function restore(d) {
+  const s = (id,v) => { const el=document.getElementById(id); if(el&&v!=null) el.value=v; };
+  s('a-name',d.client_name); s('a-phone',d.client_phone); s('a-date',d.assess_date);
+  s('a-hlv',d.hlv); s('a-goal',d.goal_raw); s('a-why-now',d.why_now);
+  s('b-age',d.age); s('b-weight',d.weight_kg); s('b-height',d.height_cm);
+  s('b-prev',d.previous_attempts); s('b-stopped',d.why_stopped);
+  s('c-desc',d.pain_description); s('c-dx',d.coach_quick_dx);
+  s('e-risk1',d.risk_1); s('e-risk2',d.risk_2); s('e-strength',d.strength);
+  s('e-drill',d.best_drill); s('e-quote',d.client_quote); s('e-reframe',d.reframe_statement);
+  s('f-p1g',d.phase1_goal); s('f-p1t',d.phase1_duration); s('f-p1s',d.phase1_sessions);
+  s('f-p2g',d.phase2_goal); s('f-p2t',d.phase2_duration); s('f-p2s',d.phase2_sessions);
+  s('f-p3g',d.phase3_goal); s('f-p3t',d.phase3_duration); s('f-p3s',d.phase3_sessions);
+  s('f-dx',d.core_diagnosis); s('f-conclusion',d.conclusion); s('f-followup',d.follow_up);
+  calcBMI();
+  if (d.phase3_recommended) { document.getElementById('f-p3-toggle').checked=true; document.getElementById('f-p3-block').style.display='block'; }
+  if (d.why_stopped) document.getElementById('stopped-wrap').style.display='block';
+}
+
+function setSave(state) {
+  const el = document.getElementById('save-badge');
+  if (state==='saving') { el.className='save-badge saving'; el.innerHTML='<span class="save-dot"></span>Đang lưu'; }
+  else if (state==='saved') { el.className='save-badge saved'; el.textContent='✓ Đã lưu'; }
+  else { el.className='save-badge'; el.textContent=''; }
+}
+
+function newSession() {
+  sid='as_draft_'+[...crypto.getRandomValues(new Uint8Array(8))].map(b=>b.toString(16).padStart(2,'0')).join('');
+  localStorage.setItem('pf_sid',sid);
+}
+
+// ── RESET ─────────────────────────────────────────────────
+function resetForm() {
+  step=0; scores={}; flags=[null,null,null,null,null]; snapData=null;
+  document.querySelectorAll('input:not([readonly]),textarea,select').forEach(el=>el.value='');
+  document.querySelectorAll('.pill.sel,.pain-tag.sel,.pain-tag.sel-none,.flag-btn.active,.score-btn.active').forEach(el=>el.classList.remove('sel','sel-none','active'));
+  document.querySelectorAll('#c-scale button').forEach(b=>{b.style.cssText='width:34px;height:34px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .2s;';delete b.dataset.sel;});
+  document.getElementById('total-score').textContent='—'; document.getElementById('total-score').style.color='';
+  document.getElementById('b-bmi').value='';
+  document.getElementById('refer-banner').classList.remove('show');
+  const ps=document.getElementById('pain-section'); ps.style.opacity='1'; ps.style.pointerEvents='';
+  document.getElementById('stopped-wrap').style.display='none';
+  document.getElementById('f-p3-toggle').checked=false; document.getElementById('f-p3-block').style.display='none';
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ast-a').classList.add('active');
+  refreshBar();
+  document.getElementById('btn-back').style.display='none';
+  document.getElementById('btn-next').textContent='Tiếp theo →';
+  document.getElementById('a-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('content').scrollTop=0;
+}
+
+// ── GAS HELPER ────────────────────────────────────────────
+async function gasPost(payload) {
+  try {
+    const r = await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+    return await r.json();
+  } catch(e) { return {error:e.message}; }
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+let _tt;
+function toast(msg,type='success') {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast '+type+' show';
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) document.getElementById('modal').classList.remove('show'); });
+</script>
+</body>
+</html>
