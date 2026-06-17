@@ -20,6 +20,12 @@ export default function ClientList() {
   const [form, setForm] = useState({ full_name: '', client_code: '', phone: '', email: '', total_sessions: 72 })
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [query, setQuery] = useState('')
+
+  const filtered = (data || []).filter((c) => {
+    const q = query.toLowerCase()
+    return !q || c.full_name?.toLowerCase().includes(q) || c.client_code?.toLowerCase().includes(q)
+  })
 
   function openModal() {
     setForm({ full_name: '', client_code: genCode(''), phone: '', email: '', total_sessions: 72 })
@@ -54,11 +60,21 @@ export default function ClientList() {
         <button className="btn btn-primary" onClick={openModal}><IconPlus width={16} height={16} /> Khách mới</button>
       </div>
 
+      {!loading && data?.length > 0 && (
+        <Input
+          placeholder="Tìm theo tên hoặc mã…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      )}
+
       {loading ? <InlineLoader /> : (data?.length === 0 ? (
         <Empty title="Chưa có khách hàng" hint="Tạo hồ sơ đầu tiên để bắt đầu." />
+      ) : filtered.length === 0 ? (
+        <Empty title="Không tìm thấy khách hàng" hint={`Không có kết quả cho "${query}"`} />
       ) : (
         <Card className="card-flush">
-          {data.map((c) => (
+          {filtered.map((c) => (
             <div key={c.id} className="row-between" onClick={() => navigate(`/coach/client/${c.id}`)}
               style={{ padding: '16px 18px', borderBottom: '1px solid var(--pf-line-soft)', cursor: 'pointer' }}>
               <div>
@@ -85,7 +101,7 @@ export default function ClientList() {
             </div>
           ))}
         </Card>
-      ))}
+      )))}
 
       <Modal open={open} onClose={() => setOpen(false)} title="Tạo khách hàng">
         <div className="stack">

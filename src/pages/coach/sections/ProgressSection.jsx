@@ -7,6 +7,35 @@ import {
 } from '../../../data/progress'
 import { Card, Eyebrow, Field, Input, Textarea, InlineLoader, Empty } from '../../../components/ui/primitives'
 import { IconTrash } from '../../../components/ui/Icons'
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
+
+const ACCENT = '#E8D8C3'
+
+function Chart({ title, unit, dataKey, rows }) {
+  const points = rows
+    .filter((r) => r[dataKey] != null)
+    .map((r) => ({ date: r.log_date?.slice(5), value: Number(r[dataKey]) }))
+  if (points.length < 2) return null
+  return (
+    <div>
+      <div className="eyebrow eyebrow-muted" style={{ marginBottom: 8 }}>{title}</div>
+      <div style={{ height: 160 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={points} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
+            <XAxis dataKey="date" tick={{ fill: '#5A564F', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#5A564F', fontSize: 11 }} axisLine={false} tickLine={false} width={42} domain={['auto', 'auto']} />
+            <Tooltip
+              contentStyle={{ background: '#1A1917', border: '1px solid rgba(232,216,195,.12)', borderRadius: 8, color: '#F2EEE8' }}
+              labelStyle={{ color: '#8C877E' }}
+              formatter={(v) => [`${v}${unit}`, '']}
+            />
+            <Line type="monotone" dataKey="value" stroke={ACCENT} strokeWidth={2} dot={{ r: 3, fill: ACCENT }} activeDot={{ r: 4 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
 
 const today = () => new Date().toISOString().slice(0, 10)
 const LOG_EMPTY = () => ({ log_date: today(), weight: '', body_fat: '', waist: '', chest: '', hip: '', belly: '', arm: '', notes: '' })
@@ -98,6 +127,19 @@ export default function ProgressSection({ clientId }) {
               <button className="btn-quiet" onClick={async () => { await deleteProgressLog(db, l.id); reload() }}><IconTrash width={15} height={15} /></button>
             </div>
           ))}
+        </Card>
+      )}
+
+      {logs.length >= 2 && (
+        <Card className="stack">
+          <Eyebrow muted>Biểu đồ tiến độ</Eyebrow>
+          <Chart title="Cân nặng (kg)" unit=" kg" dataKey="weight" rows={logs.slice().reverse()} />
+          <Chart title="Body fat (%)" unit="%" dataKey="body_fat" rows={logs.slice().reverse()} />
+          <Chart title="Vòng eo (cm)" unit=" cm" dataKey="waist" rows={logs.slice().reverse()} />
+          <Chart title="Ngực (cm)" unit=" cm" dataKey="chest" rows={logs.slice().reverse()} />
+          <Chart title="Mông (cm)" unit=" cm" dataKey="hip" rows={logs.slice().reverse()} />
+          <Chart title="Bụng (cm)" unit=" cm" dataKey="belly" rows={logs.slice().reverse()} />
+          <Chart title="Tay (cm)" unit=" cm" dataKey="arm" rows={logs.slice().reverse()} />
         </Card>
       )}
 
