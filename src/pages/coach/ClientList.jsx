@@ -101,7 +101,7 @@ export default function ClientList() {
             </div>
           ))}
         </Card>
-      )))}
+      ))}
 
       <Modal open={open} onClose={() => setOpen(false)} title="Tạo khách hàng">
         <div className="stack">
