@@ -64,6 +64,11 @@ export default function Progress() {
         <>
           <Chart title="Cân nặng" unit=" kg" dataKey="weight" rows={logs} />
           <Chart title="Body fat" unit="%" dataKey="body_fat" rows={logs} />
+          <Chart title="Vòng eo" unit=" cm" dataKey="waist" rows={logs} />
+          <Chart title="Ngực" unit=" cm" dataKey="chest" rows={logs} />
+          <Chart title="Mông" unit=" cm" dataKey="hip" rows={logs} />
+          <Chart title="Bụng" unit=" cm" dataKey="belly" rows={logs} />
+          <Chart title="Tay" unit=" cm" dataKey="arm" rows={logs} />
 
           {photos.length > 0 && (
             <div className="stack">

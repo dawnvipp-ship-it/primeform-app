@@ -9,7 +9,7 @@ import { Card, Eyebrow, Field, Input, Textarea, InlineLoader, Empty } from '../.
 import { IconTrash } from '../../../components/ui/Icons'
 
 const today = () => new Date().toISOString().slice(0, 10)
-const LOG_EMPTY = () => ({ log_date: today(), weight: '', body_fat: '', waist: '', notes: '' })
+const LOG_EMPTY = () => ({ log_date: today(), weight: '', body_fat: '', waist: '', chest: '', hip: '', belly: '', arm: '', notes: '' })
 
 export default function ProgressSection({ clientId }) {
   const { db } = useAuth()
@@ -30,8 +30,11 @@ export default function ProgressSection({ clientId }) {
     const num = (v) => (v === '' ? null : Number(v))
     try {
       await addProgressLog(db, clientId, {
-        log_date: log.log_date, weight: num(log.weight), body_fat: num(log.body_fat),
-        waist: num(log.waist), notes: log.notes || null,
+        log_date: log.log_date,
+        weight: num(log.weight), body_fat: num(log.body_fat),
+        waist: num(log.waist), chest: num(log.chest),
+        hip: num(log.hip), belly: num(log.belly), arm: num(log.arm),
+        notes: log.notes || null,
       })
       setLog(LOG_EMPTY()); reload()
     } finally { setBusy(false) }
@@ -65,6 +68,10 @@ export default function ProgressSection({ clientId }) {
           <Field label="Cân nặng (kg)"><Input type="number" value={log.weight} onChange={set('weight')} /></Field>
           <Field label="Body fat (%)"><Input type="number" value={log.body_fat} onChange={set('body_fat')} /></Field>
           <Field label="Vòng eo (cm)"><Input type="number" value={log.waist} onChange={set('waist')} /></Field>
+          <Field label="Ngực (cm)"><Input type="number" value={log.chest} onChange={set('chest')} /></Field>
+          <Field label="Mông (cm)"><Input type="number" value={log.hip} onChange={set('hip')} /></Field>
+          <Field label="Bụng (cm)"><Input type="number" value={log.belly} onChange={set('belly')} /></Field>
+          <Field label="Tay (cm)"><Input type="number" value={log.arm} onChange={set('arm')} /></Field>
         </div>
         <Field label="Ghi chú"><Textarea value={log.notes} onChange={set('notes')} /></Field>
         <button className="btn btn-primary btn-block" onClick={saveLog} disabled={busy}>{busy ? 'Đang lưu…' : 'Thêm số đo'}</button>
@@ -77,7 +84,15 @@ export default function ProgressSection({ clientId }) {
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{l.log_date}</div>
                 <div className="muted" style={{ fontSize: 12 }}>
-                  {[l.weight && `${l.weight}kg`, l.body_fat && `${l.body_fat}%`, l.waist && `eo ${l.waist}cm`].filter(Boolean).join(' · ')}
+                  {[
+                    l.weight && `${l.weight}kg`,
+                    l.body_fat && `${l.body_fat}%`,
+                    l.waist && `eo ${l.waist}cm`,
+                    l.chest && `ngực ${l.chest}cm`,
+                    l.hip && `mông ${l.hip}cm`,
+                    l.belly && `bụng ${l.belly}cm`,
+                    l.arm && `tay ${l.arm}cm`,
+                  ].filter(Boolean).join(' · ')}
                 </div>
               </div>
               <button className="btn-quiet" onClick={async () => { await deleteProgressLog(db, l.id); reload() }}><IconTrash width={15} height={15} /></button>
