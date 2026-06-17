@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
-import { listClients, createClient } from '../../data/clients'
+import { listClients, createClient, deleteClient } from '../../data/clients'
 import { InlineLoader, Eyebrow, Card, Empty, Modal, Field, Input } from '../../components/ui/primitives'
-import { IconPlus, IconChevron } from '../../components/ui/Icons'
+import { IconPlus, IconChevron, IconTrash } from '../../components/ui/Icons'
 
 function genCode(name) {
   const base = (name || 'PF').normalize('NFD').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || 'PF'
@@ -67,7 +67,21 @@ export default function ClientList() {
                   {c.client_code} · còn {c.remaining_sessions}/{c.total_sessions} buổi
                 </div>
               </div>
-              <span className="faint"><IconChevron /></span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  className="btn-quiet"
+                  onClick={async (e) => {
+                    e.stopPropagation()
+                    if (!confirm(`Xoá hồ sơ "${c.full_name}"? Hành động này không thể hoàn tác.`)) return
+                    try { await deleteClient(db, c.id); reload() }
+                    catch (err) { alert(err.message || 'Lỗi xoá hồ sơ') }
+                  }}
+                  style={{ color: 'var(--pf-danger, #e05c5c)' }}
+                >
+                  <IconTrash width={15} height={15} />
+                </button>
+                <span className="faint"><IconChevron /></span>
+              </div>
             </div>
           ))}
         </Card>

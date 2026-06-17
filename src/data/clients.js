@@ -40,3 +40,14 @@ export async function updateClient(db, id, patch) {
 export async function updateSessions(db, id, { total_sessions, used_sessions }) {
   return updateClient(db, id, { total_sessions, used_sessions })
 }
+
+export async function deleteClient(db, clientId) {
+  // Remove progress photos from storage before deleting the client row
+  const { data: files } = await db.storage.from('progress-photos').list(clientId)
+  if (files?.length) {
+    const paths = files.map((f) => `${clientId}/${f.name}`)
+    await db.storage.from('progress-photos').remove(paths)
+  }
+  const { error } = await db.from('clients').delete().eq('id', clientId)
+  if (error) throw error
+}
