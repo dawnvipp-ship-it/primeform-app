@@ -1,20 +1,20 @@
 /* ============================================================
    PRIME FORM — DESIGN SYSTEM
-   Dark, warm, editorial. Champagne on near-black. Used with restraint.
+   Dim slate, warm, editorial. Champagne on dark slate. Used with restraint.
    ============================================================ */
 
 :root {
   /* Palette */
-  --pf-bg:        #0B0B0B;
-  --pf-surface:   #121211;
-  --pf-surface-2: #1A1917;
+  --pf-bg:        #242220;
+  --pf-surface:   #2D2B28;
+  --pf-surface-2: #343230;
   --pf-accent:    #E8D8C3;   /* champagne — spend it sparingly */
   --pf-accent-dim:#9C9388;   /* muted champagne for hover/borders */
   --pf-text:      #F2EEE8;   /* warm off-white */
   --pf-muted:     #8C877E;   /* warm grey */
-  --pf-faint:     #5A564F;
-  --pf-line:      rgba(232, 216, 195, 0.12);  /* hairline = accent at low alpha */
-  --pf-line-soft: rgba(232, 216, 195, 0.06);
+  --pf-faint:     #706B63;
+  --pf-line:      rgba(232, 216, 195, 0.14);  /* hairline = accent at low alpha */
+  --pf-line-soft: rgba(232, 216, 195, 0.07);
   --pf-danger:    #C77B6B;
   --pf-ok:        #A7B59A;
 
