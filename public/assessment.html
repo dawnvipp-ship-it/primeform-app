@@ -36,16 +36,28 @@ html,body{height:100%;overflow:hidden;}
 body{background:var(--obsidian);color:var(--bone);font-family:'Montserrat',-apple-system,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;}
 
 /* LOGIN */
-#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--obsidian);z-index:1000;}
-.login-box{width:300px;text-align:center;padding:40px 32px;background:var(--surface);border:1px solid var(--border);border-radius:20px;}
-.login-logo{width:52px;height:52px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
-.login-brand{font-size:13px;font-weight:800;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;}
-.login-sub{font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-bottom:28px;}
-.login-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--bone);font-size:16px;padding:13px 16px;outline:none;font-family:inherit;text-align:center;letter-spacing:4px;margin-bottom:12px;transition:border-color .2s;}
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 60% 40%, #1a1510 0%, var(--obsidian) 70%);z-index:1000;}
+.login-box{width:320px;text-align:center;padding:44px 36px;background:var(--surface);border:1px solid var(--border);border-radius:24px;box-shadow:0 32px 80px rgba(0,0,0,.6);}
+.login-logo{width:64px;height:64px;border-radius:16px;background:none;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;}
+.login-brand{font-size:13px;font-weight:800;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
+.login-sub{font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:32px;}
+.pw-wrap{position:relative;margin-bottom:12px;}
+.login-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--bone);font-size:16px;padding:13px 44px 13px 16px;outline:none;font-family:inherit;text-align:center;letter-spacing:4px;transition:border-color .2s;}
 .login-input:focus{border-color:var(--gold);}
-.login-btn{width:100%;padding:13px;background:var(--gold);border:none;border-radius:10px;color:var(--obsidian);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px;}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:16px;line-height:1;}
+.pw-toggle:hover{color:var(--secondary);}
+.login-btn{width:100%;padding:14px;background:var(--gold);border:none;border-radius:10px;color:var(--obsidian);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px;}
 .login-btn:active{opacity:.8;}
 .login-err{font-size:12px;color:var(--red);margin-top:10px;min-height:16px;}
+/* SUCCESS OVERLAY */
+#success-screen{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:600;align-items:center;justify-content:center;}
+#success-screen.show{display:flex;}
+.success-card{width:300px;text-align:center;padding:40px 32px;background:var(--surface);border:1px solid rgba(201,169,97,.25);border-radius:24px;}
+.success-icon{font-size:40px;margin-bottom:16px;}
+.success-id{font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px;}
+.success-name{font-size:20px;font-weight:300;margin-bottom:8px;}
+.success-sub{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:28px;}
+.btn-new{width:100%;padding:14px;background:var(--gold);border:none;border-radius:12px;color:var(--obsidian);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
 
 /* APP */
 #app{display:none;flex-direction:column;height:100%;position:fixed;inset:0;}
@@ -74,7 +86,7 @@ body{background:var(--obsidian);color:var(--bone);font-family:'Montserrat',-appl
 .step-dot{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);position:relative;z-index:1;transition:all .2s;flex-shrink:0;}
 .step-dot.active{background:var(--gold);border-color:var(--gold);color:var(--obsidian);}
 .step-dot.done{background:rgba(201,169,97,.2);border-color:rgba(201,169,97,.5);color:var(--gold);}
-.step-lbl{font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-top:5px;text-align:center;}
+.step-lbl{font-size:8px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-top:5px;text-align:center;max-width:42px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .step-item.active .step-lbl{color:var(--gold);}
 
 /* STEP PANELS */
@@ -156,11 +168,20 @@ textarea{resize:none;}
 .modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px;}
 .modal-eyebrow{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
 .modal-title{font-size:18px;font-weight:300;margin-bottom:18px;}
-.snapshot-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--secondary);margin-bottom:16px;font-family:'Montserrat',monospace;max-height:340px;overflow-y:auto;}
-.modal-actions{display:flex;gap:10px;}
-.modal-actions .btn-primary{margin-top:0;}
-.btn-outline{flex:1;padding:14px;background:transparent;border:1px solid var(--gold-border);border-radius:12px;color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;}
+.snapshot-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0;margin-bottom:16px;max-height:360px;overflow-y:auto;}
+.snap-section{padding:12px 16px;border-bottom:1px solid var(--border);}
+.snap-section:last-child{border-bottom:none;}
+.snap-label{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.snap-row{display:flex;justify-content:space-between;gap:8px;margin-bottom:3px;}
+.snap-key{font-size:11px;color:var(--muted);flex-shrink:0;}
+.snap-val{font-size:11px;color:var(--bone);text-align:right;line-height:1.5;}
+.snap-block{font-size:12px;color:var(--secondary);line-height:1.7;font-style:italic;}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.modal-actions .btn-primary{margin-top:0;flex:2;}
+.btn-outline{flex:1;min-width:80px;padding:14px;background:transparent;border:1px solid var(--gold-border);border-radius:12px;color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;}
 .btn-outline:active{background:var(--gold-dim);}
+.btn-edit{padding:14px 16px;background:transparent;border:1px solid var(--border2);border-radius:12px;color:var(--secondary);font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.btn-edit:active{background:var(--surface2);}
 
 /* TOAST */
 .toast{position:fixed;bottom:calc(24px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface3);border:1px solid var(--border2);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;white-space:nowrap;z-index:1000;transition:transform .3s ease,opacity .3s;opacity:0;pointer-events:none;}
@@ -175,11 +196,14 @@ textarea{resize:none;}
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo" style="background:none;">
-      <img src="/apple-touch-icon.png" style="width:52px;height:52px;border-radius:12px;display:block;">
+      <img src="/apple-touch-icon.png" style="width:64px;height:64px;border-radius:16px;display:block;">
     </div>
     <div class="login-brand">Prime Form</div>
     <div class="login-sub">Body Diagnostic</div>
-    <input class="login-input" type="password" id="pw" placeholder="••••••" autocomplete="off">
+    <div class="pw-wrap">
+      <input class="login-input" type="password" id="pw" placeholder="••••••" autocomplete="off">
+      <button class="pw-toggle" onclick="togglePw()" id="pw-eye" tabindex="-1">👁</button>
+    </div>
     <button class="login-btn" onclick="tryLogin()">Vào →</button>
     <div class="login-err" id="login-err"></div>
   </div>
@@ -442,9 +466,21 @@ textarea{resize:none;}
     <div class="modal-title">Xem trước & Lưu</div>
     <div class="snapshot-box" id="snapshot-box"></div>
     <div class="modal-actions">
-      <button class="btn-outline" onclick="copySnap()">📋 Copy</button>
+      <button class="btn-edit" onclick="document.getElementById('modal').classList.remove('show')">← Sửa</button>
+      <button class="btn-outline" onclick="copySnap()">Copy</button>
       <button class="btn-primary" id="btn-save" onclick="saveSheet()" style="margin-top:0;">Lưu vào Sheet →</button>
     </div>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div id="success-screen">
+  <div class="success-card">
+    <div class="success-icon">✓</div>
+    <div class="success-id" id="success-id"></div>
+    <div class="success-name" id="success-name"></div>
+    <div class="success-sub">Assessment đã lưu thành công.<br>Draft đã xoá.</div>
+    <button class="btn-new" onclick="startNew()">+ Assessment mới</button>
   </div>
 </div>
 
@@ -481,6 +517,10 @@ function tryLogin() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') tryLogin();
 });
+function togglePw() {
+  const inp = document.getElementById('pw');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
 
 // ── INIT ──────────────────────────────────────────────────
 function init() {
@@ -549,6 +589,11 @@ function validate() {
   if (step === 0 && !document.getElementById('a-name').value.trim()) {
     toast('Nhập tên khách hàng', 'error'); return false;
   }
+  if (step === 2) {
+    const unanswered = flags.filter(f=>f===null).length;
+    if (unanswered > 0) { toast(`Còn ${unanswered} câu PAR-Q chưa trả lời`, 'error'); return false; }
+    if (flags.some(f=>f==='yes')) { toast('Cần Refer Out trước khi tiếp tục', 'error'); return false; }
+  }
   if (step === 5 && !document.getElementById('f-dx').value.trim()) {
     toast('Cần nhập Chẩn đoán cốt lõi', 'error'); return false;
   }
@@ -605,9 +650,9 @@ function buildPainScale() {
   for (let i=0; i<=10; i++) {
     const btn = document.createElement('button');
     btn.textContent = i;
-    btn.style.cssText='width:34px;height:34px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .2s;';
+    btn.style.cssText='width:44px;height:44px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:14px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .2s;';
     btn.onclick = function() {
-      el.querySelectorAll('button').forEach(b => { b.style.borderColor='var(--border)'; b.style.background='transparent'; b.style.color='var(--secondary)'; delete b.dataset.sel; });
+      el.querySelectorAll('button').forEach(b => { b.style.borderColor='var(--border)'; b.style.background='transparent'; b.style.color='var(--secondary)'; b.style.width='44px'; b.style.height='44px'; delete b.dataset.sel; });
       this.style.borderColor='var(--red)'; this.style.background='rgba(244,67,54,.15)'; this.style.color='var(--red)'; this.dataset.sel='1';
     };
     el.appendChild(btn);
@@ -681,41 +726,55 @@ async function submitReferOut() {
 }
 
 // ── SNAPSHOT ──────────────────────────────────────────────
-function genSnap(d) {
-  const ph3 = d.phase3_recommended ?
-    `NEXT NEXT: Phase III ${d.phase3_goal} · ${d.phase3_sessions}/tuần\n` : '';
-  return `CLIENT SNAPSHOT — ${d.client_name}
-Date: ${d.assess_date} · HLV: ${d.hlv}
+function row(k,v){return v?`<div class="snap-row"><span class="snap-key">${k}</span><span class="snap-val">${v}</span></div>`:''}
+function genSnapHTML(d) {
+  const ph3 = d.phase3_recommended ? row('Phase III',`${d.phase3_goal||'—'} · ${d.phase3_sessions||'—'}/tuần`) : '';
+  return `
+    <div class="snap-section">
+      <div class="snap-label">Client</div>
+      ${row('Tên',d.client_name)} ${row('HLV',d.hlv)} ${row('Ngày',d.assess_date)}
+    </div>
+    <div class="snap-section">
+      <div class="snap-label">Mục tiêu & Đau</div>
+      ${row('Goal',d.goal_raw)} ${row('Why now',d.why_now)} ${row('Pain',d.pain_areas+(d.pain_level?' · '+d.pain_level+'/10':''))}
+    </div>
+    <div class="snap-section">
+      <div class="snap-label">Chẩn đoán</div>
+      <div class="snap-block">${d.core_diagnosis||'—'}</div>
+      ${row('Movement',`${d.total_score||'—'}/18`)} ${row('Strength',d.strength)}
+    </div>
+    <div class="snap-section">
+      <div class="snap-label">Risk & Reframe</div>
+      ${row('Risk 1',d.risk_1)} ${row('Risk 2',d.risk_2)}
+      ${d.reframe_statement?`<div class="snap-block" style="margin-top:6px;">"${d.reframe_statement}"</div>`:''}
+      ${d.client_quote?`<div class="snap-block" style="color:var(--gold);margin-top:4px;">Client: "${d.client_quote}"</div>`:''}
+    </div>
+    <div class="snap-section">
+      <div class="snap-label">Lộ trình</div>
+      ${row('Phase I',`${d.phase1_goal||'—'} · ${d.phase1_duration||'—'} · ${d.phase1_sessions||'—'}/tuần`)}
+      ${row('Phase II',`${d.phase2_goal||'—'} · ${d.phase2_duration||'—'} · ${d.phase2_sessions||'—'}/tuần`)}
+      ${ph3}
+    </div>
+    <div class="snap-section">
+      <div class="snap-label">Handoff</div>
+      ${row('Follow-up',d.follow_up)} ${row('Status','→ prime-form-sales · Section 5 debrief')}
+    </div>`;
+}
 
-Main Goal: ${d.goal_raw}
-Why Now: ${d.why_now}
-Pain: ${d.pain_areas} · Level ${d.pain_level}/10
-
-ROOT PROBLEM: ${d.core_diagnosis}
-Movement Score: ${d.total_score}/18
-Limitation: ${d.movement_notes}
-Strength: ${d.strength}
-
-RISK 1: ${d.risk_1}
-RISK 2: ${d.risk_2}
-Reframe: "${d.reframe_statement}"
-Client Quote: "${d.client_quote}"
-
-RECOMMENDED: Phase I ${d.phase1_duration} · ${d.phase1_sessions}/tuần
-NEXT: Phase II ${d.phase2_duration} · ${d.phase2_sessions}/tuần
-${ph3}
-→ HANDOFF: prime-form-sales (Section 5 debrief)`;
+function genSnapText(d) {
+  const ph3 = d.phase3_recommended ? `Phase III: ${d.phase3_goal} · ${d.phase3_sessions}/tuần\n` : '';
+  return `CLIENT SNAPSHOT — ${d.client_name}\nDate: ${d.assess_date} · HLV: ${d.hlv}\n\nGoal: ${d.goal_raw}\nWhy Now: ${d.why_now}\nPain: ${d.pain_areas} · Level ${d.pain_level}/10\n\nROOT PROBLEM: ${d.core_diagnosis}\nMovement: ${d.total_score}/18\nStrength: ${d.strength}\n\nRisk 1: ${d.risk_1}\nRisk 2: ${d.risk_2}\nReframe: "${d.reframe_statement}"\nClient: "${d.client_quote}"\n\nPhase I: ${d.phase1_goal} · ${d.phase1_duration} · ${d.phase1_sessions}/tuần\nPhase II: ${d.phase2_goal} · ${d.phase2_duration} · ${d.phase2_sessions}/tuần\n${ph3}\n→ HANDOFF: prime-form-sales (Section 5 debrief)`;
 }
 
 function showSnap() {
   if (!validate()) return;
   snapData = collect();
-  document.getElementById('snapshot-box').textContent = genSnap(snapData);
+  document.getElementById('snapshot-box').innerHTML = genSnapHTML(snapData);
   document.getElementById('modal').classList.add('show');
 }
 
 function copySnap() {
-  const text = document.getElementById('snapshot-box').textContent;
+  const text = snapData ? genSnapText(snapData) : document.getElementById('snapshot-box').innerText;
   navigator.clipboard?.writeText(text).then(()=>toast('✓ Đã copy snapshot','success')).catch(()=>{
     const t=document.createElement('textarea'); t.value=text; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); toast('✓ Đã copy','success');
   });
@@ -728,12 +787,18 @@ async function saveSheet() {
   const res = await gasPost({action:'submit_assessment', data:snapData});
   btn.disabled = false; btn.textContent = 'Lưu vào Sheet →';
   if (!res.error) {
-    toast('✓ Assessment đã lưu thành công', 'success');
     await gasPost({action:'delete_draft', session_id:sid});
     newSession();
     document.getElementById('modal').classList.remove('show');
-    resetForm();
+    document.getElementById('success-id').textContent = snapData.assessment_id;
+    document.getElementById('success-name').textContent = snapData.client_name;
+    document.getElementById('success-screen').classList.add('show');
   } else { toast('Lỗi: ' + res.error, 'error'); }
+}
+
+function startNew() {
+  document.getElementById('success-screen').classList.remove('show');
+  resetForm();
 }
 
 // ── COLLECT ───────────────────────────────────────────────
@@ -828,7 +893,10 @@ function restore(d) {
 function setSave(state) {
   const el = document.getElementById('save-badge');
   if (state==='saving') { el.className='save-badge saving'; el.innerHTML='<span class="save-dot"></span>Đang lưu'; }
-  else if (state==='saved') { el.className='save-badge saved'; el.textContent='✓ Đã lưu'; }
+  else if (state==='saved') {
+    const t = new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+    el.className='save-badge saved'; el.textContent='✓ Lưu lúc '+t;
+  }
   else { el.className='save-badge'; el.textContent=''; }
 }
 
@@ -842,7 +910,7 @@ function resetForm() {
   step=0; scores={}; flags=[null,null,null,null,null]; snapData=null;
   document.querySelectorAll('input:not([readonly]),textarea,select').forEach(el=>el.value='');
   document.querySelectorAll('.pill.sel,.pain-tag.sel,.pain-tag.sel-none,.flag-btn.active,.score-btn.active').forEach(el=>el.classList.remove('sel','sel-none','active'));
-  document.querySelectorAll('#c-scale button').forEach(b=>{b.style.cssText='width:34px;height:34px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .2s;';delete b.dataset.sel;});
+  document.querySelectorAll('#c-scale button').forEach(b=>{b.style.cssText='width:44px;height:44px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:14px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .2s;';delete b.dataset.sel;});
   document.getElementById('total-score').textContent='—'; document.getElementById('total-score').style.color='';
   document.getElementById('b-bmi').value='';
   document.getElementById('refer-banner').classList.remove('show');
