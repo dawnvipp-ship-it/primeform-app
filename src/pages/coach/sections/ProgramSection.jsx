@@ -123,12 +123,19 @@ export default function ProgramSection({ clientId }) {
       <Modal open={!!dayForm} onClose={() => setDayForm(null)} title="Thêm ngày tập">
         {dayForm && (
           <div className="stack">
-            <Field label="Tên ngày (VD: Day A · Lower Strength)"><Input value={dayForm.workout_day} onChange={(e) => setDayForm({ ...dayForm, workout_day: e.target.value })} /></Field>
             <div className="field-grid">
-              <Field label="Giai đoạn (phase)"><Input value={dayForm.phase} onChange={(e) => setDayForm({ ...dayForm, phase: e.target.value })} placeholder="Foundation" /></Field>
-              <Field label="Tuần"><Input type="number" value={dayForm.week} onChange={(e) => setDayForm({ ...dayForm, week: e.target.value })} /></Field>
+              <Field label="Giai đoạn (phase)">
+                <select className="input" value={dayForm.phase} onChange={(e) => setDayForm({ ...dayForm, phase: e.target.value })}>
+                  <option value="">— Chọn phase —</option>
+                  <option value="Phase 1">Phase 1</option>
+                  <option value="Phase 2">Phase 2</option>
+                  <option value="Phase 3">Phase 3</option>
+                </select>
+              </Field>
+              <Field label="Tuần"><Input type="number" min="1" value={dayForm.week} onChange={(e) => setDayForm({ ...dayForm, week: e.target.value })} /></Field>
             </div>
-            <button className="btn btn-primary btn-block" onClick={saveDay} disabled={busy}>{busy ? 'Đang lưu…' : 'Thêm ngày'}</button>
+            <Field label="Tên ngày (VD: Day A · Lower Strength)"><Input value={dayForm.workout_day} onChange={(e) => setDayForm({ ...dayForm, workout_day: e.target.value })} /></Field>
+            <button className="btn btn-primary btn-block" onClick={saveDay} disabled={busy || !dayForm.phase}>{busy ? 'Đang lưu…' : 'Thêm ngày'}</button>
           </div>
         )}
       </Modal>
