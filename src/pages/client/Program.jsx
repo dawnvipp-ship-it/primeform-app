@@ -62,7 +62,7 @@ function ExerciseCard({ ex, clientId }) {
             borderRadius: 6,
             padding: '4px 10px',
             fontSize: 13,
-            color: 'var(--pf-fg)',
+            color: 'var(--pf-text)',
             width: 100,
           }}
         />
@@ -128,22 +128,12 @@ export default function Program() {
       ) : (
         <>
           {phases.length > 1 && (
-            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+            <div className="seg-tabs">
               {phases.map((ph) => (
                 <button
                   key={ph}
                   onClick={() => selectPhase(ph)}
-                  className="btn btn-sm"
-                  style={{
-                    background: ph === selectedPhase ? 'var(--pf-accent)' : 'transparent',
-                    color: ph === selectedPhase ? '#0B0B0B' : 'var(--pf-muted)',
-                    border: ph === selectedPhase ? 'none' : '1px solid var(--pf-line)',
-                    whiteSpace: 'nowrap',
-                    fontWeight: 600,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    fontSize: 11,
-                  }}
+                  className={`seg-tab seg-tab-accent${ph === selectedPhase ? ' active' : ''}`}
                 >
                   {ph}
                 </button>
@@ -151,18 +141,12 @@ export default function Program() {
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+          <div className="seg-tabs">
             {phaseDays.map((p, i) => (
               <button
                 key={p.id}
                 onClick={() => setActiveDay(i)}
-                className="btn btn-sm"
-                style={{
-                  background: i === activeDay ? 'var(--pf-fg)' : 'transparent',
-                  color: i === activeDay ? 'var(--pf-bg)' : 'var(--pf-muted)',
-                  border: i === activeDay ? 'none' : '1px solid var(--pf-line)',
-                  whiteSpace: 'nowrap',
-                }}
+                className={`seg-tab${i === activeDay ? ' active' : ''}`}
               >
                 {p.workout_day || `Ngày ${i + 1}`}
               </button>

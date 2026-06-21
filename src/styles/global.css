@@ -210,6 +210,42 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+/* ---------- Segmented control (Apple-style tab bar) ---------- */
+.seg-tabs {
+  display: flex;
+  gap: 3px;
+  background: var(--pf-surface-2);
+  border-radius: 10px;
+  padding: 3px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.seg-tabs::-webkit-scrollbar { display: none; }
+.seg-tab {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--pf-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+.seg-tab.active {
+  background: var(--pf-surface);
+  color: var(--pf-text);
+  box-shadow: 0 1px 4px rgba(0,0,0,.35), 0 0 0 0.5px rgba(232,216,195,.08);
+}
+.seg-tab-accent.active {
+  background: var(--pf-surface);
+  color: var(--pf-accent);
+}
+
 /* Coach table */
 .ctable { width: 100%; border-collapse: collapse; }
 .ctable th { text-align: left; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--pf-faint); padding: 10px 12px; border-bottom: 1px solid var(--pf-line); font-weight: 600; }

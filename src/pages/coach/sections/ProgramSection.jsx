@@ -126,9 +126,12 @@ export default function ProgramSection({ clientId }) {
   const [phaseForm, setPhaseForm] = useState(null)
   const [busy, setBusy] = useState(false)
 
+  const UNASSIGNED = '— Chưa phân phase'
   // Derive unique phases from loaded days
   const phases = (days || []).map((d) => d.phase).filter(Boolean)
     .filter((ph, i, arr) => arr.indexOf(ph) === i)
+  const hasUnassigned = (days || []).some((d) => !d.phase)
+  const allTabs = hasUnassigned ? [...phases, UNASSIGNED] : phases
 
   // Load phaseWeeks from localStorage whenever days change
   useEffect(() => {
@@ -140,10 +143,12 @@ export default function ProgramSection({ clientId }) {
     setPhaseWeeks(map)
   }, [days, clientId])
 
-  // Auto-select first phase when days load
+  // Auto-select first tab when days load
   useEffect(() => {
-    if (phases.length > 0 && !selectedPhase) {
-      setSelectedPhase(phases[0])
+    if (!selectedPhase) {
+      const first = (days || []).map((d) => d.phase).filter(Boolean)[0]
+      if (first) setSelectedPhase(first)
+      else if ((days || []).some((d) => !d.phase)) setSelectedPhase('— Chưa phân phase')
     }
   }, [days])
 
@@ -179,7 +184,9 @@ export default function ProgramSection({ clientId }) {
 
   if (loading) return <InlineLoader />
 
-  const phaseDays = (days || []).filter((d) => d.phase === selectedPhase)
+  const phaseDays = (days || []).filter((d) =>
+    selectedPhase === UNASSIGNED ? !d.phase : d.phase === selectedPhase
+  )
   const customPhases = phases.filter((ph) => !PRESET_PHASES.includes(ph))
 
   return (
@@ -195,26 +202,19 @@ export default function ProgramSection({ clientId }) {
         </button>
       </div>
 
-      {phases.length === 0 ? (
+      {allTabs.length === 0 ? (
         <Card style={{ background: 'var(--pf-surface-2)', textAlign: 'center', padding: 'var(--s5)' }}>
           <p className="muted" style={{ fontSize: 13 }}>Chưa có phase nào. Bấm <strong>＋ Phase</strong> để bắt đầu.</p>
         </Card>
       ) : (
-        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-          {phases.map((ph) => (
+        <div className="seg-tabs">
+          {allTabs.map((ph) => (
             <button
               key={ph}
               onClick={() => setSelectedPhase(ph)}
-              className="btn btn-sm"
-              style={{
-                background: ph === selectedPhase ? 'var(--pf-accent)' : 'transparent',
-                color: ph === selectedPhase ? '#0B0B0B' : 'var(--pf-muted)',
-                border: ph === selectedPhase ? 'none' : '1px solid var(--pf-line)',
-                whiteSpace: 'nowrap',
-                fontWeight: 600,
-              }}
+              className={`seg-tab seg-tab-accent${ph === selectedPhase ? ' active' : ''}`}
             >
-              {ph}{phaseWeeks[ph] ? ` · ${phaseWeeks[ph]} tuần` : ''}
+              {ph}{phaseWeeks[ph] && ph !== UNASSIGNED ? ` · ${phaseWeeks[ph]} tuần` : ''}
             </button>
           ))}
         </div>
