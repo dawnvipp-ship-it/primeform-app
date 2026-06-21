@@ -124,13 +124,11 @@ export default function Nutrition() {
           {days.length > 0 && (
             <>
               <Eyebrow muted>Thực đơn 7 ngày</Eyebrow>
-              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+              <div className="seg-tabs">
                 {days.map((d, i) => (
-                  <button key={i} onClick={() => setActive(i)} className="btn btn-sm" style={{
-                    background: i === active ? 'var(--pf-accent)' : 'transparent',
-                    color: i === active ? '#0B0B0B' : 'var(--pf-muted)',
-                    border: i === active ? 'none' : '1px solid var(--pf-line)', whiteSpace: 'nowrap',
-                  }}>{d.label || `Ngày ${i + 1}`}</button>
+                  <button key={i} onClick={() => setActive(i)} className={`seg-tab${i === active ? ' active' : ''}`}>
+                    {d.label || `Ngày ${i + 1}`}
+                  </button>
                 ))}
               </div>
               {cur && <Card><RichLines text={cur.meals} /></Card>}
