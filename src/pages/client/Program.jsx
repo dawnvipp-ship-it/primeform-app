@@ -52,7 +52,8 @@ function ExerciseCard({ ex }) {
 
 export default function Program() {
   const { db } = useAuth()
-  const [active, setActive] = useState(0)
+  const [activePhase, setActivePhase] = useState(null)
+  const [activeDay, setActiveDay] = useState(0)
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     const programs = me ? await listPrograms(db, me.id) : []
@@ -61,8 +62,22 @@ export default function Program() {
 
   if (loading) return <div className="screen"><InlineLoader /></div>
   const programs = data?.programs || []
-  const cur = programs[active]
-  const phaseLine = cur ? [cur.phase, cur.week && `Tuần ${cur.week}`].filter(Boolean).join(' · ') : ''
+
+  // Collect unique phases in order
+  const phases = []
+  programs.forEach((p) => {
+    const ph = p.phase || 'Chưa phân phase'
+    if (!phases.includes(ph)) phases.push(ph)
+  })
+
+  const selectedPhase = activePhase ?? phases[0] ?? null
+  const phaseDays = programs.filter((p) => (p.phase || 'Chưa phân phase') === selectedPhase)
+  const cur = phaseDays[activeDay] ?? phaseDays[0] ?? null
+
+  function selectPhase(ph) {
+    setActivePhase(ph)
+    setActiveDay(0)
+  }
 
   return (
     <div className="screen stack fade-in">
@@ -75,16 +90,42 @@ export default function Program() {
         <Empty title="Chưa có giáo án" hint="HLV đang hoàn thiện chương trình cho bạn." />
       ) : (
         <>
+          {/* Phase selector */}
+          {phases.length > 1 && (
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+              {phases.map((ph) => (
+                <button
+                  key={ph}
+                  onClick={() => selectPhase(ph)}
+                  className="btn btn-sm"
+                  style={{
+                    background: ph === selectedPhase ? 'var(--pf-accent)' : 'transparent',
+                    color: ph === selectedPhase ? '#0B0B0B' : 'var(--pf-muted)',
+                    border: ph === selectedPhase ? 'none' : '1px solid var(--pf-line)',
+                    whiteSpace: 'nowrap',
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    fontSize: 11,
+                  }}
+                >
+                  {ph}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Day tabs for selected phase */}
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-            {programs.map((p, i) => (
+            {phaseDays.map((p, i) => (
               <button
                 key={p.id}
-                onClick={() => setActive(i)}
+                onClick={() => setActiveDay(i)}
                 className="btn btn-sm"
                 style={{
-                  background: i === active ? 'var(--pf-accent)' : 'transparent',
-                  color: i === active ? '#0B0B0B' : 'var(--pf-muted)',
-                  border: i === active ? 'none' : '1px solid var(--pf-line)',
+                  background: i === activeDay ? 'var(--pf-fg)' : 'transparent',
+                  color: i === activeDay ? 'var(--pf-bg)' : 'var(--pf-muted)',
+                  border: i === activeDay ? 'none' : '1px solid var(--pf-line)',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -97,7 +138,7 @@ export default function Program() {
             <>
               <div className="row-between" style={{ alignItems: 'flex-end' }}>
                 <div className="pf-display" style={{ fontSize: 20 }}>{cur.workout_day}</div>
-                {phaseLine && <div className="eyebrow eyebrow-muted">{phaseLine}</div>}
+                {cur.week && <div className="eyebrow eyebrow-muted">Tuần {cur.week}</div>}
               </div>
               <div className="divider" />
               {(cur.program_exercises || []).map((ex) => <ExerciseCard key={ex.id} ex={ex} />)}
