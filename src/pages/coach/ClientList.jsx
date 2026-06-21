@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { listClients, createClient, deleteClient } from '../../data/clients'
+import { COACHES } from '../../data/coaches'
 import { InlineLoader, Eyebrow, Card, Empty, Modal, Field, Input } from '../../components/ui/primitives'
 import { IconPlus, IconChevron, IconTrash } from '../../components/ui/Icons'
 
@@ -17,14 +18,17 @@ export default function ClientList() {
   const navigate = useNavigate()
   const { data, loading, reload } = useAsync(() => listClients(db), [db])
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ full_name: '', client_code: '', phone: '', email: '', total_sessions: 72 })
+  const [form, setForm] = useState({ full_name: '', client_code: '', phone: '', email: '', total_sessions: 72, coach: '' })
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [query, setQuery] = useState('')
+  const [coachFilter, setCoachFilter] = useState('Tất cả')
 
   const filtered = (data || []).filter((c) => {
     const q = query.toLowerCase()
-    return !q || c.full_name?.toLowerCase().includes(q) || c.client_code?.toLowerCase().includes(q)
+    const matchQ = !q || c.full_name?.toLowerCase().includes(q) || c.client_code?.toLowerCase().includes(q)
+    const matchCoach = coachFilter === 'Tất cả' || c.coach === coachFilter
+    return matchQ && matchCoach
   })
 
   function openModal() {
@@ -42,6 +46,7 @@ export default function ClientList() {
         phone: form.phone.trim() || null,
         email: form.email.trim() || null,
         total_sessions: Number(form.total_sessions) || 0,
+        coach: form.coach || null,
       })
       setOpen(false)
       navigate(`/coach/client/${created.id}`)
@@ -61,11 +66,16 @@ export default function ClientList() {
       </div>
 
       {!loading && data?.length > 0 && (
-        <Input
-          placeholder="Tìm theo tên hoặc mã…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <>
+          <div className="seg-tabs">
+            {['Tất cả', ...COACHES].map((c) => (
+              <button key={c} onClick={() => setCoachFilter(c)} className={`seg-tab${c === coachFilter ? ' active' : ''}`}>
+                {c === 'Tất cả' ? 'Tất cả' : c.split(' ').slice(-1)[0]}
+              </button>
+            ))}
+          </div>
+          <Input placeholder="Tìm theo tên hoặc mã…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        </>
       )}
 
       {loading ? <InlineLoader /> : (data?.length === 0 ? (
@@ -81,6 +91,7 @@ export default function ClientList() {
                 <div style={{ fontWeight: 600 }}>{c.full_name}</div>
                 <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
                   {c.client_code} · còn {c.remaining_sessions}/{c.total_sessions} buổi
+                  {c.coach && <span style={{ marginLeft: 6, color: 'var(--pf-faint)' }}>· {c.coach.split(' ').slice(-1)[0]}</span>}
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -118,6 +129,12 @@ export default function ClientList() {
             <Field label="Số buổi"><Input type="number" value={form.total_sessions} onChange={(e) => setForm({ ...form, total_sessions: e.target.value })} /></Field>
           </div>
           <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
+          <Field label="HLV phụ trách">
+            <select className="input" value={form.coach} onChange={(e) => setForm({ ...form, coach: e.target.value })}>
+              <option value="">— Chọn HLV —</option>
+              {COACHES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </Field>
           {err && <div style={{ color: 'var(--pf-danger)', fontSize: 13 }}>{err}</div>}
           <button className="btn btn-primary btn-block" onClick={save} disabled={busy}>{busy ? 'Đang tạo…' : 'Tạo hồ sơ'}</button>
         </div>

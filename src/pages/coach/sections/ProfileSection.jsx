@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { updateClient } from '../../../data/clients'
+import { COACHES } from '../../../data/coaches'
 import { Card, Eyebrow, Field, Input } from '../../../components/ui/primitives'
 
 export default function ProfileSection({ client, onSaved }) {
@@ -12,6 +13,7 @@ export default function ProfileSection({ client, onSaved }) {
     total_sessions: client.total_sessions ?? 0,
     used_sessions: client.used_sessions ?? 0,
     active: client.active,
+    coach: client.coach || '',
   })
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -31,6 +33,7 @@ export default function ProfileSection({ client, onSaved }) {
         total_sessions: total,
         used_sessions: used,
         active: f.active,
+        coach: f.coach || null,
       })
       setSaved(true); onSaved?.()
       setTimeout(() => setSaved(false), 2000)
@@ -48,6 +51,12 @@ export default function ProfileSection({ client, onSaved }) {
           <Field label="SĐT"><Input value={f.phone} onChange={set('phone')} /></Field>
           <Field label="Email"><Input value={f.email} onChange={set('email')} /></Field>
         </div>
+        <Field label="HLV phụ trách">
+          <select className="input" value={f.coach} onChange={(e) => setF({ ...f, coach: e.target.value })}>
+            <option value="">— Chưa gán —</option>
+            {COACHES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </Field>
         <label className="row" style={{ gap: 8, cursor: 'pointer' }}>
           <input type="checkbox" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} />
           <span style={{ fontSize: 14 }}>Đang hoạt động (mã truy cập còn hiệu lực)</span>
