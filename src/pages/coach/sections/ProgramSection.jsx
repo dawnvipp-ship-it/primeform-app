@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { useAsync } from '../../../hooks/useAsync'
 import {
-  listPrograms, createProgramDay, deleteProgramDay, setDayExercises,
+  listPrograms, createProgramDay, deleteProgramDay, setDayExercises, updateProgramDay,
 } from '../../../data/programs'
 import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader } from '../../../components/ui/primitives'
 import { IconPlus, IconTrash } from '../../../components/ui/Icons'
@@ -28,11 +28,13 @@ function parseText(text) {
   }).filter((ex) => ex.exercise_name)
 }
 
-function DayCard({ day, onChanged, onDelete }) {
+function DayCard({ day, allDays, onChanged, onDelete }) {
   const { db } = useAuth()
   const [text, setText] = useState(exercisesToText(day.program_exercises))
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [meta, setMeta] = useState({ phase: day.phase || '', week: day.week || '', workout_day: day.workout_day || '' })
   const count = text.split('\n').filter((l) => l.trim()).length
 
   async function save() {
@@ -44,16 +46,60 @@ function DayCard({ day, onChanged, onDelete }) {
     } finally { setBusy(false) }
   }
 
+  async function saveMeta() {
+    setBusy(true)
+    try {
+      await updateProgramDay(db, day.id, {
+        phase: meta.phase || null,
+        week: meta.week ? Number(meta.week) : null,
+        workout_day: meta.workout_day || day.workout_day,
+      })
+      setEditing(false); onChanged?.()
+    } finally { setBusy(false) }
+  }
+
+  const existingPhases = (allDays || []).map((d) => d.phase).filter(Boolean)
+    .filter((ph, i, arr) => arr.indexOf(ph) === i && !['Phase 1','Phase 2','Phase 3'].includes(ph))
+
   return (
     <Card className="stack">
       <div className="row-between">
-        <div>
-          <div className="pf-display" style={{ fontSize: 18 }}>{day.workout_day}</div>
-          <div className="muted" style={{ fontSize: 12 }}>
-            {[day.phase, day.week && `Tuần ${day.week}`].filter(Boolean).join(' · ') || '—'}
+        {editing ? (
+          <div className="stack" style={{ flex: 1, gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <Input
+                  list={`phase-edit-${day.id}`}
+                  value={meta.phase}
+                  onChange={(e) => setMeta({ ...meta, phase: e.target.value })}
+                  placeholder="Phase 1"
+                  style={{ fontSize: 13 }}
+                />
+                <datalist id={`phase-edit-${day.id}`}>
+                  {['Phase 1', 'Phase 2', 'Phase 3'].map((ph) => <option key={ph} value={ph} />)}
+                  {existingPhases.map((ph) => <option key={ph} value={ph} />)}
+                </datalist>
+              </div>
+              <div style={{ width: 72 }}>
+                <Input type="number" min="1" value={meta.week} onChange={(e) => setMeta({ ...meta, week: e.target.value })} placeholder="Tuần" style={{ fontSize: 13 }} />
+              </div>
+            </div>
+            <Input value={meta.workout_day} onChange={(e) => setMeta({ ...meta, workout_day: e.target.value })} placeholder="Tên ngày" style={{ fontSize: 13 }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-primary btn-sm" onClick={saveMeta} disabled={busy}>{busy ? '…' : 'Lưu'}</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(false); setMeta({ phase: day.phase || '', week: day.week || '', workout_day: day.workout_day || '' }) }}>Huỷ</button>
+            </div>
           </div>
-        </div>
-        <button className="btn-quiet" onClick={() => onDelete(day.id)} style={{ color: 'var(--pf-danger)' }}><IconTrash width={16} height={16} /></button>
+        ) : (
+          <div style={{ cursor: 'pointer' }} onClick={() => setEditing(true)}>
+            <div className="pf-display" style={{ fontSize: 18 }}>{day.workout_day}</div>
+            <div className="muted" style={{ fontSize: 12 }}>
+              {[day.phase, day.week && `Tuần ${day.week}`].filter(Boolean).join(' · ') || '—'}
+              <span style={{ marginLeft: 6, opacity: 0.45, fontSize: 11 }}>✎ sửa</span>
+            </div>
+          </div>
+        )}
+        {!editing && <button className="btn-quiet" onClick={() => onDelete(day.id)} style={{ color: 'var(--pf-danger)' }}><IconTrash width={16} height={16} /></button>}
       </div>
       <div className="divider" />
       <Textarea
@@ -118,7 +164,7 @@ export default function ProgramSection({ clientId }) {
 
       {(!days || days.length === 0) && <Empty title="Chưa có ngày tập nào" hint="Bấm “Thêm ngày” để bắt đầu." />}
 
-      {days?.map((d) => <DayCard key={d.id} day={d} onChanged={reload} onDelete={removeDay} />)}
+      {days?.map((d) => <DayCard key={d.id} day={d} allDays={days} onChanged={reload} onDelete={removeDay} />)}
 
       <Modal open={!!dayForm} onClose={() => setDayForm(null)} title="Thêm ngày tập">
         {dayForm && (
