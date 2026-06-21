@@ -125,12 +125,20 @@ export default function ProgramSection({ clientId }) {
           <div className="stack">
             <div className="field-grid">
               <Field label="Giai đoạn (phase)">
-                <select className="input" value={dayForm.phase} onChange={(e) => setDayForm({ ...dayForm, phase: e.target.value })}>
-                  <option value="">— Chọn phase —</option>
-                  <option value="Phase 1">Phase 1</option>
-                  <option value="Phase 2">Phase 2</option>
-                  <option value="Phase 3">Phase 3</option>
-                </select>
+                <Input
+                  list="phase-options"
+                  value={dayForm.phase}
+                  onChange={(e) => setDayForm({ ...dayForm, phase: e.target.value })}
+                  placeholder="Phase 1"
+                />
+                <datalist id="phase-options">
+                  {['Phase 1', 'Phase 2', 'Phase 3'].map((ph) => (
+                    <option key={ph} value={ph} />
+                  ))}
+                  {days?.map((d) => d.phase).filter(Boolean)
+                    .filter((ph, i, arr) => arr.indexOf(ph) === i && !['Phase 1','Phase 2','Phase 3'].includes(ph))
+                    .map((ph) => <option key={ph} value={ph} />)}
+                </datalist>
               </Field>
               <Field label="Tuần"><Input type="number" min="1" value={dayForm.week} onChange={(e) => setDayForm({ ...dayForm, week: e.target.value })} /></Field>
             </div>
