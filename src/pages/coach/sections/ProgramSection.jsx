@@ -7,9 +7,13 @@ import {
 import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader } from '../../../components/ui/primitives'
 import { IconPlus, IconTrash } from '../../../components/ui/Icons'
 
-// Column order for the paste box (pipe "|" or tab separated):
 const COLS = ['group_label', 'exercise_name', 'sets', 'reps', 'tempo', 'rest', 'load', 'rpe', 'coaching_cue', 'notes']
 const HEADER = 'Nhóm | Tên bài | Sets | Reps | Tempo | Nghỉ | Mức tạ | RPE | Cue | Ghi chú'
+const PRESET_PHASES = ['Phase 1', 'Phase 2', 'Phase 3']
+
+function phaseWeeksKey(clientId, phaseName) {
+  return `pf_phase_weeks_${clientId}_${phaseName}`
+}
 
 function exercisesToText(list) {
   return (list || []).map((ex) =>
@@ -22,7 +26,6 @@ function parseText(text) {
     const parts = line.split(line.includes('\t') ? '\t' : '|').map((s) => s.trim())
     const ex = {}
     COLS.forEach((c, i) => { ex[c] = parts[i] || null })
-    // If only one field given, treat it as the exercise name.
     if (parts.length === 1) { ex.group_label = null; ex.exercise_name = parts[0] }
     return ex
   }).filter((ex) => ex.exercise_name)
@@ -34,7 +37,7 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [meta, setMeta] = useState({ phase: day.phase || '', week: day.week || '', workout_day: day.workout_day || '' })
+  const [meta, setMeta] = useState({ phase: day.phase || '', workout_day: day.workout_day || '' })
   const count = text.split('\n').filter((l) => l.trim()).length
 
   async function save() {
@@ -51,7 +54,6 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
     try {
       await updateProgramDay(db, day.id, {
         phase: meta.phase || null,
-        week: meta.week ? Number(meta.week) : null,
         workout_day: meta.workout_day || day.workout_day,
       })
       setEditing(false); onChanged?.()
@@ -59,7 +61,7 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
   }
 
   const existingPhases = (allDays || []).map((d) => d.phase).filter(Boolean)
-    .filter((ph, i, arr) => arr.indexOf(ph) === i && !['Phase 1','Phase 2','Phase 3'].includes(ph))
+    .filter((ph, i, arr) => arr.indexOf(ph) === i && !PRESET_PHASES.includes(ph))
 
   return (
     <Card className="stack">
@@ -76,25 +78,22 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
                   style={{ fontSize: 13 }}
                 />
                 <datalist id={`phase-edit-${day.id}`}>
-                  {['Phase 1', 'Phase 2', 'Phase 3'].map((ph) => <option key={ph} value={ph} />)}
+                  {PRESET_PHASES.map((ph) => <option key={ph} value={ph} />)}
                   {existingPhases.map((ph) => <option key={ph} value={ph} />)}
                 </datalist>
-              </div>
-              <div style={{ width: 72 }}>
-                <Input type="number" min="1" value={meta.week} onChange={(e) => setMeta({ ...meta, week: e.target.value })} placeholder="Tuần" style={{ fontSize: 13 }} />
               </div>
             </div>
             <Input value={meta.workout_day} onChange={(e) => setMeta({ ...meta, workout_day: e.target.value })} placeholder="Tên ngày" style={{ fontSize: 13 }} />
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-primary btn-sm" onClick={saveMeta} disabled={busy}>{busy ? '…' : 'Lưu'}</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(false); setMeta({ phase: day.phase || '', week: day.week || '', workout_day: day.workout_day || '' }) }}>Huỷ</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(false); setMeta({ phase: day.phase || '', workout_day: day.workout_day || '' }) }}>Huỷ</button>
             </div>
           </div>
         ) : (
           <div style={{ cursor: 'pointer' }} onClick={() => setEditing(true)}>
             <div className="pf-display" style={{ fontSize: 18 }}>{day.workout_day}</div>
             <div className="muted" style={{ fontSize: 12 }}>
-              {[day.phase, day.week && `Tuần ${day.week}`].filter(Boolean).join(' · ') || '—'}
+              {day.phase || '—'}
               <span style={{ marginLeft: 6, opacity: 0.45, fontSize: 11 }}>✎ sửa</span>
             </div>
           </div>
@@ -121,15 +120,51 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
 export default function ProgramSection({ clientId }) {
   const { db } = useAuth()
   const { data: days, loading, reload } = useAsync(() => listPrograms(db, clientId), [db, clientId])
+  const [selectedPhase, setSelectedPhase] = useState(null)
+  const [phaseWeeks, setPhaseWeeks] = useState({})
   const [dayForm, setDayForm] = useState(null)
+  const [phaseForm, setPhaseForm] = useState(null)
   const [busy, setBusy] = useState(false)
 
+  // Derive unique phases from loaded days
+  const phases = (days || []).map((d) => d.phase).filter(Boolean)
+    .filter((ph, i, arr) => arr.indexOf(ph) === i)
+
+  // Load phaseWeeks from localStorage whenever days change
+  useEffect(() => {
+    const map = {}
+    phases.forEach((ph) => {
+      const val = localStorage.getItem(phaseWeeksKey(clientId, ph))
+      if (val) map[ph] = val
+    })
+    setPhaseWeeks(map)
+  }, [days, clientId])
+
+  // Auto-select first phase when days load
+  useEffect(() => {
+    if (phases.length > 0 && !selectedPhase) {
+      setSelectedPhase(phases[0])
+    }
+  }, [days])
+
+  function savePhase() {
+    if (!phaseForm?.name) return
+    const weeks = phaseForm.weeks ? String(phaseForm.weeks) : null
+    if (weeks) {
+      localStorage.setItem(phaseWeeksKey(clientId, phaseForm.name), weeks)
+      setPhaseWeeks((prev) => ({ ...prev, [phaseForm.name]: weeks }))
+    }
+    setSelectedPhase(phaseForm.name)
+    setPhaseForm(null)
+  }
+
   async function saveDay() {
+    if (!selectedPhase) return
     setBusy(true)
     try {
       await createProgramDay(db, clientId, {
-        phase: dayForm.phase || null,
-        week: dayForm.week ? Number(dayForm.week) : null,
+        phase: selectedPhase,
+        week: null,
         workout_day: dayForm.workout_day || 'Workout',
         order_index: (days?.length || 0),
       })
@@ -144,52 +179,130 @@ export default function ProgramSection({ clientId }) {
 
   if (loading) return <InlineLoader />
 
+  const phaseDays = (days || []).filter((d) => d.phase === selectedPhase)
+  const customPhases = phases.filter((ph) => !PRESET_PHASES.includes(ph))
+
   return (
     <div className="stack">
-      <div className="row-between">
-        <Eyebrow muted>Các ngày tập</Eyebrow>
-        <button className="btn btn-ghost btn-sm" onClick={() => setDayForm({ phase: '', week: '', workout_day: '' })}>
-          <IconPlus width={15} height={15} /> Thêm ngày
+      {/* Phase selector row */}
+      <div className="row-between" style={{ alignItems: 'center' }}>
+        <Eyebrow muted>Giai đoạn</Eyebrow>
+        <button
+          className="btn btn-ghost btn-sm"
+          onClick={() => setPhaseForm({ name: '', weeks: '' })}
+        >
+          <IconPlus width={15} height={15} /> Phase
         </button>
       </div>
 
-      <Card style={{ background: 'var(--pf-surface-2)' }}>
-        <Eyebrow muted>Cách nhập (copy-paste như meal plan)</Eyebrow>
-        <p className="muted" style={{ fontSize: 12.5, marginTop: 8, lineHeight: 1.7 }}>
-          Mỗi dòng = 1 bài tập. Các cột ngăn nhau bằng dấu <strong style={{ color: 'var(--pf-accent)' }}>|</strong> theo thứ tự:
-        </p>
-        <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: 'var(--pf-accent)', marginTop: 6 }}>{HEADER}</div>
-        <p className="faint" style={{ fontSize: 12, marginTop: 8 }}>Cột nào không có cứ để trống (vẫn giữ dấu |). Có thể dán thẳng từ Google Sheet (tab cũng được).</p>
-      </Card>
+      {phases.length === 0 ? (
+        <Card style={{ background: 'var(--pf-surface-2)', textAlign: 'center', padding: 'var(--s5)' }}>
+          <p className="muted" style={{ fontSize: 13 }}>Chưa có phase nào. Bấm <strong>＋ Phase</strong> để bắt đầu.</p>
+        </Card>
+      ) : (
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+          {phases.map((ph) => (
+            <button
+              key={ph}
+              onClick={() => setSelectedPhase(ph)}
+              className="btn btn-sm"
+              style={{
+                background: ph === selectedPhase ? 'var(--pf-accent)' : 'transparent',
+                color: ph === selectedPhase ? '#0B0B0B' : 'var(--pf-muted)',
+                border: ph === selectedPhase ? 'none' : '1px solid var(--pf-line)',
+                whiteSpace: 'nowrap',
+                fontWeight: 600,
+              }}
+            >
+              {ph}{phaseWeeks[ph] ? ` · ${phaseWeeks[ph]} tuần` : ''}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {(!days || days.length === 0) && <Empty title="Chưa có ngày tập nào" hint="Bấm “Thêm ngày” để bắt đầu." />}
+      {/* Days section for selected phase */}
+      {selectedPhase && (
+        <>
+          <div className="row-between" style={{ marginTop: 8 }}>
+            <Eyebrow muted>Các ngày tập — {selectedPhase}</Eyebrow>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setDayForm({ workout_day: '' })}
+            >
+              <IconPlus width={15} height={15} /> Thêm ngày
+            </button>
+          </div>
 
-      {days?.map((d) => <DayCard key={d.id} day={d} allDays={days} onChanged={reload} onDelete={removeDay} />)}
+          <Card style={{ background: 'var(--pf-surface-2)' }}>
+            <Eyebrow muted>Cách nhập (copy-paste như meal plan)</Eyebrow>
+            <p className="muted" style={{ fontSize: 12.5, marginTop: 8, lineHeight: 1.7 }}>
+              Mỗi dòng = 1 bài tập. Các cột ngăn nhau bằng dấu <strong style={{ color: 'var(--pf-accent)' }}>|</strong> theo thứ tự:
+            </p>
+            <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: 'var(--pf-accent)', marginTop: 6 }}>{HEADER}</div>
+            <p className="faint" style={{ fontSize: 12, marginTop: 8 }}>Cột nào không có cứ để trống (vẫn giữ dấu |). Có thể dán thẳng từ Google Sheet (tab cũng được).</p>
+          </Card>
 
-      <Modal open={!!dayForm} onClose={() => setDayForm(null)} title="Thêm ngày tập">
+          {phaseDays.length === 0 && (
+            <Empty title={`Chưa có ngày tập nào trong ${selectedPhase}`} hint='Bấm "Thêm ngày" để bắt đầu.' />
+          )}
+
+          {phaseDays.map((d) => (
+            <DayCard key={d.id} day={d} allDays={days} onChanged={reload} onDelete={removeDay} />
+          ))}
+        </>
+      )}
+
+      {/* Modal: Add Phase */}
+      <Modal open={!!phaseForm} onClose={() => setPhaseForm(null)} title="Thêm phase">
+        {phaseForm && (
+          <div className="stack">
+            <Field label="Tên phase">
+              <Input
+                list="new-phase-options"
+                value={phaseForm.name}
+                onChange={(e) => setPhaseForm({ ...phaseForm, name: e.target.value })}
+                placeholder="Phase 1"
+                autoFocus
+              />
+              <datalist id="new-phase-options">
+                {PRESET_PHASES.map((ph) => <option key={ph} value={ph} />)}
+                {customPhases.map((ph) => <option key={ph} value={ph} />)}
+              </datalist>
+            </Field>
+            <Field label="Tổng số tuần">
+              <Input
+                type="number"
+                min="1"
+                value={phaseForm.weeks}
+                onChange={(e) => setPhaseForm({ ...phaseForm, weeks: e.target.value })}
+                placeholder="4"
+              />
+            </Field>
+            <button
+              className="btn btn-primary btn-block"
+              onClick={savePhase}
+              disabled={!phaseForm.name}
+            >
+              Xác nhận
+            </button>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal: Add Day */}
+      <Modal open={!!dayForm} onClose={() => setDayForm(null)} title={`Thêm ngày — ${selectedPhase}`}>
         {dayForm && (
           <div className="stack">
-            <div className="field-grid">
-              <Field label="Giai đoạn (phase)">
-                <Input
-                  list="phase-options"
-                  value={dayForm.phase}
-                  onChange={(e) => setDayForm({ ...dayForm, phase: e.target.value })}
-                  placeholder="Phase 1"
-                />
-                <datalist id="phase-options">
-                  {['Phase 1', 'Phase 2', 'Phase 3'].map((ph) => (
-                    <option key={ph} value={ph} />
-                  ))}
-                  {days?.map((d) => d.phase).filter(Boolean)
-                    .filter((ph, i, arr) => arr.indexOf(ph) === i && !['Phase 1','Phase 2','Phase 3'].includes(ph))
-                    .map((ph) => <option key={ph} value={ph} />)}
-                </datalist>
-              </Field>
-              <Field label="Tuần"><Input type="number" min="1" value={dayForm.week} onChange={(e) => setDayForm({ ...dayForm, week: e.target.value })} /></Field>
-            </div>
-            <Field label="Tên ngày (VD: Day A · Lower Strength)"><Input value={dayForm.workout_day} onChange={(e) => setDayForm({ ...dayForm, workout_day: e.target.value })} /></Field>
-            <button className="btn btn-primary btn-block" onClick={saveDay} disabled={busy || !dayForm.phase}>{busy ? 'Đang lưu…' : 'Thêm ngày'}</button>
+            <Field label="Tên ngày (VD: Day A · Lower Strength)">
+              <Input
+                value={dayForm.workout_day}
+                onChange={(e) => setDayForm({ ...dayForm, workout_day: e.target.value })}
+                autoFocus
+              />
+            </Field>
+            <button className="btn btn-primary btn-block" onClick={saveDay} disabled={busy || !dayForm.workout_day}>
+              {busy ? 'Đang lưu…' : 'Thêm ngày'}
+            </button>
           </div>
         )}
       </Modal>

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { listPrograms } from '../../data/programs'
+import { getTodayLog, upsertTopSet } from '../../data/workoutLogs'
 import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
 import { IconPlay } from '../../components/ui/Icons'
 
@@ -16,7 +17,18 @@ function Spec({ label, value }) {
   )
 }
 
-function ExerciseCard({ ex }) {
+function ExerciseCard({ ex, clientId }) {
+  const { db } = useAuth()
+  const [topSet, setTopSet] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!ex.id) return
+    getTodayLog(db, ex.id).then((log) => {
+      if (log?.top_set_weight) setTopSet(log.top_set_weight)
+    }).catch(() => {})
+  }, [db, ex.id])
+
   return (
     <Card className="stack" style={{ padding: 'var(--s4)' }}>
       <div className="row" style={{ gap: 10, alignItems: 'baseline' }}>
@@ -30,6 +42,31 @@ function ExerciseCard({ ex }) {
         <Spec label="Tempo" value={ex.tempo} />
         <Spec label="Nghỉ" value={ex.rest} />
         <Spec label="RPE" value={ex.rpe} />
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+        <span style={{ fontSize: 12, color: 'var(--pf-muted)', minWidth: 80 }}>Top set hôm nay</span>
+        <input
+          type="text"
+          value={topSet}
+          onChange={(e) => setTopSet(e.target.value)}
+          onBlur={async () => {
+            if (!topSet.trim()) return
+            setSaving(true)
+            try { await upsertTopSet(db, clientId, ex.id, topSet.trim()) }
+            finally { setSaving(false) }
+          }}
+          placeholder={ex.load || 'VD: 60kg'}
+          style={{
+            background: 'var(--pf-surface-2)',
+            border: '1px solid var(--pf-line)',
+            borderRadius: 6,
+            padding: '4px 10px',
+            fontSize: 13,
+            color: 'var(--pf-fg)',
+            width: 100,
+          }}
+        />
+        {saving && <span style={{ fontSize: 11, color: 'var(--pf-muted)' }}>…</span>}
       </div>
       {ex.coaching_cue && (
         <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.6, borderLeft: '2px solid var(--pf-line)', paddingLeft: 12 }}>
@@ -57,13 +94,13 @@ export default function Program() {
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     const programs = me ? await listPrograms(db, me.id) : []
-    return { programs }
+    return { programs, clientId: me?.id }
   }, [db])
 
   if (loading) return <div className="screen"><InlineLoader /></div>
   const programs = data?.programs || []
+  const clientId = data?.clientId
 
-  // Collect unique phases in order
   const phases = []
   programs.forEach((p) => {
     const ph = p.phase || 'Chưa phân phase'
@@ -90,7 +127,6 @@ export default function Program() {
         <Empty title="Chưa có giáo án" hint="HLV đang hoàn thiện chương trình cho bạn." />
       ) : (
         <>
-          {/* Phase selector */}
           {phases.length > 1 && (
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
               {phases.map((ph) => (
@@ -115,7 +151,6 @@ export default function Program() {
             </div>
           )}
 
-          {/* Day tabs for selected phase */}
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
             {phaseDays.map((p, i) => (
               <button
@@ -141,7 +176,9 @@ export default function Program() {
                 {cur.week && <div className="eyebrow eyebrow-muted">Tuần {cur.week}</div>}
               </div>
               <div className="divider" />
-              {(cur.program_exercises || []).map((ex) => <ExerciseCard key={ex.id} ex={ex} />)}
+              {(cur.program_exercises || []).map((ex) => (
+                <ExerciseCard key={ex.id} ex={ex} clientId={clientId} />
+              ))}
               {(cur.program_exercises || []).length === 0 && <Empty title="Chưa có bài tập cho ngày này" />}
             </>
           )}
