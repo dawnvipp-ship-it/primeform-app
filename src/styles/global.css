@@ -1,33 +1,46 @@
 /* ============================================================
    PRIME FORM — DESIGN SYSTEM
-   Dim slate, warm, editorial. Champagne on dark slate. Used with restraint.
+   Obsidian / Gold. Near-black, editorial restraint. Gold spent at ≤8%.
    ============================================================ */
 
 :root {
-  /* Palette */
-  --pf-bg:        #242220;
-  --pf-surface:   #2D2B28;
-  --pf-surface-2: #343230;
-  --pf-accent:    #E8D8C3;   /* champagne — spend it sparingly */
-  --pf-accent-dim:#9C9388;   /* muted champagne for hover/borders */
-  --pf-text:      #F2EEE8;   /* warm off-white */
-  --pf-muted:     #8C877E;   /* warm grey */
-  --pf-faint:     #706B63;
-  --pf-line:      rgba(232, 216, 195, 0.14);  /* hairline = accent at low alpha */
-  --pf-line-soft: rgba(232, 216, 195, 0.07);
-  --pf-danger:    #C77B6B;
-  --pf-ok:        #A7B59A;
+  /* Palette — Obsidian/Gold */
+  --pf-obsidian:    #0A0A0A;
+  --pf-charcoal:    #1A1A1A;
+  --pf-charcoal-2:  #242424;
+  --pf-charcoal-3:  #2F2D2A;
+  --pf-bone:        #F5F1EA;
+  --pf-stone:       #8C877E;
+  --pf-grey:        #6B6B6B;
+  --pf-gold:        #C9A961;
+  --pf-gold-bright: #D8BC7E;
+  --pf-gold-deep:   #A8893F;
+
+  /* Semantic */
+  --pf-bg:        var(--pf-obsidian);
+  --pf-surface:   var(--pf-charcoal);
+  --pf-surface-2: var(--pf-charcoal-2);
+  --pf-accent:    var(--pf-gold);
+  --pf-accent-dim:rgba(201, 169, 97, 0.40);
+  --pf-text:      var(--pf-bone);
+  --pf-muted:     var(--pf-stone);
+  --pf-faint:     var(--pf-grey);
+  --pf-line:      rgba(245, 241, 234, 0.10);
+  --pf-line-soft: rgba(245, 241, 234, 0.06);
+  --pf-danger:    #B5705F;
+  --pf-ok:        #7FA17F;
 
   /* Type */
-  --pf-display: 'Fraunces', Georgia, serif;
-  --pf-body:    'Hanken Grotesk', -apple-system, system-ui, sans-serif;
+  --pf-display: 'Inter Tight', system-ui, sans-serif;
+  --pf-body:    'Inter', system-ui, sans-serif;
+  --pf-serif:   'Instrument Serif', Georgia, serif;
 
   /* Spacing scale */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px;
   --s6: 32px; --s7: 48px; --s8: 64px;
 
-  --radius: 12px;
-  --radius-sm: 8px;
+  --radius:    10px;   /* cards */
+  --radius-sm: 6px;    /* inputs, buttons */
   --maxw: 720px;
 
   --bottomnav-h: 64px;
@@ -60,9 +73,9 @@ input, select, textarea { font-family: inherit; }
 .pf-display { font-family: var(--pf-display); font-weight: 500; letter-spacing: -0.01em; }
 
 .eyebrow {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--pf-accent);
 }
@@ -108,13 +121,15 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
   border-radius: var(--radius-sm);
   padding: 12px 18px;
   font-size: 14px; font-weight: 600;
-  transition: transform .08s ease, opacity .15s ease, background .15s ease;
+  transition: transform 120ms cubic-bezier(0.4,0,0.2,1),
+              opacity 120ms cubic-bezier(0.4,0,0.2,1),
+              background 220ms cubic-bezier(0.4,0,0.2,1);
   white-space: nowrap;
 }
-.btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn-primary { background: var(--pf-accent); color: #0B0B0B; }
-.btn-primary:hover { background: #f0e3d3; }
+.btn:active { transform: scale(0.992) translateY(0.5px); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-primary { background: var(--pf-gold); color: #0A0A0A; }
+.btn-primary:hover { background: var(--pf-gold-bright); }
 .btn-ghost { background: transparent; color: var(--pf-text); border-color: var(--pf-line); }
 .btn-ghost:hover { border-color: var(--pf-accent-dim); }
 .btn-quiet { background: transparent; color: var(--pf-muted); padding: 8px 10px; }
@@ -140,7 +155,9 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
   transition: border-color .15s ease;
 }
 .input:focus, .textarea:focus, .select:focus {
-  outline: none; border-color: var(--pf-accent-dim);
+  outline: 2px solid var(--pf-gold);
+  outline-offset: 1px;
+  border-color: var(--pf-gold);
 }
 .textarea { min-height: 84px; resize: vertical; line-height: 1.5; }
 .input::placeholder, .textarea::placeholder { color: var(--pf-faint); }
@@ -153,7 +170,7 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
   padding: 4px 10px; border-radius: 999px;
   border: 1px solid var(--pf-line); color: var(--pf-muted);
 }
-.tag-accent { color: var(--pf-accent); border-color: rgba(232,216,195,.25); }
+.tag-accent { color: var(--pf-accent); border-color: rgba(201,169,97,.25); }
 
 /* ---------- Data rows (program, macros) ---------- */
 .kv { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--pf-line-soft); }
@@ -176,7 +193,7 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
 .navitem {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 3px; color: var(--pf-faint); background: none; border: 0;
-  font-size: 9.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
   transition: color .15s ease;
 }
 .navitem svg { width: 20px; height: 20px; }
@@ -239,7 +256,7 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
 .seg-tab.active {
   background: var(--pf-surface);
   color: var(--pf-text);
-  box-shadow: 0 1px 4px rgba(0,0,0,.35), 0 0 0 0.5px rgba(232,216,195,.08);
+  box-shadow: 0 1px 4px rgba(0,0,0,.35), 0 0 0 0.5px rgba(201,169,97,.12);
 }
 .seg-tab-accent.active {
   background: var(--pf-surface);
