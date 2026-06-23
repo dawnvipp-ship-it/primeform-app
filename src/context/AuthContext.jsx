@@ -5,7 +5,17 @@ import * as authApi from '../data/auth'
 const AuthCtx = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [status, setStatus] = useState('loading') // loading | authed | anon
+  // If no Supabase session is stored locally, skip the loading screen entirely
+  const [status, setStatus] = useState(() => {
+    try {
+      const hasSession = Object.keys(localStorage).some(
+        k => k.startsWith('sb-') && k.includes('auth')
+      )
+      return hasSession ? 'loading' : 'anon'
+    } catch {
+      return 'loading'
+    }
+  })
   const [role, setRole] = useState(null)           // client | coach
   const [client, setClient] = useState(null)
   const [coachUser, setCoachUser] = useState(null)
