@@ -32,6 +32,37 @@ function addDays(iso, n) {
   return d.toISOString().split('T')[0]
 }
 
+// Leading numeric portion of a free-text weight entry ("60kg" -> 60, "20" ->
+// 20, "Bodyweight" -> null) - only entries that parse feed the trend line.
+function parseWeight(val) {
+  const m = String(val ?? '').match(/[\d.]+/)
+  return m ? Number(m[0]) : null
+}
+
+function Sparkline({ points }) {
+  const width = 200
+  const height = 36
+  const pad = 4
+  const values = points.map((p) => p.value)
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = max - min || 1
+  const stepX = points.length > 1 ? (width - pad * 2) / (points.length - 1) : 0
+  const coords = points.map((p, i) => {
+    const x = pad + i * stepX
+    const y = pad + (1 - (p.value - min) / span) * (height - pad * 2)
+    return [x, y]
+  })
+  const path = coords.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x},${y}`).join(' ')
+
+  return (
+    <svg width={width} height={height} style={{ display: 'block' }}>
+      <path d={path} fill="none" stroke="var(--pf-accent)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      {coords.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={2.5} fill="var(--pf-accent)" />)}
+    </svg>
+  )
+}
+
 function WeekLoadGrid({ ex, clientId, minWeeks }) {
   const { db } = useAuth()
   const [values, setValues] = useState({})
@@ -61,9 +92,17 @@ function WeekLoadGrid({ ex, clientId, minWeeks }) {
     finally { setSavingWeek(null) }
   }
 
+  const trendPoints = Object.entries(values)
+    .map(([week, val]) => ({ week: Number(week), value: parseWeight(val) }))
+    .filter((p) => p.value != null)
+    .sort((a, b) => a.week - b.week)
+
   return (
     <div style={{ marginTop: 4 }}>
-      <div style={{ fontSize: 12, color: 'var(--pf-muted)', marginBottom: 6 }}>Mức tạ theo tuần</div>
+      <div className="row-between" style={{ marginBottom: 6 }}>
+        <div style={{ fontSize: 12, color: 'var(--pf-muted)' }}>Mức tạ theo tuần</div>
+        {trendPoints.length >= 2 && <Sparkline points={trendPoints} />}
+      </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {Array.from({ length: weekCount }, (_, i) => i + 1).map((week) => (
           <div key={week} style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>

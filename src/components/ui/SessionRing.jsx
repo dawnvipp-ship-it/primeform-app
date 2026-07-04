@@ -1,6 +1,8 @@
 // Signature element: sessions rendered like a watch face.
 // Thin champagne arc over a faint track, large Fraunces numeral at center.
 
+import { useEffect, useState } from 'react'
+
 export default function SessionRing({ total = 0, used = 0, size = 220, label = 'còn lại' }) {
   const remaining = Math.max(total - used, 0)
   const pct = total > 0 ? used / total : 0
@@ -12,7 +14,16 @@ export default function SessionRing({ total = 0, used = 0, size = 220, label = '
   // Leave a small gap at the bottom (like a gauge) — sweep 300°.
   const sweep = 0.83
   const trackLen = circ * sweep
-  const usedLen = trackLen * pct
+
+  // Starts at 0 and animates to the real value on mount, via the arc's own
+  // CSS transition below - a plain render with the final value baked in
+  // never actually sweeps, since there's no prior frame to transition from.
+  const [animatedPct, setAnimatedPct] = useState(0)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setAnimatedPct(pct))
+    return () => cancelAnimationFrame(id)
+  }, [pct])
+  const usedLen = trackLen * animatedPct
   const rotation = 90 + (1 - sweep) * 180 // center the gap at the bottom
 
   return (

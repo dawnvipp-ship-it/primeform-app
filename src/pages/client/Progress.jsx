@@ -5,6 +5,7 @@ import { listProgressLogs, listPhotos, signedPhotoUrl } from '../../data/progres
 import { listPrograms, listCompletions, computeMuscleHeat } from '../../data/programs'
 import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
 import MuscleBodyMap from '../../components/ui/MuscleBodyMap'
+import BeforeAfterSlider from '../../components/ui/BeforeAfterSlider'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 
 const ACCENT = '#E8D8C3'
@@ -56,6 +57,14 @@ export default function Progress() {
   const hasLogs = logs.length > 0
   const hasMuscleData = Object.keys(muscleHeat).length > 0
 
+  // Earliest vs latest photo per angle - only meaningful once a given angle
+  // has been shot at least twice (photos already arrive sorted by week asc).
+  const photosByAngle = {}
+  photos.forEach((p) => { (photosByAngle[p.angle || 'khác'] ??= []).push(p) })
+  const comparisons = Object.entries(photosByAngle)
+    .filter(([, list]) => list.length >= 2)
+    .map(([angle, list]) => ({ angle, before: list[0], after: list[list.length - 1] }))
+
   return (
     <div className="screen stack fade-in">
       <div>
@@ -82,6 +91,21 @@ export default function Progress() {
           <Chart title="Mông" unit=" cm" dataKey="hip" rows={logs} />
           <Chart title="Bụng" unit=" cm" dataKey="belly" rows={logs} />
           <Chart title="Tay" unit=" cm" dataKey="arm" rows={logs} />
+
+          {comparisons.length > 0 && (
+            <div className="stack">
+              <Eyebrow muted>So sánh trước / sau</Eyebrow>
+              {comparisons.map(({ angle, before, after }) => (
+                <Card key={angle} className="stack">
+                  <div className="eyebrow eyebrow-muted">{angle}</div>
+                  <BeforeAfterSlider
+                    beforeUrl={before.url} beforeLabel={`Tuần ${before.week}`}
+                    afterUrl={after.url} afterLabel={`Tuần ${after.week}`}
+                  />
+                </Card>
+              ))}
+            </div>
+          )}
 
           {photos.length > 0 && (
             <div className="stack">

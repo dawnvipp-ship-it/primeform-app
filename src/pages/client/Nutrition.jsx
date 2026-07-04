@@ -4,13 +4,33 @@ import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { getMealPlan } from '../../data/mealPlans'
 import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
+import MacroRing from '../../components/ui/MacroRing'
 
-function Macro({ value, unit, label }) {
+const MACRO_LEGEND = [
+  { key: 'protein', label: 'Protein', color: 'var(--pf-gold)' },
+  { key: 'carbs', label: 'Carbs', color: 'var(--pf-ok)' },
+  { key: 'fat', label: 'Fat', color: 'var(--pf-danger)' },
+]
+
+function MacroCard({ title, calories, protein, carbs, fat }) {
   return (
-    <div style={{ textAlign: 'center', flex: 1 }}>
-      <div className="pf-display" style={{ fontSize: 24 }}>{value ?? '—'}<span style={{ fontSize: 12 }} className="muted">{unit}</span></div>
-      <div className="eyebrow eyebrow-muted" style={{ marginTop: 4 }}>{label}</div>
-    </div>
+    <Card className="stack">
+      <Eyebrow muted>{title}</Eyebrow>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
+        <MacroRing calories={calories} protein={protein} carbs={carbs} fat={fat} size={168} />
+      </div>
+      <div className="row" style={{ justifyContent: 'center', gap: 24 }}>
+        {MACRO_LEGEND.map((m) => (
+          <div key={m.key} style={{ textAlign: 'center' }}>
+            <div className="row" style={{ gap: 6, justifyContent: 'center' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: m.color }} />
+              <span className="eyebrow eyebrow-muted">{m.label}</span>
+            </div>
+            <div style={{ fontWeight: 600, marginTop: 4 }}>{({ protein, carbs, fat }[m.key]) ?? '—'}g</div>
+          </div>
+        ))}
+      </div>
+    </Card>
   )
 }
 
@@ -109,32 +129,14 @@ export default function Nutrition() {
         <Empty title="Chưa có kế hoạch dinh dưỡng" hint="HLV sẽ thiết kế dựa trên mục tiêu của bạn." />
       ) : (
         <>
-          <Card className="stack">
-            <Eyebrow muted>Ngày tập</Eyebrow>
-            <div className="row" style={{ alignItems: 'stretch' }}>
-              <Macro value={plan.calories} unit=" kcal" label="Calories" />
-              <span style={{ width: 1, background: 'var(--pf-line)' }} />
-              <Macro value={plan.protein} unit="g" label="Protein" />
-              <span style={{ width: 1, background: 'var(--pf-line)' }} />
-              <Macro value={plan.carbs} unit="g" label="Carbs" />
-              <span style={{ width: 1, background: 'var(--pf-line)' }} />
-              <Macro value={plan.fat} unit="g" label="Fat" />
-            </div>
-          </Card>
+          <MacroCard title="Ngày tập" calories={plan.calories} protein={plan.protein} carbs={plan.carbs} fat={plan.fat} />
 
           {ms.macros_rest && (ms.macros_rest.calories || ms.macros_rest.protein) && (
-            <Card className="stack">
-              <Eyebrow muted>Ngày nghỉ</Eyebrow>
-              <div className="row" style={{ alignItems: 'stretch' }}>
-                <Macro value={ms.macros_rest.calories} unit=" kcal" label="Calories" />
-                <span style={{ width: 1, background: 'var(--pf-line)' }} />
-                <Macro value={ms.macros_rest.protein} unit="g" label="Protein" />
-                <span style={{ width: 1, background: 'var(--pf-line)' }} />
-                <Macro value={ms.macros_rest.carbs} unit="g" label="Carbs" />
-                <span style={{ width: 1, background: 'var(--pf-line)' }} />
-                <Macro value={ms.macros_rest.fat} unit="g" label="Fat" />
-              </div>
-            </Card>
+            <MacroCard
+              title="Ngày nghỉ"
+              calories={ms.macros_rest.calories} protein={ms.macros_rest.protein}
+              carbs={ms.macros_rest.carbs} fat={ms.macros_rest.fat}
+            />
           )}
 
           {days.length > 0 && (
