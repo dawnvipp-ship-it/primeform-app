@@ -7,7 +7,7 @@ import {
 } from '../../../data/programs'
 import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader } from '../../../components/ui/primitives'
 import { IconPlus, IconTrash } from '../../../components/ui/Icons'
-import { MUSCLE_GROUPS } from '../../../data/muscleGroups'
+import { MUSCLE_GROUPS, detectMuscleGroups } from '../../../data/muscleGroups'
 
 const COLS = ['group_label', 'exercise_name', 'sets', 'reps', 'tempo', 'rest', 'load', 'rpe', 'coaching_cue', 'notes']
 const HEADER = 'Nhóm | Tên bài | Sets | Reps | Tempo | Nghỉ | Mức tạ | RPE | Cue | Ghi chú'
@@ -51,10 +51,24 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
   async function save() {
     setBusy(true); setSaved(false)
     try {
-      await setDayExercises(db, day.id, parseText(text))
+      const exercises = parseText(text)
+      await setDayExercises(db, day.id, exercises)
+      // Only pre-fill if the coach hasn't tagged this day yet - never
+      // silently override a manual choice on a re-save.
+      if ((day.muscle_groups || []).length === 0) {
+        const guess = detectMuscleGroups([day.workout_day, ...exercises.flatMap((ex) => [ex.exercise_name, ex.group_label])])
+        if (guess.length > 0) await updateProgramDay(db, day.id, { muscle_groups: guess })
+      }
       setSaved(true); setTimeout(() => setSaved(false), 2000)
       onChanged?.()
     } finally { setBusy(false) }
+  }
+
+  async function autoDetectMuscleGroups() {
+    const exercises = parseText(text)
+    const guess = detectMuscleGroups([day.workout_day, ...exercises.flatMap((ex) => [ex.exercise_name, ex.group_label])])
+    await updateProgramDay(db, day.id, { muscle_groups: guess })
+    onChanged?.()
   }
 
   async function saveMeta() {
@@ -133,8 +147,13 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
       </label>
 
       <div>
-        <div style={{ fontSize: 11.5, color: 'var(--pf-muted)', marginBottom: 6 }}>
-          Nhóm cơ của ngày này (để tô lên hình người ở Tiến độ)
+        <div className="row-between" style={{ marginBottom: 6 }}>
+          <div style={{ fontSize: 11.5, color: 'var(--pf-muted)' }}>
+            Nhóm cơ của ngày này (để tô lên hình người ở Tiến độ)
+          </div>
+          <button type="button" className="btn-quiet" style={{ fontSize: 11, padding: '2px 8px' }} onClick={autoDetectMuscleGroups}>
+            Tự động nhận diện
+          </button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {MUSCLE_GROUPS.map((g) => {

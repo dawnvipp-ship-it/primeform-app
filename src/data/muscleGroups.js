@@ -51,6 +51,38 @@ export const LIBRARY_MUSCLE_IDS = {
   ],
 }
 
+// Keyword heuristic - scans a day's name + its exercise names/group labels
+// (freeform text, mixed English/Vietnamese, coach's own phrasing) and guesses
+// which groups it hits. Word-boundary regexes to avoid short-keyword false
+// hits (e.g. bare "ab" inside "table"). Never perfectly accurate against
+// creative naming, so this only pre-fills the checkboxes - the coach still
+// sees and can correct the result, never a silent, unreviewable guess.
+const KEYWORD_RULES = [
+  [/\bbench\b|ngực|\bchest\b|\bpec(s)?\b|\bincline\b|\bdecline\b|\bfly\b|chống đẩy|push-?up/i, 'chest'],
+  [/shoulder press|overhead press|\bohp\b|vai trước|military press|arnold press/i, 'front_delts'],
+  [/lateral raise|vai giữa|side raise/i, 'side_delts'],
+  [/rear delt|reverse fly|face pull|vai sau/i, 'rear_delts'],
+  [/\bshrug\b|\btrap(s)?\b|cầu vai/i, 'traps'],
+  [/\blat(s)?\b|\bxô\b|pulldown|pull-?up|chin-?up|\brow\b|kéo xô/i, 'lats'],
+  [/\bcurl\b|\bbicep(s)?\b|tay trước/i, 'biceps'],
+  [/\btricep(s)?\b|pushdown|skull\s?crusher|tay sau/i, 'triceps'],
+  [/\bforearm(s)?\b|\bwrist\b|cẳng tay|\bgrip\b/i, 'forearms'],
+  [/\bab(s)?\b|\bcrunch\b|\bplank\b|bụng|sit-?up|\bcore\b/i, 'abs'],
+  [/oblique(s)?|liên sườn|side bend|russian twist/i, 'obliques'],
+  [/\bsquat\b|\blunge\b|leg press|leg extension|đùi trước|\bquad(s)?\b/i, 'quads'],
+  [/hamstring(s)?|\bdeadlift\b|\brdl\b|leg curl|đùi sau|\bhinge\b/i, 'hamstrings'],
+  [/\bglute(s)?\b|hip thrust|\bmông\b|\bbridge\b|kickback/i, 'glutes'],
+  [/lower back|erector(s)?|good morning|lưng dưới|hyperextension/i, 'lower_back'],
+  [/\bcalf\b|\bcalves\b|bắp chân/i, 'calves'],
+]
+
+export function detectMuscleGroups(texts) {
+  const combined = (texts || []).filter(Boolean).join(' ').toLowerCase()
+  const found = new Set()
+  KEYWORD_RULES.forEach(([re, groupId]) => { if (re.test(combined)) found.add(groupId) })
+  return [...found]
+}
+
 // heat: { [groupId]: 0..1 } (from computeMuscleHeat) -> bodyState shape the
 // BodyChart expects: { [libraryMuscleId]: { intensity: 0..10 } }.
 export function toBodyState(heat) {
