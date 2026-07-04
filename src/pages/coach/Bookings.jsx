@@ -19,22 +19,32 @@ function mondayOf(d) {
   return x
 }
 function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x }
+function monthStartOf(d) { return new Date(d.getFullYear(), d.getMonth(), 1) }
+function monthEndOf(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0) }
+function addMonths(d, n) { const x = new Date(d); x.setMonth(x.getMonth() + n); return x }
 function toISO(d) { return d.toISOString().slice(0, 10) }
 function formatShort(d) { return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }) }
+function formatMonthLabel(d) { return d.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' }) }
 function shortName(full) { return full ? full.split(' ').slice(-1)[0] : '' }
 
 export default function Bookings() {
   const { db, isHeadCoach, coachFullName } = useAuth()
   const [weekOffset, setWeekOffset] = useState(0)
+  const [monthOffset, setMonthOffset] = useState(0)
   // 'all' (whole-studio) or one coach's full_name — only ever meaningful for
   // the head coach; a regular coach's data is already RLS-scoped to just
   // their own bookings, so there's nothing to switch between for them.
+  // Shared by both the weekly grid and the monthly summary below.
   const [selectedView, setSelectedView] = useState('all')
 
   const weekStartDate = useMemo(() => addDays(mondayOf(new Date()), weekOffset * 7), [weekOffset])
   const weekDates = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStartDate, i)), [weekStartDate])
   const weekStart = toISO(weekDates[0])
   const weekEnd = toISO(weekDates[6])
+
+  const monthDate = useMemo(() => addMonths(new Date(), monthOffset), [monthOffset])
+  const monthStart = toISO(monthStartOf(monthDate))
+  const monthEnd = toISO(monthEndOf(monthDate))
 
   const { data: pending, loading: loadingPending, reload: reloadPending } = useAsync(
     () => listCoachBookings(db, { status: 'pending' }),
@@ -43,6 +53,10 @@ export default function Bookings() {
   const { data: weekBookings, loading: loadingWeek, reload: reloadWeek } = useAsync(
     () => listCoachBookings(db, { from: weekStart, to: weekEnd }),
     [db, weekStart, weekEnd]
+  )
+  const { data: monthBookings, loading: loadingMonth } = useAsync(
+    () => listCoachBookings(db, { from: monthStart, to: monthEnd }),
+    [db, monthStart, monthEnd]
   )
 
   async function act(id, fn) {
@@ -70,6 +84,14 @@ export default function Bookings() {
 
   const weekTotal = viewBookings.filter((b) => b.status !== 'cancelled').length
   const coachTotals = isHeadCoach ? groupWeeklyTotalsByCoach(weekBookings ?? []) : null
+
+  const viewMonthBookings = useMemo(() => {
+    const all = monthBookings ?? []
+    if (!isHeadCoach || selectedView === 'all') return all
+    return all.filter((b) => b.coach_id === selectedView)
+  }, [monthBookings, isHeadCoach, selectedView])
+  const monthTotal = viewMonthBookings.filter((b) => b.status !== 'cancelled').length
+  const monthCoachTotals = isHeadCoach ? groupWeeklyTotalsByCoach(monthBookings ?? []) : null
 
   return (
     <div className="coach-screen stack">
@@ -197,6 +219,34 @@ export default function Bookings() {
               })}
             </div>
           </div>
+        )}
+      </Card>
+
+      <Card className="stack">
+        <div className="row-between">
+          <button className="btn-quiet" onClick={() => setMonthOffset((m) => m - 1)} title="Tháng trước">
+            <IconChevron style={{ transform: 'rotate(180deg)' }} />
+          </button>
+          <Eyebrow muted>{formatMonthLabel(monthDate)}</Eyebrow>
+          <button className="btn-quiet" onClick={() => setMonthOffset((m) => m + 1)} title="Tháng sau">
+            <IconChevron />
+          </button>
+        </div>
+
+        {loadingMonth ? <InlineLoader /> : (
+          <>
+            <Stat
+              value={monthTotal}
+              label={isHeadCoach && selectedView === 'all' ? 'Tổng buổi cả phòng trong tháng' : 'Tổng buổi đã book trong tháng'}
+            />
+            {isHeadCoach && selectedView === 'all' && monthCoachTotals && Object.keys(monthCoachTotals).length > 0 && (
+              <div className="stack" style={{ marginTop: 4 }}>
+                {Object.entries(monthCoachTotals).map(([coach, total]) => (
+                  <div key={coach} className="kv"><span className="kv-label">{coach}</span><span className="kv-value">{total} buổi</span></div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </Card>
     </div>
