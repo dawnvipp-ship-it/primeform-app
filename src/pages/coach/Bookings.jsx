@@ -60,8 +60,12 @@ export default function Bookings() {
   )
 
   async function act(id, fn) {
-    await fn(db, id)
-    await Promise.all([reloadPending(), reloadWeek()])
+    try {
+      await fn(db, id)
+      await Promise.all([reloadPending(), reloadWeek()])
+    } catch (e) {
+      alert(e.message || 'Không thực hiện được, thử lại.')
+    }
   }
 
   const viewBookings = useMemo(() => {

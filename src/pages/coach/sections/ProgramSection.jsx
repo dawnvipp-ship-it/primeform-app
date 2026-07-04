@@ -65,10 +65,14 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
   }
 
   async function autoDetectMuscleGroups() {
-    const exercises = parseText(text)
-    const guess = detectMuscleGroups([day.workout_day, ...exercises.flatMap((ex) => [ex.exercise_name, ex.group_label])])
-    await updateProgramDay(db, day.id, { muscle_groups: guess })
-    onChanged?.()
+    try {
+      const exercises = parseText(text)
+      const guess = detectMuscleGroups([day.workout_day, ...exercises.flatMap((ex) => [ex.exercise_name, ex.group_label])])
+      await updateProgramDay(db, day.id, { muscle_groups: guess })
+      onChanged?.()
+    } catch (e) {
+      alert(e.message || 'Không nhận diện được, thử lại.')
+    }
   }
 
   async function saveMeta() {
@@ -83,15 +87,23 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
   }
 
   async function toggleCountsForNext(checked) {
-    await updateProgramDay(db, day.id, { counts_for_next: checked })
-    onChanged?.()
+    try {
+      await updateProgramDay(db, day.id, { counts_for_next: checked })
+      onChanged?.()
+    } catch (e) {
+      alert(e.message || 'Không lưu được, thử lại.')
+    }
   }
 
   async function toggleMuscleGroup(groupId, checked) {
-    const current = day.muscle_groups || []
-    const next = checked ? [...current, groupId] : current.filter((g) => g !== groupId)
-    await updateProgramDay(db, day.id, { muscle_groups: next })
-    onChanged?.()
+    try {
+      const current = day.muscle_groups || []
+      const next = checked ? [...current, groupId] : current.filter((g) => g !== groupId)
+      await updateProgramDay(db, day.id, { muscle_groups: next })
+      onChanged?.()
+    } catch (e) {
+      alert(e.message || 'Không lưu được, thử lại.')
+    }
   }
 
   const existingPhases = (allDays || []).map((d) => d.phase).filter(Boolean)
@@ -239,6 +251,8 @@ export default function ProgramSection({ clientId }) {
       setPhaseForm(null)
       reloadPhases()
       if (editing) reload()
+    } catch (e) {
+      alert(e.message || 'Không lưu được, thử lại.')
     } finally { setBusy(false) }
   }
 
@@ -249,7 +263,9 @@ export default function ProgramSection({ clientId }) {
     if (from === -1 || to < 0 || to >= list.length) return
     list.splice(from, 1); list.splice(to, 0, name)
     setBusy(true)
-    try { await reorderPhases(db, clientId, list); reloadPhases() } finally { setBusy(false) }
+    try { await reorderPhases(db, clientId, list); reloadPhases() }
+    catch (e) { alert(e.message || 'Không lưu được, thử lại.') }
+    finally { setBusy(false) }
   }
 
   async function removePhase(name) {
@@ -265,6 +281,8 @@ export default function ProgramSection({ clientId }) {
       setSelectedPhase(remaining[idx] ?? remaining[idx - 1] ?? null)
       reloadPhases()
       if (dayCount > 0) reload()
+    } catch (e) {
+      alert(e.message || 'Không xoá được, thử lại.')
     } finally { setBusy(false) }
   }
 
@@ -279,12 +297,19 @@ export default function ProgramSection({ clientId }) {
         order_index: (days?.length || 0),
       })
       setDayForm(null); reload()
+    } catch (e) {
+      alert(e.message || 'Không lưu được, thử lại.')
     } finally { setBusy(false) }
   }
 
   async function removeDay(id) {
     if (!confirm('Xoá ngày tập này và toàn bộ bài tập trong đó?')) return
-    await deleteProgramDay(db, id); reload()
+    try {
+      await deleteProgramDay(db, id)
+      reload()
+    } catch (e) {
+      alert(e.message || 'Không xoá được, thử lại.')
+    }
   }
 
   if (loading) return <InlineLoader />

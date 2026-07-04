@@ -57,6 +57,7 @@ function WeekLoadGrid({ ex, clientId, minWeeks }) {
     if (!val.trim()) return
     setSavingWeek(week)
     try { await upsertWeekLog(db, clientId, ex.id, week, val.trim()) }
+    catch (e) { alert(e.message || 'Không lưu được, thử lại.') }
     finally { setSavingWeek(null) }
   }
 
@@ -174,6 +175,7 @@ export default function Program() {
     if (!cur || curDone) return
     setCompleting(true)
     try { await markWorkoutComplete(db, cur.id); await reload() }
+    catch (e) { alert(e.message || 'Không lưu được, thử lại.') }
     finally { setCompleting(false) }
   }
 

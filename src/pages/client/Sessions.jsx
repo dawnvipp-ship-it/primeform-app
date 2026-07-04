@@ -78,7 +78,12 @@ export default function Sessions() {
       setShowBooking(false)
       await reload()
     } catch (e2) {
-      setErr(e2.message || 'Không đặt được lịch, thử lại.')
+      // 23505 = unique_violation (bookings_slot_unique) - someone else took
+      // this exact slot between when it loaded and when this submitted.
+      const msg = e2.code === '23505'
+        ? 'Giờ này vừa có người đặt mất rồi, chọn giờ khác nhé.'
+        : (e2.message || 'Không đặt được lịch, thử lại.')
+      setErr(msg)
     } finally {
       setBusy(false)
     }
@@ -86,8 +91,12 @@ export default function Sessions() {
 
   async function cancel(id) {
     if (!window.confirm('Huỷ buổi tập này?')) return
-    await cancelMyBooking(db, id)
-    await reload()
+    try {
+      await cancelMyBooking(db, id)
+      await reload()
+    } catch (e) {
+      alert(e.message || 'Không huỷ được, thử lại.')
+    }
   }
 
   if (loading) return <div className="screen"><InlineLoader /></div>
