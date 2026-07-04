@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
@@ -158,10 +158,7 @@ export default function Program() {
   const phaseDays = programs.filter((p) => (p.phase || UNASSIGNED) === selectedPhase)
   const cur = phaseDays[activeDay] ?? phaseDays[0] ?? null
   const curDone = cur ? isCompletedToday(completions, cur.id) : false
-  const phaseEnd = useMemo(
-    () => (phaseRow?.start_date && phaseRow?.weeks ? addDays(phaseRow.start_date, phaseRow.weeks * 7) : null),
-    [phaseRow]
-  )
+  const phaseEnd = phaseRow?.start_date && phaseRow?.weeks ? addDays(phaseRow.start_date, phaseRow.weeks * 7) : null
 
   function selectPhase(ph) {
     setActivePhase(ph)
