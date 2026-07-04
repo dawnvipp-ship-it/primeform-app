@@ -3,7 +3,6 @@ import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { listProgressLogs, listPhotos, signedPhotoUrl } from '../../data/progress'
 import { listPrograms, listCompletions, computeMuscleHeat } from '../../data/programs'
-import { MUSCLE_LABEL } from '../../data/muscleGroups'
 import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
 import MuscleBodyMap from '../../components/ui/MuscleBodyMap'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
@@ -67,7 +66,7 @@ export default function Progress() {
       {hasMuscleData && (
         <Card className="stack">
           <Eyebrow muted>Nhóm cơ đã tập gần đây (30 ngày)</Eyebrow>
-          <MuscleBodyMap heat={muscleHeat} labels={MUSCLE_LABEL} />
+          <MuscleBodyMap heat={muscleHeat} />
           <p className="faint" style={{ fontSize: 11.5, textAlign: 'center' }}>Màu càng đậm = tập càng nhiều</p>
         </Card>
       )}
