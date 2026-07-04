@@ -44,7 +44,12 @@ function WeekLoadGrid({ ex, clientId, minWeeks }) {
     getWeekLogs(db, clientId, ex.id).then((rows) => {
       const map = {}
       rows.forEach((r) => { if (r.top_set_weight) map[r.week_number] = r.top_set_weight })
-      setValues(map)
+      // Merge under whatever's already typed locally - this fetch started on
+      // mount and can resolve after the user's already typed a value, so a
+      // flat overwrite would blank out a just-saved entry on screen (it's
+      // still safely in the DB, just visually reverted, which reads as data
+      // loss even though it isn't).
+      setValues((prev) => ({ ...map, ...prev }))
     }).catch(() => {})
   }, [db, ex.id, clientId])
 
