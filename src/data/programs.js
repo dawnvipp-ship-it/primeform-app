@@ -37,6 +37,20 @@ export async function deleteProgramDay(db, id) {
   if (error) throw error
 }
 
+// Delete every day belonging to a phase (used when deleting the whole phase).
+export async function deletePhaseDays(db, clientId, phase) {
+  const { error } = await db.from('programs').delete().eq('client_id', clientId).eq('phase', phase)
+  if (error) throw error
+}
+
+// Re-point every day currently tagged with `fromPhase` to `toPhase` - used
+// when renaming a phase, since `programs.phase` is a plain text tag, not a
+// foreign key into program_phases.
+export async function renamePhaseOnDays(db, clientId, fromPhase, toPhase) {
+  const { error } = await db.from('programs').update({ phase: toPhase }).eq('client_id', clientId).eq('phase', fromPhase)
+  if (error) throw error
+}
+
 export async function addExercise(db, programId, fields) {
   const { data, error } = await db
     .from('program_exercises')
@@ -65,6 +79,99 @@ export async function setDayExercises(db, programId, exercises) {
   if (!exercises.length) return []
   const rows = exercises.map((ex, i) => ({ program_id: programId, order_index: i, ...ex }))
   const { data, error } = await db.from('program_exercises').insert(rows).select('*')
+  if (error) throw error
+  return data
+}
+
+// ---------- Phases (program_phases: real rows, not the old localStorage hack) ----------
+
+export async function listPhases(db, clientId) {
+  const { data, error } = await db
+    .from('program_phases')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('order_index', { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+// `name` doubles as the natural key (onConflict client_id,name) - renaming a
+// phase is delete-old + upsert-new, handled by the caller alongside
+// renamePhaseOnDays, not by this function alone.
+export async function upsertPhase(db, clientId, name, fields) {
+  const { data, error } = await db
+    .from('program_phases')
+    .upsert({ client_id: clientId, name, ...fields }, { onConflict: 'client_id,name' })
+    .select('*').single()
+  if (error) throw error
+  return data
+}
+
+export async function deletePhaseRow(db, clientId, name) {
+  const { error } = await db.from('program_phases').delete().eq('client_id', clientId).eq('name', name)
+  if (error) throw error
+}
+
+export async function reorderPhases(db, clientId, orderedNames) {
+  await Promise.all(orderedNames.map((name, i) => upsertPhase(db, clientId, name, { order_index: i })))
+}
+
+// ---------- Workout completions (drives "buổi kế tiếp" + used_sessions) ----------
+
+// Server-side RPC (SECURITY DEFINER): a client can't update clients.used_sessions
+// directly (RLS only allows coaches to write that table), so marking a workout
+// done goes through this one narrow function instead - it resolves the caller's
+// own client row via auth.uid(), verifies the program day belongs to them, logs
+// the completion, and increments used_sessions (capped at total_sessions).
+export async function markWorkoutComplete(db, programId) {
+  const { error } = await db.rpc('complete_workout', { p_program_id: programId })
+  if (error) throw error
+}
+
+export async function listCompletions(db, clientId) {
+  const { data, error } = await db
+    .from('workout_completions')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('completed_date', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+export function isCompletedToday(completions, programId) {
+  const today = new Date().toISOString().split('T')[0]
+  return (completions || []).some((c) => c.program_id === programId && c.completed_date === today)
+}
+
+// ---------- Per-week top-set weight (workout_logs.week_number) ----------
+// `logged_at` is legacy (NOT NULL, always set to today on write) - the actual
+// per-week value lives in week_number/top_set_weight, filtered independently.
+
+export async function getWeekLogs(db, clientId, exerciseId) {
+  const { data, error } = await db
+    .from('workout_logs')
+    .select('week_number, top_set_weight')
+    .eq('client_id', clientId)
+    .eq('exercise_id', exerciseId)
+    .not('week_number', 'is', null)
+  if (error) throw error
+  return data || []
+}
+
+export async function upsertWeekLog(db, clientId, exerciseId, weekNumber, topSetWeight) {
+  const { data, error } = await db
+    .from('workout_logs')
+    .upsert(
+      {
+        client_id: clientId,
+        exercise_id: exerciseId,
+        week_number: weekNumber,
+        top_set_weight: topSetWeight,
+        logged_at: new Date().toISOString().split('T')[0],
+      },
+      { onConflict: 'client_id,exercise_id,week_number' }
+    )
+    .select('*').single()
   if (error) throw error
   return data
 }

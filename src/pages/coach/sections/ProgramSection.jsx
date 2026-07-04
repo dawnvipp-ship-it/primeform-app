@@ -3,6 +3,7 @@ import { useAuth } from '../../../context/AuthContext'
 import { useAsync } from '../../../hooks/useAsync'
 import {
   listPrograms, createProgramDay, deleteProgramDay, setDayExercises, updateProgramDay,
+  listPhases, upsertPhase, deletePhaseRow, reorderPhases, renamePhaseOnDays, deletePhaseDays,
 } from '../../../data/programs'
 import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader } from '../../../components/ui/primitives'
 import { IconPlus, IconTrash } from '../../../components/ui/Icons'
@@ -10,15 +11,10 @@ import { IconPlus, IconTrash } from '../../../components/ui/Icons'
 const COLS = ['group_label', 'exercise_name', 'sets', 'reps', 'tempo', 'rest', 'load', 'rpe', 'coaching_cue', 'notes']
 const HEADER = 'Nhóm | Tên bài | Sets | Reps | Tempo | Nghỉ | Mức tạ | RPE | Cue | Ghi chú'
 const PRESET_PHASES = ['Phase 1', 'Phase 2', 'Phase 3']
-
-function phaseWeeksKey(clientId, phaseName) {
-  return `pf_phase_weeks_${clientId}_${phaseName}`
-}
+const UNASSIGNED = '— Chưa phân phase'
 
 function exercisesToText(list) {
-  return (list || []).map((ex) =>
-    COLS.map((c) => (ex[c] ?? '')).join(' | ')
-  ).join('\n')
+  return (list || []).map((ex) => COLS.map((c) => (ex[c] ?? '')).join(' | ')).join('\n')
 }
 
 function parseText(text) {
@@ -29,6 +25,17 @@ function parseText(text) {
     if (parts.length === 1) { ex.group_label = null; ex.exercise_name = parts[0] }
     return ex
   }).filter((ex) => ex.exercise_name)
+}
+
+function formatDate(iso) {
+  if (!iso) return null
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
+}
+function addDays(iso, n) {
+  const d = new Date(iso)
+  d.setDate(d.getDate() + n)
+  return d.toISOString().split('T')[0]
 }
 
 function DayCard({ day, allDays, onChanged, onDelete }) {
@@ -58,6 +65,11 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
       })
       setEditing(false); onChanged?.()
     } finally { setBusy(false) }
+  }
+
+  async function toggleCountsForNext(checked) {
+    await updateProgramDay(db, day.id, { counts_for_next: checked })
+    onChanged?.()
   }
 
   const existingPhases = (allDays || []).map((d) => d.phase).filter(Boolean)
@@ -100,6 +112,18 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
         )}
         {!editing && <button className="btn-quiet" onClick={() => onDelete(day.id)} style={{ color: 'var(--pf-danger)' }}><IconTrash width={16} height={16} /></button>}
       </div>
+
+      <label className="row" style={{ gap: 8, cursor: 'pointer' }}>
+        <input
+          type="checkbox"
+          checked={day.counts_for_next !== false}
+          onChange={(e) => toggleCountsForNext(e.target.checked)}
+        />
+        <span style={{ fontSize: 12.5, color: 'var(--pf-muted)' }}>
+          Tính vào "Buổi kế tiếp" (bỏ chọn cho cardio, giãn cơ...)
+        </span>
+      </label>
+
       <div className="divider" />
       <Textarea
         value={text}
@@ -120,47 +144,79 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
 export default function ProgramSection({ clientId }) {
   const { db } = useAuth()
   const { data: days, loading, reload } = useAsync(() => listPrograms(db, clientId), [db, clientId])
+  const { data: phaseRows, reload: reloadPhases } = useAsync(() => listPhases(db, clientId), [db, clientId])
   const [selectedPhase, setSelectedPhase] = useState(null)
-  const [phaseWeeks, setPhaseWeeks] = useState({})
   const [dayForm, setDayForm] = useState(null)
   const [phaseForm, setPhaseForm] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  const UNASSIGNED = '— Chưa phân phase'
-  // Derive unique phases from loaded days
-  const phases = (days || []).map((d) => d.phase).filter(Boolean)
+  const phaseMap = {}
+  ;(phaseRows || []).forEach((r) => { phaseMap[r.name] = r })
+
+  // Derive unique phases from loaded days, ordered to match phase_rows'
+  // order_index first (dated phases in the order the coach arranged them),
+  // then anything left over that only exists as a bare tag on a day.
+  const seenPhases = (days || []).map((d) => d.phase).filter(Boolean)
     .filter((ph, i, arr) => arr.indexOf(ph) === i)
+  const phases = [
+    ...(phaseRows || []).map((r) => r.name).filter((n) => seenPhases.includes(n)),
+    ...seenPhases.filter((n) => !(phaseRows || []).some((r) => r.name === n)),
+  ]
   const hasUnassigned = (days || []).some((d) => !d.phase)
   const allTabs = hasUnassigned ? [...phases, UNASSIGNED] : phases
 
-  // Load phaseWeeks from localStorage whenever days change
   useEffect(() => {
-    const map = {}
-    phases.forEach((ph) => {
-      const val = localStorage.getItem(phaseWeeksKey(clientId, ph))
-      if (val) map[ph] = val
-    })
-    setPhaseWeeks(map)
-  }, [days, clientId])
+    if (!selectedPhase && allTabs.length > 0) setSelectedPhase(allTabs[0])
+  }, [days, phaseRows]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-select first tab when days load
-  useEffect(() => {
-    if (!selectedPhase) {
-      const first = (days || []).map((d) => d.phase).filter(Boolean)[0]
-      if (first) setSelectedPhase(first)
-      else if ((days || []).some((d) => !d.phase)) setSelectedPhase('— Chưa phân phase')
-    }
-  }, [days])
+  async function savePhase() {
+    if (!phaseForm?.name || !phaseForm?.start_date) return
+    setBusy(true)
+    try {
+      const name = phaseForm.name.trim()
+      const editing = phaseForm._editing
+      if (editing && editing !== name) {
+        await renamePhaseOnDays(db, clientId, editing, name)
+        await deletePhaseRow(db, clientId, editing)
+      }
+      const orderIndex = phaseMap[editing || name]?.order_index ?? phases.length
+      await upsertPhase(db, clientId, name, {
+        start_date: phaseForm.start_date || null,
+        weeks: phaseForm.weeks ? Number(phaseForm.weeks) : null,
+        objective: phaseForm.objective?.trim() || null,
+        order_index: orderIndex,
+      })
+      setSelectedPhase(name)
+      setPhaseForm(null)
+      reloadPhases()
+      if (editing) reload()
+    } finally { setBusy(false) }
+  }
 
-  function savePhase() {
-    if (!phaseForm?.name) return
-    const weeks = phaseForm.weeks ? String(phaseForm.weeks) : null
-    if (weeks) {
-      localStorage.setItem(phaseWeeksKey(clientId, phaseForm.name), weeks)
-      setPhaseWeeks((prev) => ({ ...prev, [phaseForm.name]: weeks }))
-    }
-    setSelectedPhase(phaseForm.name)
-    setPhaseForm(null)
+  async function movePhase(name, dir) {
+    const list = [...phases]
+    const from = list.indexOf(name)
+    const to = from + dir
+    if (from === -1 || to < 0 || to >= list.length) return
+    list.splice(from, 1); list.splice(to, 0, name)
+    setBusy(true)
+    try { await reorderPhases(db, clientId, list); reloadPhases() } finally { setBusy(false) }
+  }
+
+  async function removePhase(name) {
+    const dayCount = (days || []).filter((d) => d.phase === name).length
+    const msg = dayCount > 0 ? `Xoá phase "${name}" và ${dayCount} ngày tập bên trong?` : `Xoá phase "${name}"?`
+    if (!confirm(msg)) return
+    setBusy(true)
+    try {
+      if (dayCount > 0) await deletePhaseDays(db, clientId, name)
+      await deletePhaseRow(db, clientId, name)
+      const remaining = phases.filter((p) => p !== name)
+      const idx = phases.indexOf(name)
+      setSelectedPhase(remaining[idx] ?? remaining[idx - 1] ?? null)
+      reloadPhases()
+      if (dayCount > 0) reload()
+    } finally { setBusy(false) }
   }
 
   async function saveDay() {
@@ -168,7 +224,7 @@ export default function ProgramSection({ clientId }) {
     setBusy(true)
     try {
       await createProgramDay(db, clientId, {
-        phase: selectedPhase,
+        phase: selectedPhase === UNASSIGNED ? null : selectedPhase,
         week: null,
         workout_day: dayForm.workout_day || 'Workout',
         order_index: (days?.length || 0),
@@ -188,15 +244,16 @@ export default function ProgramSection({ clientId }) {
     selectedPhase === UNASSIGNED ? !d.phase : d.phase === selectedPhase
   )
   const customPhases = phases.filter((ph) => !PRESET_PHASES.includes(ph))
+  const curPhaseRow = selectedPhase ? phaseMap[selectedPhase] : null
+  const curPhaseEnd = curPhaseRow?.start_date && curPhaseRow?.weeks ? addDays(curPhaseRow.start_date, curPhaseRow.weeks * 7) : null
 
   return (
     <div className="stack">
-      {/* Phase selector row */}
       <div className="row-between" style={{ alignItems: 'center' }}>
         <Eyebrow muted>Giai đoạn</Eyebrow>
         <button
           className="btn btn-ghost btn-sm"
-          onClick={() => setPhaseForm({ name: '', weeks: '' })}
+          onClick={() => setPhaseForm({ name: '', weeks: '', objective: '', start_date: new Date().toISOString().split('T')[0] })}
         >
           <IconPlus width={15} height={15} /> Phase
         </button>
@@ -209,26 +266,55 @@ export default function ProgramSection({ clientId }) {
       ) : (
         <div className="seg-tabs">
           {allTabs.map((ph) => (
-            <button
-              key={ph}
-              onClick={() => setSelectedPhase(ph)}
-              className={`seg-tab seg-tab-accent${ph === selectedPhase ? ' active' : ''}`}
-            >
-              {ph}{phaseWeeks[ph] && ph !== UNASSIGNED ? ` · ${phaseWeeks[ph]} tuần` : ''}
-            </button>
+            <div key={ph} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <button
+                onClick={() => setSelectedPhase(ph)}
+                className={`seg-tab seg-tab-accent${ph === selectedPhase ? ' active' : ''}`}
+              >
+                {ph}{phaseMap[ph]?.weeks && ph !== UNASSIGNED ? ` · ${phaseMap[ph].weeks} tuần` : ''}
+              </button>
+              {ph === selectedPhase && ph !== UNASSIGNED && (
+                <>
+                  <button className="btn-quiet" title="Di chuyển lên" style={{ padding: '4px 5px', fontSize: 11, opacity: .5 }} onClick={() => movePhase(ph, -1)}>‹</button>
+                  <button className="btn-quiet" title="Di chuyển xuống" style={{ padding: '4px 5px', fontSize: 11, opacity: .5 }} onClick={() => movePhase(ph, 1)}>›</button>
+                  <button
+                    className="btn-quiet" title="Sửa phase" style={{ padding: '4px 6px', fontSize: 12, opacity: .55 }}
+                    onClick={() => setPhaseForm({
+                      _editing: ph, name: ph,
+                      weeks: phaseMap[ph]?.weeks || '',
+                      objective: phaseMap[ph]?.objective || '',
+                      start_date: phaseMap[ph]?.start_date || new Date().toISOString().split('T')[0],
+                    })}
+                  >✎</button>
+                  <button className="btn-quiet" title="Xoá phase" style={{ padding: '4px 6px', fontSize: 13, opacity: .4, color: 'var(--pf-danger, #e05)' }} onClick={() => removePhase(ph)}>×</button>
+                </>
+              )}
+            </div>
           ))}
         </div>
       )}
 
-      {/* Days section for selected phase */}
       {selectedPhase && (
         <>
+          {(curPhaseRow?.objective || curPhaseRow?.start_date) && (
+            <div style={{ borderLeft: '2px solid var(--pf-gold, var(--pf-accent))', paddingLeft: 12, marginTop: 4 }}>
+              {curPhaseRow?.start_date && (
+                <div className="eyebrow eyebrow-muted" style={{ marginBottom: 4 }}>
+                  Thời gian: {formatDate(curPhaseRow.start_date)}{curPhaseEnd ? ` → ${formatDate(curPhaseEnd)}` : ''}
+                </div>
+              )}
+              {curPhaseRow?.objective && (
+                <>
+                  <div className="eyebrow eyebrow-muted" style={{ marginBottom: 4 }}>Mục tiêu phase</div>
+                  <p style={{ fontSize: 13, color: 'var(--pf-muted)', lineHeight: 1.6 }}>{curPhaseRow.objective}</p>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="row-between" style={{ marginTop: 8 }}>
             <Eyebrow muted>Các ngày tập — {selectedPhase}</Eyebrow>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setDayForm({ workout_day: '' })}
-            >
+            <button className="btn btn-ghost btn-sm" onClick={() => setDayForm({ workout_day: '' })}>
               <IconPlus width={15} height={15} /> Thêm ngày
             </button>
           </div>
@@ -252,8 +338,7 @@ export default function ProgramSection({ clientId }) {
         </>
       )}
 
-      {/* Modal: Add Phase */}
-      <Modal open={!!phaseForm} onClose={() => setPhaseForm(null)} title="Thêm phase">
+      <Modal open={!!phaseForm} onClose={() => setPhaseForm(null)} title={phaseForm?._editing ? `Sửa phase — ${phaseForm._editing}` : 'Thêm phase'}>
         {phaseForm && (
           <div className="stack">
             <Field label="Tên phase">
@@ -269,36 +354,43 @@ export default function ProgramSection({ clientId }) {
                 {customPhases.map((ph) => <option key={ph} value={ph} />)}
               </datalist>
             </Field>
-            <Field label="Tổng số tuần">
-              <Input
-                type="number"
-                min="1"
-                value={phaseForm.weeks}
-                onChange={(e) => setPhaseForm({ ...phaseForm, weeks: e.target.value })}
-                placeholder="4"
+            <Field label="Mục tiêu phase">
+              <Textarea
+                value={phaseForm.objective || ''}
+                onChange={(e) => setPhaseForm({ ...phaseForm, objective: e.target.value })}
+                placeholder="VD: Xây nền tảng kỹ thuật, tăng dần volume..."
+                style={{ minHeight: 80 }}
               />
             </Field>
-            <button
-              className="btn btn-primary btn-block"
-              onClick={savePhase}
-              disabled={!phaseForm.name}
-            >
-              Xác nhận
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <Field label="Ngày bắt đầu">
+                  <Input type="date" value={phaseForm.start_date || ''} onChange={(e) => setPhaseForm({ ...phaseForm, start_date: e.target.value })} />
+                </Field>
+              </div>
+              <div style={{ flex: 1 }}>
+                <Field label="Tổng số tuần">
+                  <Input type="number" min="1" value={phaseForm.weeks} onChange={(e) => setPhaseForm({ ...phaseForm, weeks: e.target.value })} placeholder="4" />
+                </Field>
+              </div>
+            </div>
+            <button className="btn btn-primary btn-block" onClick={savePhase} disabled={!phaseForm.name || !phaseForm.start_date || busy}>
+              {busy ? 'Đang lưu…' : phaseForm._editing ? 'Lưu thay đổi' : 'Xác nhận'}
             </button>
+            {!phaseForm.start_date && (
+              <p className="faint" style={{ fontSize: 11.5, color: 'var(--pf-danger, #e05)', marginTop: -4 }}>
+                Cần chọn ngày bắt đầu để hiện đúng thời gian phase cho học viên.
+              </p>
+            )}
           </div>
         )}
       </Modal>
 
-      {/* Modal: Add Day */}
       <Modal open={!!dayForm} onClose={() => setDayForm(null)} title={`Thêm ngày — ${selectedPhase}`}>
         {dayForm && (
           <div className="stack">
             <Field label="Tên ngày (VD: Day A · Lower Strength)">
-              <Input
-                value={dayForm.workout_day}
-                onChange={(e) => setDayForm({ ...dayForm, workout_day: e.target.value })}
-                autoFocus
-              />
+              <Input value={dayForm.workout_day} onChange={(e) => setDayForm({ ...dayForm, workout_day: e.target.value })} autoFocus />
             </Field>
             <button className="btn btn-primary btn-block" onClick={saveDay} disabled={busy || !dayForm.workout_day}>
               {busy ? 'Đang lưu…' : 'Thêm ngày'}

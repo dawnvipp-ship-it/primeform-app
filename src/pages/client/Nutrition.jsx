@@ -109,7 +109,8 @@ export default function Nutrition() {
         <Empty title="Chưa có kế hoạch dinh dưỡng" hint="HLV sẽ thiết kế dựa trên mục tiêu của bạn." />
       ) : (
         <>
-          <Card>
+          <Card className="stack">
+            <Eyebrow muted>Ngày tập</Eyebrow>
             <div className="row" style={{ alignItems: 'stretch' }}>
               <Macro value={plan.calories} unit=" kcal" label="Calories" />
               <span style={{ width: 1, background: 'var(--pf-line)' }} />
@@ -120,6 +121,21 @@ export default function Nutrition() {
               <Macro value={plan.fat} unit="g" label="Fat" />
             </div>
           </Card>
+
+          {ms.macros_rest && (ms.macros_rest.calories || ms.macros_rest.protein) && (
+            <Card className="stack">
+              <Eyebrow muted>Ngày nghỉ</Eyebrow>
+              <div className="row" style={{ alignItems: 'stretch' }}>
+                <Macro value={ms.macros_rest.calories} unit=" kcal" label="Calories" />
+                <span style={{ width: 1, background: 'var(--pf-line)' }} />
+                <Macro value={ms.macros_rest.protein} unit="g" label="Protein" />
+                <span style={{ width: 1, background: 'var(--pf-line)' }} />
+                <Macro value={ms.macros_rest.carbs} unit="g" label="Carbs" />
+                <span style={{ width: 1, background: 'var(--pf-line)' }} />
+                <Macro value={ms.macros_rest.fat} unit="g" label="Fat" />
+              </div>
+            </Card>
+          )}
 
           {days.length > 0 && (
             <>

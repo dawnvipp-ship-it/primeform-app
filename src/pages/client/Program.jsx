@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
-import { listPrograms } from '../../data/programs'
-import { getTodayLog, upsertTopSet } from '../../data/workoutLogs'
+import {
+  listPrograms, listPhases, listCompletions, markWorkoutComplete,
+  isCompletedToday, getWeekLogs, upsertWeekLog,
+} from '../../data/programs'
 import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
 import { IconPlay } from '../../components/ui/Icons'
+
+const DEFAULT_WEEKS = 6
 
 function Spec({ label, value }) {
   if (!value) return null
@@ -17,18 +21,75 @@ function Spec({ label, value }) {
   )
 }
 
-function ExerciseCard({ ex, clientId }) {
+function formatDate(iso) {
+  if (!iso) return null
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
+}
+function addDays(iso, n) {
+  const d = new Date(iso)
+  d.setDate(d.getDate() + n)
+  return d.toISOString().split('T')[0]
+}
+
+function WeekLoadGrid({ ex, clientId, minWeeks }) {
   const { db } = useAuth()
-  const [topSet, setTopSet] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [values, setValues] = useState({})
+  const [savingWeek, setSavingWeek] = useState(null)
+  const [extraWeeks, setExtraWeeks] = useState(0)
+  const weekCount = Math.max(minWeeks || 0, DEFAULT_WEEKS) + extraWeeks
 
   useEffect(() => {
     if (!ex.id) return
-    getTodayLog(db, ex.id).then((log) => {
-      if (log?.top_set_weight) setTopSet(log.top_set_weight)
+    getWeekLogs(db, clientId, ex.id).then((rows) => {
+      const map = {}
+      rows.forEach((r) => { if (r.top_set_weight) map[r.week_number] = r.top_set_weight })
+      setValues(map)
     }).catch(() => {})
-  }, [db, ex.id])
+  }, [db, ex.id, clientId])
 
+  async function save(week, val) {
+    if (!val.trim()) return
+    setSavingWeek(week)
+    try { await upsertWeekLog(db, clientId, ex.id, week, val.trim()) }
+    finally { setSavingWeek(null) }
+  }
+
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 12, color: 'var(--pf-muted)', marginBottom: 6 }}>Mức tạ theo tuần</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {Array.from({ length: weekCount }, (_, i) => i + 1).map((week) => (
+          <div key={week} style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
+            <span style={{ fontSize: 10, color: 'var(--pf-muted)' }}>Tuần {week}{savingWeek === week ? ' …' : ''}</span>
+            <input
+              type="text"
+              value={values[week] ?? ''}
+              onChange={(e) => setValues((v) => ({ ...v, [week]: e.target.value }))}
+              onBlur={(e) => save(week, e.target.value)}
+              placeholder={ex.load || '—'}
+              style={{
+                background: 'var(--pf-surface-2)', border: '1px solid var(--pf-line)', borderRadius: 6,
+                padding: '4px 6px', fontSize: 12.5, color: 'var(--pf-text)', width: 56, textAlign: 'center',
+              }}
+            />
+          </div>
+        ))}
+        <button
+          type="button"
+          className="btn-quiet"
+          style={{ alignSelf: 'flex-end', fontSize: 11, padding: '4px 8px' }}
+          onClick={() => setExtraWeeks((n) => n + 4)}
+          title="Thêm tuần"
+        >
+          + Thêm tuần
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ExerciseCard({ ex, clientId, minWeeks }) {
   return (
     <Card className="stack" style={{ padding: 'var(--s4)' }}>
       <div className="row" style={{ gap: 10, alignItems: 'baseline' }}>
@@ -43,31 +104,7 @@ function ExerciseCard({ ex, clientId }) {
         <Spec label="Nghỉ" value={ex.rest} />
         <Spec label="RPE" value={ex.rpe} />
       </div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-        <span style={{ fontSize: 12, color: 'var(--pf-muted)', minWidth: 80 }}>Top set hôm nay</span>
-        <input
-          type="text"
-          value={topSet}
-          onChange={(e) => setTopSet(e.target.value)}
-          onBlur={async () => {
-            if (!topSet.trim()) return
-            setSaving(true)
-            try { await upsertTopSet(db, clientId, ex.id, topSet.trim()) }
-            finally { setSaving(false) }
-          }}
-          placeholder={ex.load || 'VD: 60kg'}
-          style={{
-            background: 'var(--pf-surface-2)',
-            border: '1px solid var(--pf-line)',
-            borderRadius: 6,
-            padding: '4px 10px',
-            fontSize: 13,
-            color: 'var(--pf-text)',
-            width: 100,
-          }}
-        />
-        {saving && <span style={{ fontSize: 11, color: 'var(--pf-muted)' }}>…</span>}
-      </div>
+      <WeekLoadGrid ex={ex} clientId={clientId} minWeeks={minWeeks} />
       {ex.coaching_cue && (
         <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.6, borderLeft: '2px solid var(--pf-line)', paddingLeft: 12 }}>
           {ex.coaching_cue}
@@ -91,29 +128,51 @@ export default function Program() {
   const { db } = useAuth()
   const [activePhase, setActivePhase] = useState(null)
   const [activeDay, setActiveDay] = useState(0)
-  const { data, loading } = useAsync(async () => {
+  const [completing, setCompleting] = useState(false)
+  const { data, loading, reload } = useAsync(async () => {
     const me = await getMyClient(db)
-    const programs = me ? await listPrograms(db, me.id) : []
-    return { programs, clientId: me?.id }
+    if (!me) return { programs: [], phaseRows: [], completions: [], clientId: null }
+    const [programs, phaseRows, completions] = await Promise.all([
+      listPrograms(db, me.id),
+      listPhases(db, me.id),
+      listCompletions(db, me.id),
+    ])
+    return { programs, phaseRows, completions, clientId: me.id }
   }, [db])
 
   if (loading) return <div className="screen"><InlineLoader /></div>
   const programs = data?.programs || []
+  const phaseRows = data?.phaseRows || []
+  const completions = data?.completions || []
   const clientId = data?.clientId
 
+  const UNASSIGNED = 'Chưa phân phase'
   const phases = []
   programs.forEach((p) => {
-    const ph = p.phase || 'Chưa phân phase'
+    const ph = p.phase || UNASSIGNED
     if (!phases.includes(ph)) phases.push(ph)
   })
 
   const selectedPhase = activePhase ?? phases[0] ?? null
-  const phaseDays = programs.filter((p) => (p.phase || 'Chưa phân phase') === selectedPhase)
+  const phaseRow = phaseRows.find((p) => p.name === selectedPhase)
+  const phaseDays = programs.filter((p) => (p.phase || UNASSIGNED) === selectedPhase)
   const cur = phaseDays[activeDay] ?? phaseDays[0] ?? null
+  const curDone = cur ? isCompletedToday(completions, cur.id) : false
+  const phaseEnd = useMemo(
+    () => (phaseRow?.start_date && phaseRow?.weeks ? addDays(phaseRow.start_date, phaseRow.weeks * 7) : null),
+    [phaseRow]
+  )
 
   function selectPhase(ph) {
     setActivePhase(ph)
     setActiveDay(0)
+  }
+
+  async function complete() {
+    if (!cur || curDone) return
+    setCompleting(true)
+    try { await markWorkoutComplete(db, cur.id); await reload() }
+    finally { setCompleting(false) }
   }
 
   return (
@@ -141,6 +200,15 @@ export default function Program() {
             </div>
           )}
 
+          {phaseRow?.start_date && (
+            <div className="eyebrow eyebrow-muted">
+              {formatDate(phaseRow.start_date)}{phaseEnd ? ` → ${formatDate(phaseEnd)}` : ''}
+            </div>
+          )}
+          {phaseRow?.objective && (
+            <p className="muted" style={{ fontSize: 13, lineHeight: 1.6 }}>{phaseRow.objective}</p>
+          )}
+
           <div className="seg-tabs">
             {phaseDays.map((p, i) => (
               <button
@@ -148,7 +216,7 @@ export default function Program() {
                 onClick={() => setActiveDay(i)}
                 className={`seg-tab${i === activeDay ? ' active' : ''}`}
               >
-                {p.workout_day || `Ngày ${i + 1}`}
+                {isCompletedToday(completions, p.id) ? '✓ ' : ''}{p.workout_day || `Ngày ${i + 1}`}
               </button>
             ))}
           </div>
@@ -161,9 +229,12 @@ export default function Program() {
               </div>
               <div className="divider" />
               {(cur.program_exercises || []).map((ex) => (
-                <ExerciseCard key={ex.id} ex={ex} clientId={clientId} />
+                <ExerciseCard key={ex.id} ex={ex} clientId={clientId} minWeeks={phaseRow?.weeks} />
               ))}
               {(cur.program_exercises || []).length === 0 && <Empty title="Chưa có bài tập cho ngày này" />}
+              <button className="btn btn-primary btn-block" onClick={complete} disabled={completing || curDone}>
+                {curDone ? '✓ Đã tập xong hôm nay' : completing ? 'Đang lưu…' : 'Đã tập xong'}
+              </button>
             </>
           )}
         </>

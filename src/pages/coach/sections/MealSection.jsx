@@ -13,9 +13,12 @@ const DEFAULT_DAYS = [
   { label: 'CN · REST', meals: '' },
 ]
 
+const EMPTY_MACROS = { calories: '', protein: '', carbs: '', fat: '' }
+
 export default function MealSection({ clientId }) {
   const { db } = useAuth()
-  const [macros, setMacros] = useState({ calories: '', protein: '', carbs: '', fat: '' })
+  const [macros, setMacros] = useState(EMPTY_MACROS)
+  const [macrosRest, setMacrosRest] = useState(EMPTY_MACROS)
   const [days, setDays] = useState(DEFAULT_DAYS)
   const [supplements, setSupplements] = useState('')
   const [exchange, setExchange] = useState({ carb: '', protein: '', fat: '' })
@@ -29,6 +32,7 @@ export default function MealSection({ clientId }) {
       if (!on) return
       const ms = p?.meal_structure || {}
       setMacros({ calories: p?.calories ?? '', protein: p?.protein ?? '', carbs: p?.carbs ?? '', fat: p?.fat ?? '' })
+      setMacrosRest(ms.macros_rest || EMPTY_MACROS)
       setDays(ms.days?.length ? ms.days : DEFAULT_DAYS)
       setSupplements(ms.supplements || '')
       setExchange(ms.exchange || { carb: '', protein: '', fat: '' })
@@ -47,7 +51,7 @@ export default function MealSection({ clientId }) {
     try {
       await upsertMealPlan(db, clientId, {
         calories: int(macros.calories), protein: int(macros.protein), carbs: int(macros.carbs), fat: int(macros.fat),
-        meal_structure: { days, supplements, exchange },
+        meal_structure: { days, supplements, exchange, macros_rest: macrosRest },
       })
       setSaved(true); setTimeout(() => setSaved(false), 2000)
     } finally { setBusy(false) }
@@ -59,11 +63,21 @@ export default function MealSection({ clientId }) {
     <div className="stack">
       <Card className="stack">
         <Eyebrow muted>Macros</Eyebrow>
-        <div className="field-grid">
-          <Field label="Calories"><Input type="number" value={macros.calories} onChange={(e) => setMacros({ ...macros, calories: e.target.value })} /></Field>
-          <Field label="Protein (g)"><Input type="number" value={macros.protein} onChange={(e) => setMacros({ ...macros, protein: e.target.value })} /></Field>
-          <Field label="Carbs (g)"><Input type="number" value={macros.carbs} onChange={(e) => setMacros({ ...macros, carbs: e.target.value })} /></Field>
-          <Field label="Fat (g)"><Input type="number" value={macros.fat} onChange={(e) => setMacros({ ...macros, fat: e.target.value })} /></Field>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div className="stack" style={{ gap: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--pf-accent)', textTransform: 'uppercase', paddingBottom: 4, borderBottom: '1px solid var(--pf-border)' }}>Ngày tập</div>
+            <Field label="Calories"><Input type="number" placeholder="1800" value={macros.calories} onChange={(e) => setMacros({ ...macros, calories: e.target.value })} /></Field>
+            <Field label="Protein (g)"><Input type="number" placeholder="150" value={macros.protein} onChange={(e) => setMacros({ ...macros, protein: e.target.value })} /></Field>
+            <Field label="Carbs (g)"><Input type="number" placeholder="180" value={macros.carbs} onChange={(e) => setMacros({ ...macros, carbs: e.target.value })} /></Field>
+            <Field label="Fat (g)"><Input type="number" placeholder="55" value={macros.fat} onChange={(e) => setMacros({ ...macros, fat: e.target.value })} /></Field>
+          </div>
+          <div className="stack" style={{ gap: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--pf-muted)', textTransform: 'uppercase', paddingBottom: 4, borderBottom: '1px solid var(--pf-border)' }}>Ngày nghỉ</div>
+            <Field label="Calories"><Input type="number" placeholder="1500" value={macrosRest.calories} onChange={(e) => setMacrosRest({ ...macrosRest, calories: e.target.value })} /></Field>
+            <Field label="Protein (g)"><Input type="number" placeholder="150" value={macrosRest.protein} onChange={(e) => setMacrosRest({ ...macrosRest, protein: e.target.value })} /></Field>
+            <Field label="Carbs (g)"><Input type="number" placeholder="120" value={macrosRest.carbs} onChange={(e) => setMacrosRest({ ...macrosRest, carbs: e.target.value })} /></Field>
+            <Field label="Fat (g)"><Input type="number" placeholder="60" value={macrosRest.fat} onChange={(e) => setMacrosRest({ ...macrosRest, fat: e.target.value })} /></Field>
+          </div>
         </div>
       </Card>
 

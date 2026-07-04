@@ -3,12 +3,23 @@ import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { getAssessment } from '../../data/assessments'
-import { listPrograms } from '../../data/programs'
+import { listPrograms, listPhases, listCompletions } from '../../data/programs'
 import { InlineLoader, Eyebrow, Card } from '../../components/ui/primitives'
 import { IconChevron, IconLogout } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
 import logo from '../../assets/logo.png'
 import lounge from '../../assets/studio-lounge.jpg'
+
+function addDays(iso, n) {
+  const d = new Date(iso)
+  d.setDate(d.getDate() + n)
+  return d.toISOString().split('T')[0]
+}
+function formatDate(iso) {
+  if (!iso) return null
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
+}
 
 export default function Dashboard() {
   const { db, client, logout } = useAuth()
@@ -17,21 +28,58 @@ export default function Dashboard() {
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     if (!me) return null
-    const [assessment, programs] = await Promise.all([
+    const [assessment, programs, phaseRows, completions] = await Promise.all([
       getAssessment(db, me.id),
       listPrograms(db, me.id),
+      listPhases(db, me.id),
+      listCompletions(db, me.id),
     ])
-    return { me, assessment, programs }
+    return { me, assessment, programs, phaseRows, completions }
   }, [db])
 
   if (loading) return <div className="screen"><InlineLoader /></div>
   if (!data?.me) return <div className="screen"><div className="empty">Không tìm thấy hồ sơ.</div></div>
 
-  const { me, assessment, programs } = data
-  const firstDay = programs.find((p) => !/khởi động|warm/i.test(p.workout_day || '')) || programs[0]
-  const phase = firstDay?.phase || '—'
-  const week = firstDay?.week ? `Tuần ${firstDay.week}` : '—'
-  const nextWorkout = firstDay?.workout_day || 'Chưa có giáo án'
+  const { me, assessment, programs, phaseRows, completions } = data
+
+  // Current phase: prefer the phase_rows order (dated phases), falling back
+  // to whatever order phases were first encountered across program days.
+  const seenPhases = []
+  programs.forEach((p) => { if (p.phase && !seenPhases.includes(p.phase)) seenPhases.push(p.phase) })
+  const currentPhase = [
+    ...phaseRows.map((r) => r.name).filter((n) => seenPhases.includes(n)),
+    ...seenPhases.filter((n) => !phaseRows.some((r) => r.name === n)),
+  ][0] || null
+
+  const phaseDays = programs
+    .filter((p) => (p.phase || null) === currentPhase)
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+  const phaseRow = currentPhase ? phaseRows.find((r) => r.name === currentPhase) : null
+
+  let progressLabel = '—'
+  if (phaseRow?.start_date) {
+    const daysElapsed = Math.floor((Date.now() - new Date(phaseRow.start_date).getTime()) / 86400000)
+    const weekNum = Math.max(1, Math.floor(daysElapsed / 7) + 1)
+    progressLabel = phaseRow.weeks ? `Tuần ${Math.min(weekNum, phaseRow.weeks)}/${phaseRow.weeks}` : `Tuần ${weekNum}`
+  }
+
+  // "Buổi kế tiếp" only rotates through days the coach flagged as counting
+  // (counts_for_next !== false) - a cardio/stretch day can still be marked
+  // done on its own, it just doesn't advance this pointer.
+  const countableDays = phaseDays.filter((d) => d.counts_for_next !== false)
+  let nextDay = countableDays[0] || null
+  if (countableDays.length > 0) {
+    const ids = new Set(countableDays.map((d) => d.id))
+    const lastCompletion = completions.find((c) => ids.has(c.program_id))
+    if (lastCompletion) {
+      const idx = countableDays.findIndex((d) => d.id === lastCompletion.program_id)
+      nextDay = countableDays[(idx + 1) % countableDays.length]
+    }
+  }
+  const nextLabel = nextDay?.workout_day || 'Chưa có giáo án'
+
+  const phaseEnd = phaseRow?.start_date && phaseRow?.weeks ? addDays(phaseRow.start_date, phaseRow.weeks * 7) : null
+  const phaseRange = phaseRow?.start_date ? `${formatDate(phaseRow.start_date)}${phaseEnd ? ` → ${formatDate(phaseEnd)}` : ''}` : null
 
   return (
     <div className="screen stack-lg fade-in" style={{ paddingTop: 0 }}>
@@ -57,15 +105,23 @@ export default function Dashboard() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <Card><Eyebrow muted>Mục tiêu</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{assessment?.goal || '—'}</div></Card>
-        <Card><Eyebrow muted>Giai đoạn</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{phase}</div></Card>
-        <Card><Eyebrow muted>Tiến trình</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{week}</div></Card>
+        <Card>
+          <Eyebrow muted>Giai đoạn</Eyebrow>
+          <div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{currentPhase || '—'}</div>
+          {phaseRange && <div style={{ marginTop: 4, fontSize: 12, color: 'var(--pf-muted)' }}>{phaseRange}</div>}
+        </Card>
+        <Card><Eyebrow muted>Tiến trình</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{progressLabel}</div></Card>
         <Card><Eyebrow muted>Buổi còn lại</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{me.remaining_sessions}</div></Card>
       </div>
 
-      <Card className="row-between" onClick={() => navigate('/app/program')} style={{ cursor: 'pointer' }}>
+      <Card
+        className="row-between"
+        onClick={() => navigate('/app/program', { state: { phase: currentPhase, dayId: nextDay?.id } })}
+        style={{ cursor: 'pointer' }}
+      >
         <div>
           <Eyebrow muted>Buổi kế tiếp</Eyebrow>
-          <div className="pf-display" style={{ fontSize: 22, marginTop: 6 }}>{nextWorkout}</div>
+          <div className="pf-display" style={{ fontSize: 22, marginTop: 6 }}>{nextLabel}</div>
         </div>
         <span style={{ color: 'var(--pf-accent)' }}><IconChevron /></span>
       </Card>
