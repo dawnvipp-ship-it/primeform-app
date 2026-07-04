@@ -40,8 +40,12 @@ export async function resolveRole() {
   const { data: u } = await supabase.auth.getUser()
   const user = u?.user
   if (!user) return { role: null }
-  const { data: coach } = await supabase.from('coaches').select('id').eq('id', user.id).maybeSingle()
-  if (coach) return { role: 'coach', user }
+  const { data: coach } = await supabase
+    .from('coaches')
+    .select('id, full_name, is_head_coach')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (coach) return { role: 'coach', user, isHeadCoach: !!coach.is_head_coach, coachFullName: coach.full_name }
   const { data: cli } = await supabase.from('clients').select('id, full_name').eq('auth_user_id', user.id).maybeSingle()
   if (cli) return { role: 'client', client: cli, user }
   return { role: null, user }

@@ -15,6 +15,7 @@ const CoachLogin   = lazy(() => import('./pages/coach/CoachLogin'))
 const CoachLayout  = lazy(() => import('./pages/coach/CoachLayout'))
 const ClientList   = lazy(() => import('./pages/coach/ClientList'))
 const ClientDetail = lazy(() => import('./pages/coach/ClientDetail'))
+const Bookings     = lazy(() => import('./pages/coach/Bookings'))
 
 export default function App() {
   const { status, role } = useAuth()
@@ -60,6 +61,7 @@ export default function App() {
         >
           <Route index element={<ClientList />} />
           <Route path="client/:id" element={<ClientDetail />} />
+          <Route path="bookings" element={<Bookings />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

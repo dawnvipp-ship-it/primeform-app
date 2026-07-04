@@ -16,3 +16,6 @@ export const IconChevron = (p) => (<svg {...base} {...p}><path d="M9 6l6 6-6 6" 
 export const IconBack = (p) => (<svg {...base} {...p}><path d="M15 6l-6 6 6 6" /></svg>)
 export const IconTrash = (p) => (<svg {...base} {...p}><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" /></svg>)
 export const IconPlay = (p) => (<svg {...base} {...p}><path d="M8 5v14l11-7z" /></svg>)
+export const IconCalendar = (p) => (<svg {...base} {...p}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg>)
+export const IconCheck = (p) => (<svg {...base} {...p}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>)
+export const IconX = (p) => (<svg {...base} {...p}><path d="M6 6l12 12M18 6L6 18" /></svg>)

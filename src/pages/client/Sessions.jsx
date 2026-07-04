@@ -1,18 +1,91 @@
+import { useCallback, useMemo, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
-import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
+import { listMyBookings, listSlotsForRange, createBooking, cancelMyBooking, SLOT_HOURS } from '../../data/bookings'
+import { InlineLoader, Eyebrow, Card, Empty, Modal, Field, Textarea } from '../../components/ui/primitives'
+import { IconCalendar } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
+
+const STATUS_LABEL = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', cancelled: 'Đã huỷ', completed: 'Đã tập', no_show: 'Vắng' }
+const STATUS_COLOR = { pending: 'var(--pf-accent)', confirmed: 'var(--pf-ok)', cancelled: 'var(--pf-danger)', completed: 'var(--pf-muted)', no_show: 'var(--pf-danger)' }
+
+function StatusTag({ status }) {
+  const color = STATUS_COLOR[status] ?? 'var(--pf-muted)'
+  return <span className="tag" style={{ color, borderColor: color }}>{STATUS_LABEL[status] ?? status}</span>
+}
+
+function nextDays(n) {
+  const out = []
+  const today = new Date()
+  for (let i = 0; i < n; i++) {
+    const d = new Date(today)
+    d.setDate(d.getDate() + i)
+    out.push(d.toISOString().slice(0, 10))
+  }
+  return out
+}
+
+function formatDateLabel(iso) {
+  const d = new Date(iso + 'T00:00:00')
+  return d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })
+}
 
 export default function Sessions() {
   const { db } = useAuth()
-  const { data, loading } = useAsync(async () => ({ me: await getMyClient(db) }), [db])
+  const { data, loading, reload } = useAsync(async () => {
+    const me = await getMyClient(db)
+    const bookings = me ? await listMyBookings(db) : []
+    return { me, bookings }
+  }, [db])
+
+  const me = data?.me
+  const myBookings = data?.bookings ?? []
+
+  const days = useMemo(() => nextDays(14), [])
+  const [showBooking, setShowBooking] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(days[0])
+  const [selectedTime, setSelectedTime] = useState(null)
+  const [notes, setNotes] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  const { data: takenSlots } = useAsync(
+    () => (me?.coach ? listSlotsForRange(db, me.coach, selectedDate, selectedDate) : Promise.resolve([])),
+    [db, me?.coach, selectedDate]
+  )
+  const takenTimes = new Set((takenSlots ?? []).map((s) => s.time))
+
+  const openBooking = useCallback(() => {
+    setSelectedDate(days[0]); setSelectedTime(null); setNotes(''); setErr(''); setShowBooking(true)
+  }, [days])
+
+  async function submitBooking(e) {
+    e.preventDefault()
+    if (!selectedTime) { setErr('Chọn giờ trống trước đã.'); return }
+    setBusy(true); setErr('')
+    try {
+      await createBooking(db, { clientId: me.id, coach: me.coach, date: selectedDate, time: selectedTime, notes })
+      setShowBooking(false)
+      await reload()
+    } catch (e2) {
+      setErr(e2.message || 'Không đặt được lịch, thử lại.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function cancel(id) {
+    if (!window.confirm('Huỷ buổi tập này?')) return
+    await cancelMyBooking(db, id)
+    await reload()
+  }
 
   if (loading) return <div className="screen"><InlineLoader /></div>
-  const me = data?.me
   if (!me) return <div className="screen"><Empty title="Không tìm thấy hồ sơ." /></div>
 
   const pct = me.total_sessions > 0 ? Math.round((me.used_sessions / me.total_sessions) * 100) : 0
+  const upcoming = myBookings.filter((b) => b.status === 'pending' || b.status === 'confirmed')
 
   return (
     <div className="screen stack-lg fade-in">
@@ -39,6 +112,84 @@ export default function Sessions() {
           <div className="kv"><span className="kv-label">Còn lại</span><span className="kv-value" style={{ color: 'var(--pf-accent)' }}>{me.remaining_sessions} buổi</span></div>
         </div>
       </Card>
+
+      <Card className="stack">
+        <div className="row-between">
+          <Eyebrow>Đặt lịch</Eyebrow>
+          {me.coach && (
+            <button className="btn btn-primary btn-sm" onClick={openBooking}>
+              <IconCalendar style={{ width: 16, height: 16, marginRight: 6, verticalAlign: -3 }} />
+              Đặt lịch mới
+            </button>
+          )}
+        </div>
+
+        {!me.coach ? (
+          <Empty title="Chưa có HLV phụ trách" hint="Liên hệ lễ tân để được phân công HLV trước khi đặt lịch." />
+        ) : upcoming.length === 0 ? (
+          <Empty title="Chưa có buổi nào" hint="Bấm 'Đặt lịch mới' để chọn giờ tập với HLV." />
+        ) : (
+          <div className="stack">
+            {upcoming.map((b) => (
+              <div key={b.id} className="row-between" style={{ borderBottom: '1px solid var(--pf-line-soft)', paddingBottom: 10 }}>
+                <div>
+                  <div className="kv-value">{formatDateLabel(b.date)} · {b.time}</div>
+                  <StatusTag status={b.status} />
+                </div>
+                <button className="btn-quiet" onClick={() => cancel(b.id)}>Huỷ</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <Modal open={showBooking} onClose={() => setShowBooking(false)} title="Đặt lịch tập">
+        <form onSubmit={submitBooking} className="stack">
+          <Field label="Chọn ngày">
+            <div className="row" style={{ gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+              {days.map((d) => (
+                <button
+                  type="button" key={d}
+                  className={d === selectedDate ? 'btn btn-primary btn-sm' : 'btn btn-quiet btn-sm'}
+                  onClick={() => { setSelectedDate(d); setSelectedTime(null) }}
+                  style={{ flexShrink: 0 }}
+                >
+                  {formatDateLabel(d)}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          <Field label="Chọn giờ (7:00 - 21:00)">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {SLOT_HOURS.map((h) => {
+                const t = `${String(h).padStart(2, '0')}:00`
+                const taken = takenTimes.has(t)
+                return (
+                  <button
+                    type="button" key={t} disabled={taken}
+                    className={t === selectedTime ? 'btn btn-primary btn-sm' : 'btn btn-quiet btn-sm'}
+                    style={{ opacity: taken ? 0.35 : 1 }}
+                    onClick={() => setSelectedTime(t)}
+                  >
+                    {t}
+                  </button>
+                )
+              })}
+            </div>
+          </Field>
+
+          <Field label="Ghi chú (không bắt buộc)">
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+          </Field>
+
+          {err && <div style={{ color: 'var(--pf-danger)', fontSize: 13 }}>{err}</div>}
+
+          <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+            {busy ? 'Đang gửi...' : 'Gửi yêu cầu đặt lịch'}
+          </button>
+        </form>
+      </Modal>
     </div>
   )
 }

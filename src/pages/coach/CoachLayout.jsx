@@ -1,11 +1,17 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { IconLogout } from '../../components/ui/Icons'
 import logo from '../../assets/logo.png'
 
+const TABS = [
+  { to: '/coach', label: 'Khách hàng' },
+  { to: '/coach/bookings', label: 'Lịch tập' },
+]
+
 export default function CoachLayout() {
   const { logout, coachUser } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   return (
     <>
@@ -24,6 +30,17 @@ export default function CoachLayout() {
             <span className="muted" style={{ fontSize: 12 }}>{coachUser?.email}</span>
             <button className="btn-quiet" onClick={async () => { await logout(); navigate('/'); }} title="Đăng xuất"><IconLogout /></button>
           </div>
+        </div>
+        <div className="seg-tabs" style={{ maxWidth: 960, margin: '0 auto', padding: '0 16px 10px' }}>
+          {TABS.map((t) => (
+            <button
+              key={t.to}
+              className={`seg-tab${pathname === t.to ? ' active' : ''}`}
+              onClick={() => navigate(t.to)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </header>
       <Outlet />

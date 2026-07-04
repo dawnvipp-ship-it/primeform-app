@@ -19,12 +19,22 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState(null)           // client | coach
   const [client, setClient] = useState(null)
   const [coachUser, setCoachUser] = useState(null)
+  const [isHeadCoach, setIsHeadCoach] = useState(false)
+  const [coachFullName, setCoachFullName] = useState(null)
   const resolving = useRef(false)
 
   const applyResolved = useCallback((r) => {
-    if (r.role === 'coach') { setRole('coach'); setCoachUser(r.user); setClient(null); setStatus('authed') }
-    else if (r.role === 'client') { setRole('client'); setClient(r.client); setCoachUser(null); setStatus('authed') }
-    else { setRole(null); setClient(null); setCoachUser(null); setStatus('anon') }
+    if (r.role === 'coach') {
+      setRole('coach'); setCoachUser(r.user); setClient(null)
+      setIsHeadCoach(!!r.isHeadCoach); setCoachFullName(r.coachFullName ?? null)
+      setStatus('authed')
+    }
+    else if (r.role === 'client') {
+      setRole('client'); setClient(r.client); setCoachUser(null)
+      setIsHeadCoach(false); setCoachFullName(null)
+      setStatus('authed')
+    }
+    else { setRole(null); setClient(null); setCoachUser(null); setIsHeadCoach(false); setCoachFullName(null); setStatus('anon') }
   }, [])
 
   useEffect(() => {
@@ -39,7 +49,11 @@ export function AuthProvider({ children }) {
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_e, sess) => {
       if (resolving.current) return
-      if (!sess?.user) { setRole(null); setClient(null); setCoachUser(null); setStatus('anon'); return }
+      if (!sess?.user) {
+        setRole(null); setClient(null); setCoachUser(null)
+        setIsHeadCoach(false); setCoachFullName(null); setStatus('anon')
+        return
+      }
       const r = await authApi.resolveRole()
       applyResolved(r)
     })
@@ -57,19 +71,24 @@ export function AuthProvider({ children }) {
   const loginCoach = useCallback(async (email, password) => {
     resolving.current = true
     try {
-      const res = await authApi.coachLogin(email, password)
-      setRole('coach'); setCoachUser(res.user); setClient(null); setStatus('authed')
+      await authApi.coachLogin(email, password)
+      // Re-resolve (rather than trusting the raw login response) so
+      // isHeadCoach/coachFullName are populated immediately, not just after
+      // the next onAuthStateChange tick.
+      const r = await authApi.resolveRole()
+      applyResolved(r)
     } finally { resolving.current = false }
-  }, [])
+  }, [applyResolved])
 
   const logout = useCallback(async () => {
     await authApi.logout()
-    setRole(null); setClient(null); setCoachUser(null); setStatus('anon')
+    setRole(null); setClient(null); setCoachUser(null)
+    setIsHeadCoach(false); setCoachFullName(null); setStatus('anon')
   }, [])
 
   const value = useMemo(() => ({
-    status, role, client, coachUser, db: supabase, loginClient, loginCoach, logout,
-  }), [status, role, client, coachUser, loginClient, loginCoach, logout])
+    status, role, client, coachUser, isHeadCoach, coachFullName, db: supabase, loginClient, loginCoach, logout,
+  }), [status, role, client, coachUser, isHeadCoach, coachFullName, loginClient, loginCoach, logout])
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
 }
