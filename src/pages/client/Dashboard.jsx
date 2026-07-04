@@ -4,8 +4,12 @@ import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { getAssessment } from '../../data/assessments'
 import { listPrograms, listPhases, listCompletions } from '../../data/programs'
+import { listMyBookings } from '../../data/bookings'
 import { InlineLoader, Eyebrow, Card } from '../../components/ui/primitives'
 import { IconChevron, IconLogout } from '../../components/ui/Icons'
+
+const BOOKING_STATUS_LABEL = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận' }
+const BOOKING_STATUS_COLOR = { pending: 'var(--pf-accent)', confirmed: 'var(--pf-ok)' }
 import SessionRing from '../../components/ui/SessionRing'
 import logo from '../../assets/logo.png'
 import lounge from '../../assets/studio-lounge.jpg'
@@ -28,19 +32,28 @@ export default function Dashboard() {
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     if (!me) return null
-    const [assessment, programs, phaseRows, completions] = await Promise.all([
+    const [assessment, programs, phaseRows, completions, bookings] = await Promise.all([
       getAssessment(db, me.id),
       listPrograms(db, me.id),
       listPhases(db, me.id),
       listCompletions(db, me.id),
+      listMyBookings(db),
     ])
-    return { me, assessment, programs, phaseRows, completions }
+    return { me, assessment, programs, phaseRows, completions, bookings }
   }, [db])
 
   if (loading) return <div className="screen"><InlineLoader /></div>
   if (!data?.me) return <div className="screen"><div className="empty">Không tìm thấy hồ sơ.</div></div>
 
-  const { me, assessment, programs, phaseRows, completions } = data
+  const { me, assessment, programs, phaseRows, completions, bookings } = data
+
+  // Nearest upcoming booked appointment (separate system from the program's
+  // day rotation below - a client can have a scheduled time with their coach
+  // that has nothing to do with which workout day is "next" in the plan).
+  const today = new Date().toISOString().split('T')[0]
+  const nextBooking = (bookings || [])
+    .filter((b) => (b.status === 'pending' || b.status === 'confirmed') && b.date >= today)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))[0] || null
 
   // Current phase: prefer the phase_rows order (dated phases), falling back
   // to whatever order phases were first encountered across program days.
@@ -103,7 +116,7 @@ export default function Dashboard() {
         <SessionRing total={me.total_sessions} used={me.used_sessions} />
       </Card>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: '1fr', gap: 12 }}>
         <Card><Eyebrow muted>Mục tiêu</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{assessment?.goal || '—'}</div></Card>
         <Card>
           <Eyebrow muted>Giai đoạn</Eyebrow>
@@ -113,6 +126,24 @@ export default function Dashboard() {
         <Card><Eyebrow muted>Tiến trình</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{progressLabel}</div></Card>
         <Card><Eyebrow muted>Buổi còn lại</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{me.remaining_sessions}</div></Card>
       </div>
+
+      {nextBooking && (
+        <Card className="row-between" onClick={() => navigate('/app/sessions')} style={{ cursor: 'pointer' }}>
+          <div>
+            <Eyebrow muted>Lịch hẹn gần nhất</Eyebrow>
+            <div className="pf-display" style={{ fontSize: 22, marginTop: 6 }}>
+              {formatDate(nextBooking.date)} · {nextBooking.time}
+            </div>
+            <span
+              className="tag"
+              style={{ marginTop: 6, display: 'inline-block', color: BOOKING_STATUS_COLOR[nextBooking.status], borderColor: BOOKING_STATUS_COLOR[nextBooking.status] }}
+            >
+              {BOOKING_STATUS_LABEL[nextBooking.status]}
+            </span>
+          </div>
+          <span style={{ color: 'var(--pf-accent)' }}><IconChevron /></span>
+        </Card>
+      )}
 
       <Card
         className="row-between"
