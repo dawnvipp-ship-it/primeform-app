@@ -58,11 +58,13 @@ export async function cancelMyBooking(db, id) {
 
 // Coach-side list for a date range. RLS already scopes this to the caller's
 // own coach_id (or every row, if the caller is the head coach) - no explicit
-// coach filter needed here.
+// coach filter needed here. Embeds the client's name (coaches can already see
+// every client via ClientList, so no extra RLS concern) for display in the
+// weekly grid.
 export async function listCoachBookings(db, { from, to, status } = {}) {
   let q = db
     .from('bookings')
-    .select('*')
+    .select('*, clients(full_name)')
     .order('date', { ascending: true })
     .order('time', { ascending: true })
   if (from) q = q.gte('date', from)
@@ -70,7 +72,7 @@ export async function listCoachBookings(db, { from, to, status } = {}) {
   if (status) q = q.eq('status', status)
   const { data, error } = await q
   if (error) throw error
-  return data || []
+  return (data || []).map((b) => ({ ...b, client_name: b.clients?.full_name ?? null }))
 }
 
 export async function confirmBooking(db, id) {
