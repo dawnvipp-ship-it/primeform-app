@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom'
+
 export function Eyebrow({ children, muted }) {
   return <div className={muted ? 'eyebrow eyebrow-muted' : 'eyebrow'}>{children}</div>
 }
@@ -66,7 +68,13 @@ export function Stat({ value, label, size = 40 }) {
 
 export function Modal({ open, onClose, title, children }) {
   if (!open) return null
-  return (
+  // Portalled to document.body: a fade-in ancestor (any page root using the
+  // .fade-in mount animation, e.g. every `.screen`) creates a transform
+  // during its animation, which makes descendant `position: fixed` elements
+  // resolve against that ancestor's box instead of the real viewport - the
+  // modal would end up clipped above the bottom nav instead of covering it.
+  // Rendering outside the component tree sidesteps that entirely.
+  return createPortal(
     <div
       onClick={onClose}
       style={{
@@ -92,6 +100,7 @@ export function Modal({ open, onClose, title, children }) {
         )}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
