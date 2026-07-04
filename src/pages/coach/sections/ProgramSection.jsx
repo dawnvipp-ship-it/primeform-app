@@ -7,6 +7,7 @@ import {
 } from '../../../data/programs'
 import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader } from '../../../components/ui/primitives'
 import { IconPlus, IconTrash } from '../../../components/ui/Icons'
+import { MUSCLE_GROUPS } from '../../../data/muscleGroups'
 
 const COLS = ['group_label', 'exercise_name', 'sets', 'reps', 'tempo', 'rest', 'load', 'rpe', 'coaching_cue', 'notes']
 const HEADER = 'Nhóm | Tên bài | Sets | Reps | Tempo | Nghỉ | Mức tạ | RPE | Cue | Ghi chú'
@@ -72,6 +73,13 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
     onChanged?.()
   }
 
+  async function toggleMuscleGroup(groupId, checked) {
+    const current = day.muscle_groups || []
+    const next = checked ? [...current, groupId] : current.filter((g) => g !== groupId)
+    await updateProgramDay(db, day.id, { muscle_groups: next })
+    onChanged?.()
+  }
+
   const existingPhases = (allDays || []).map((d) => d.phase).filter(Boolean)
     .filter((ph, i, arr) => arr.indexOf(ph) === i && !PRESET_PHASES.includes(ph))
 
@@ -123,6 +131,28 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
           Tính vào "Buổi kế tiếp" (bỏ chọn cho cardio, giãn cơ...)
         </span>
       </label>
+
+      <div>
+        <div style={{ fontSize: 11.5, color: 'var(--pf-muted)', marginBottom: 6 }}>
+          Nhóm cơ của ngày này (để tô lên hình người ở Tiến độ)
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {MUSCLE_GROUPS.map((g) => {
+            const active = (day.muscle_groups || []).includes(g.id)
+            return (
+              <button
+                key={g.id}
+                type="button"
+                className={`btn btn-sm ${active ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ fontSize: 11.5, padding: '4px 10px' }}
+                onClick={() => toggleMuscleGroup(g.id, !active)}
+              >
+                {g.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
 
       <div className="divider" />
       <Textarea

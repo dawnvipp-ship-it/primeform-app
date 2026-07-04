@@ -181,3 +181,32 @@ export async function upsertWeekLog(db, clientId, exerciseId, weekNumber, topSet
   if (error) throw error
   return data
 }
+
+// ---------- Muscle-group heat (body map) ----------
+// Each program day carries a coach-picked muscle_groups tag (set once per
+// day, not per exercise - keeps tagging effort low). "Heat" per group is a
+// count of completions in the window, normalized to the busiest group so
+// the body map always has one fully-lit region as a visual anchor.
+export function computeMuscleHeat(programs, completions, { days = 30 } = {}) {
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - days)
+  const cutoffStr = cutoff.toISOString().split('T')[0]
+
+  const programById = {}
+  programs.forEach((p) => { programById[p.id] = p })
+
+  const counts = {}
+  let maxCount = 0
+  completions.forEach((c) => {
+    if (c.completed_date < cutoffStr) return
+    const groups = programById[c.program_id]?.muscle_groups || []
+    groups.forEach((g) => {
+      counts[g] = (counts[g] ?? 0) + 1
+      if (counts[g] > maxCount) maxCount = counts[g]
+    })
+  })
+
+  const heat = {}
+  Object.entries(counts).forEach(([g, count]) => { heat[g] = maxCount > 0 ? count / maxCount : 0 })
+  return heat
+}

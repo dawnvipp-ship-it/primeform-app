@@ -2,7 +2,10 @@ import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { listProgressLogs, listPhotos, signedPhotoUrl } from '../../data/progress'
+import { listPrograms, listCompletions, computeMuscleHeat } from '../../data/programs'
+import { MUSCLE_LABEL } from '../../data/muscleGroups'
 import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
+import MuscleBodyMap from '../../components/ui/MuscleBodyMap'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 
 const ACCENT = '#E8D8C3'
@@ -38,18 +41,21 @@ export default function Progress() {
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     if (!me) return null
-    const [logs, photos] = await Promise.all([listProgressLogs(db, me.id), listPhotos(db, me.id)])
+    const [logs, photos, programs, completions] = await Promise.all([
+      listProgressLogs(db, me.id), listPhotos(db, me.id), listPrograms(db, me.id), listCompletions(db, me.id),
+    ])
     const withUrls = await Promise.all(
       photos.map(async (p) => ({ ...p, url: await signedPhotoUrl(db, p.photo_path).catch(() => null) }))
     )
-    return { logs, photos: withUrls }
+    return { logs, photos: withUrls, muscleHeat: computeMuscleHeat(programs, completions) }
   }, [db])
 
   if (loading) return <div className="screen"><InlineLoader /></div>
   if (!data) return <div className="screen"><Empty title="Không tìm thấy hồ sơ." /></div>
 
-  const { logs, photos } = data
+  const { logs, photos, muscleHeat } = data
   const hasLogs = logs.length > 0
+  const hasMuscleData = Object.keys(muscleHeat).length > 0
 
   return (
     <div className="screen stack fade-in">
@@ -57,6 +63,14 @@ export default function Progress() {
         <Eyebrow>Theo dõi</Eyebrow>
         <h1 style={{ fontSize: 28, marginTop: 6 }}>Tiến độ</h1>
       </div>
+
+      {hasMuscleData && (
+        <Card className="stack">
+          <Eyebrow muted>Nhóm cơ đã tập gần đây (30 ngày)</Eyebrow>
+          <MuscleBodyMap heat={muscleHeat} labels={MUSCLE_LABEL} />
+          <p className="faint" style={{ fontSize: 11.5, textAlign: 'center' }}>Màu càng đậm = tập càng nhiều</p>
+        </Card>
+      )}
 
       {!hasLogs && photos.length === 0 ? (
         <Empty title="Chưa có dữ liệu tiến độ" hint="Số liệu sẽ xuất hiện sau các buổi đo." />
