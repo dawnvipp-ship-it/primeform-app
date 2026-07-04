@@ -219,6 +219,14 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty { text-align: center; color: var(--pf-faint); padding: var(--s7) var(--s4); }
 
+.skeleton {
+  background: linear-gradient(100deg, var(--pf-surface-2) 30%, var(--pf-line) 50%, var(--pf-surface-2) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+
 .toast {
   position: fixed; left: 50%; bottom: calc(var(--bottomnav-h) + 16px); transform: translateX(-50%);
   background: var(--pf-surface-2); border: 1px solid var(--pf-line);

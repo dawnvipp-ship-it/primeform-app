@@ -5,14 +5,36 @@ import { getMyClient } from '../../data/clients'
 import { getAssessment } from '../../data/assessments'
 import { listPrograms, listPhases, listCompletions } from '../../data/programs'
 import { listMyBookings } from '../../data/bookings'
-import { InlineLoader, Eyebrow, Card } from '../../components/ui/primitives'
+import { Eyebrow, Card } from '../../components/ui/primitives'
 import { IconChevron, IconLogout } from '../../components/ui/Icons'
-
-const BOOKING_STATUS_LABEL = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận' }
-const BOOKING_STATUS_COLOR = { pending: 'var(--pf-accent)', confirmed: 'var(--pf-ok)' }
 import SessionRing from '../../components/ui/SessionRing'
 import logo from '../../assets/logo.png'
 import lounge from '../../assets/studio-lounge.jpg'
+
+const BOOKING_STATUS_LABEL = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận' }
+const BOOKING_STATUS_COLOR = { pending: 'var(--pf-accent)', confirmed: 'var(--pf-ok)' }
+const LOW_SESSIONS_THRESHOLD = 2
+
+function DashboardSkeleton() {
+  return (
+    <div className="screen stack-lg" style={{ paddingTop: 0 }}>
+      <div style={{ margin: '0 calc(var(--s4) * -1)', height: 150 }} className="skeleton" />
+      <div className="skeleton" style={{ height: 30, width: '55%' }} />
+      <Card style={{ display: 'flex', justifyContent: 'center', padding: '32px 24px' }}>
+        <div className="skeleton" style={{ width: 180, height: 180, borderRadius: '50%' }} />
+      </Card>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: '1fr', gap: 12 }}>
+        {[0, 1, 2, 3].map((i) => (
+          <Card key={i} className="stack" style={{ gap: 8 }}>
+            <div className="skeleton" style={{ height: 10, width: '50%' }} />
+            <div className="skeleton" style={{ height: 18, width: '75%' }} />
+          </Card>
+        ))}
+      </div>
+      <Card style={{ height: 78 }} />
+    </div>
+  )
+}
 
 function addDays(iso, n) {
   const d = new Date(iso)
@@ -42,7 +64,7 @@ export default function Dashboard() {
     return { me, assessment, programs, phaseRows, completions, bookings }
   }, [db])
 
-  if (loading) return <div className="screen"><InlineLoader /></div>
+  if (loading) return <DashboardSkeleton />
   if (!data?.me) return <div className="screen"><div className="empty">Không tìm thấy hồ sơ.</div></div>
 
   const { me, assessment, programs, phaseRows, completions, bookings } = data
@@ -115,6 +137,16 @@ export default function Dashboard() {
       <Card style={{ display: 'flex', justifyContent: 'center', padding: '32px 24px' }}>
         <SessionRing total={me.total_sessions} used={me.used_sessions} />
       </Card>
+
+      {me.remaining_sessions <= LOW_SESSIONS_THRESHOLD && (
+        <Card style={{ borderColor: 'var(--pf-danger)' }}>
+          <div style={{ fontSize: 13.5, color: 'var(--pf-danger)', lineHeight: 1.5 }}>
+            {me.remaining_sessions <= 0
+              ? 'Bạn đã dùng hết buổi tập. Liên hệ HLV để gia hạn gói.'
+              : `Sắp hết gói tập — chỉ còn ${me.remaining_sessions} buổi. Liên hệ HLV để gia hạn.`}
+          </div>
+        </Card>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: '1fr', gap: 12 }}>
         <Card><Eyebrow muted>Mục tiêu</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{assessment?.goal || '—'}</div></Card>
