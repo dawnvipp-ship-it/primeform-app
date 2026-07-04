@@ -128,12 +128,18 @@ export async function markWorkoutComplete(db, programId) {
   if (error) throw error
 }
 
+// Ordered so the most recently *marked* completion is first, not just the
+// most recent date - completed_date is date-only, so same-day completions
+// (e.g. a client/coach testing multiple days in one sitting) tie on that
+// column alone; created_at breaks the tie with real chronological order,
+// which "buổi kế tiếp" rotation on the Dashboard depends on.
 export async function listCompletions(db, clientId) {
   const { data, error } = await db
     .from('workout_completions')
     .select('*')
     .eq('client_id', clientId)
     .order('completed_date', { ascending: false })
+    .order('created_at', { ascending: false })
   if (error) throw error
   return data || []
 }
