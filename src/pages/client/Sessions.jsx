@@ -31,6 +31,15 @@ function formatDateLabel(iso) {
   return d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })
 }
 
+const DAY_ABBREV = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+function dayAbbrev(iso) {
+  const d = new Date(iso + 'T00:00:00')
+  return DAY_ABBREV[d.getDay()]
+}
+function dayNumber(iso) {
+  return iso.slice(8, 10) + '/' + iso.slice(5, 7)
+}
+
 export default function Sessions() {
   const { db } = useAuth()
   const { data, loading, reload } = useAsync(async () => {
@@ -146,29 +155,30 @@ export default function Sessions() {
       <Modal open={showBooking} onClose={() => setShowBooking(false)} title="Đặt lịch tập">
         <form onSubmit={submitBooking} className="stack">
           <Field label="Chọn ngày">
-            <div className="row" style={{ gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+            <div className="row hide-scrollbar" style={{ gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
               {days.map((d) => (
                 <button
                   type="button" key={d}
-                  className={d === selectedDate ? 'btn btn-primary btn-sm' : 'btn btn-quiet btn-sm'}
+                  className={d === selectedDate ? 'btn btn-primary' : 'btn btn-ghost'}
                   onClick={() => { setSelectedDate(d); setSelectedTime(null) }}
-                  style={{ flexShrink: 0 }}
+                  style={{ flexShrink: 0, flexDirection: 'column', gap: 2, minWidth: 56, padding: '8px 10px' }}
                 >
-                  {formatDateLabel(d)}
+                  <span style={{ fontSize: 11, opacity: 0.75 }}>{dayAbbrev(d)}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{dayNumber(d)}</span>
                 </button>
               ))}
             </div>
           </Field>
 
           <Field label="Chọn giờ (7:00 - 21:00)">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
               {SLOT_HOURS.map((h) => {
                 const t = `${String(h).padStart(2, '0')}:00`
                 const taken = takenTimes.has(t)
                 return (
                   <button
                     type="button" key={t} disabled={taken}
-                    className={t === selectedTime ? 'btn btn-primary btn-sm' : 'btn btn-quiet btn-sm'}
+                    className={t === selectedTime ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm'}
                     style={{ opacity: taken ? 0.35 : 1 }}
                     onClick={() => setSelectedTime(t)}
                   >

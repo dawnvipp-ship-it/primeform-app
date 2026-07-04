@@ -114,6 +114,12 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
 }
 .card-flush { padding: 0; overflow: hidden; }
 
+/* Hides the native scrollbar on a horizontally-scrollable strip (e.g. the
+   booking date picker) - the browser's default bar reads as a stray UI
+   element against this design system, not a scroll affordance. */
+.hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
 /* ---------- Button ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
