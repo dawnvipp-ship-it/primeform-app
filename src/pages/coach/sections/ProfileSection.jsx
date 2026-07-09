@@ -14,6 +14,8 @@ export default function ProfileSection({ client, onSaved }) {
     used_sessions: client.used_sessions ?? 0,
     active: client.active,
     coach: client.coach || '',
+    birth_year: client.birth_year ?? '',
+    gender: client.gender || '',
   })
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -34,6 +36,8 @@ export default function ProfileSection({ client, onSaved }) {
         used_sessions: used,
         active: f.active,
         coach: f.coach || null,
+        birth_year: f.birth_year === '' ? null : Number(f.birth_year),
+        gender: f.gender || null,
       })
       setSaved(true); onSaved?.()
       setTimeout(() => setSaved(false), 2000)
@@ -50,6 +54,17 @@ export default function ProfileSection({ client, onSaved }) {
         <div className="field-grid">
           <Field label="SĐT"><Input value={f.phone} onChange={set('phone')} /></Field>
           <Field label="Email"><Input value={f.email} onChange={set('email')} /></Field>
+        </div>
+        <div className="field-grid">
+          <Field label="Năm sinh"><Input type="number" value={f.birth_year} onChange={set('birth_year')} /></Field>
+          <Field label="Giới tính">
+            <select className="input" value={f.gender} onChange={(e) => setF({ ...f, gender: e.target.value })}>
+              <option value="">— Chưa chọn —</option>
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+              <option value="Khác">Khác</option>
+            </select>
+          </Field>
         </div>
         <Field label="HLV phụ trách">
           <select className="input" value={f.coach} onChange={(e) => setF({ ...f, coach: e.target.value })}>

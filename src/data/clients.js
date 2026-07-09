@@ -1,7 +1,7 @@
 // All functions take `db` (a supabase client) so coach (authed) and client
 // (token-bound) share the same query layer. RLS decides what each can see/do.
 
-const COLS = 'id, client_code, full_name, phone, email, start_date, active, total_sessions, used_sessions, remaining_sessions, coach, created_at'
+const COLS = 'id, client_code, full_name, phone, email, start_date, active, total_sessions, used_sessions, remaining_sessions, coach, created_at, birth_year, gender'
 
 export async function listClients(db) {
   const { data, error } = await db
