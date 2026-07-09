@@ -21,14 +21,17 @@ export default function ClientLayout() {
       <button
         onClick={async () => { await logout(); navigate('/', { replace: true }) }}
         title="Đăng xuất"
+        aria-label="Đăng xuất"
         style={{
-          position: 'fixed', top: 'calc(env(safe-area-inset-top) + 12px)', right: 14, zIndex: 60,
-          width: 38, height: 38, borderRadius: 999, display: 'grid', placeItems: 'center',
-          background: 'rgba(18,18,17,.7)', backdropFilter: 'blur(10px)',
-          border: '1px solid var(--pf-line)', color: 'var(--pf-muted)',
+          position: 'fixed', top: 'calc(env(safe-area-inset-top) + 10px)', right: 12, zIndex: 60,
+          width: 44, height: 44, borderRadius: 999, display: 'grid', placeItems: 'center',
+          background: 'rgba(18,18,17,.88)', backdropFilter: 'blur(10px)',
+          border: '1px solid var(--pf-line)', color: 'var(--pf-text)',
+          boxShadow: '0 4px 16px rgba(0,0,0,.45)',
+          WebkitTapHighlightColor: 'transparent', cursor: 'pointer',
         }}
       >
-        <IconLogout width={18} height={18} />
+        <IconLogout width={20} height={20} />
       </button>
 
       <Outlet />
