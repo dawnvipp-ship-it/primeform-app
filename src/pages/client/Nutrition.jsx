@@ -129,6 +129,13 @@ export default function Nutrition() {
         <Empty title="Chưa có kế hoạch dinh dưỡng" hint="HLV sẽ thiết kế dựa trên mục tiêu của bạn." />
       ) : (
         <>
+          {ms.notes && (
+            <Card style={{ borderColor: 'var(--pf-accent)' }}>
+              <Eyebrow muted>Ghi chú từ HLV</Eyebrow>
+              <div style={{ marginTop: 10, whiteSpace: 'pre-wrap' }}>{ms.notes}</div>
+            </Card>
+          )}
+
           <MacroCard title="Ngày tập" calories={plan.calories} protein={plan.protein} carbs={plan.carbs} fat={plan.fat} />
 
           {ms.macros_rest && (ms.macros_rest.calories || ms.macros_rest.protein) && (

@@ -22,6 +22,7 @@ export default function MealSection({ clientId }) {
   const [days, setDays] = useState(DEFAULT_DAYS)
   const [supplements, setSupplements] = useState('')
   const [exchange, setExchange] = useState({ carb: '', protein: '', fat: '' })
+  const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -36,6 +37,7 @@ export default function MealSection({ clientId }) {
       setDays(ms.days?.length ? ms.days : DEFAULT_DAYS)
       setSupplements(ms.supplements || '')
       setExchange(ms.exchange || { carb: '', protein: '', fat: '' })
+      setNotes(ms.notes || '')
       setLoading(false)
     })
     return () => { on = false }
@@ -51,7 +53,7 @@ export default function MealSection({ clientId }) {
     try {
       await upsertMealPlan(db, clientId, {
         calories: int(macros.calories), protein: int(macros.protein), carbs: int(macros.carbs), fat: int(macros.fat),
-        meal_structure: { days, supplements, exchange, macros_rest: macrosRest },
+        meal_structure: { days, supplements, exchange, macros_rest: macrosRest, notes },
       })
       setSaved(true); setTimeout(() => setSaved(false), 2000)
     } finally { setBusy(false) }
@@ -61,6 +63,12 @@ export default function MealSection({ clientId }) {
 
   return (
     <div className="stack">
+      <Card className="stack">
+        <Eyebrow muted>Ghi chú từ HLV</Eyebrow>
+        <p className="muted" style={{ fontSize: 12 }}>Khách sẽ thấy ghi chú này ở đầu trang Dinh dưỡng. Dùng để cá nhân hoá (VD: khách dạo này stress công việc, ngủ khuya…).</p>
+        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="VD: Tuần này em thấy chị ngủ khuya nên anh hạ nhẹ carb buổi tối, ưu tiên ngủ đủ giấc trước nhé." style={{ minHeight: 80 }} />
+      </Card>
+
       <Card className="stack">
         <Eyebrow muted>Macros</Eyebrow>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
