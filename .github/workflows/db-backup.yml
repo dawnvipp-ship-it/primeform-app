@@ -1,3 +1,12 @@
+pload backup artifact
+        uses: actions/upload-artifact@v4
+
+Cập nhật lại file trên GitHub (Edit → xoá hết → dán nội dung mới):
+
+  Read 1 file
+
+─────────────────────────────── 1 new message ─────────────────────────────────
+
 name: Monthly Supabase Backup
 
 on:
@@ -23,7 +32,9 @@ jobs:
       - name: Dump database
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: pg_dump "$DATABASE_URL" -F c -f backup-$(date +%F).dump
+        # Call the v17 binary directly - the plain `pg_dump` on PATH still
+        # resolves to Ubuntu's preinstalled v16 even after installing v17.
+        run: /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" -F c -f backup-$(date +%F).dump
 
       - name: Upload backup artifact
         uses: actions/upload-artifact@v4
@@ -31,3 +42,6 @@ jobs:
           name: supabase-backup-${{ github.run_id }}
           path: backup-*.dump
           retention-days: 90
+      # Ngày 1 mỗi tháng, 19:00 UTC = 02:00 sáng giờ Việt Nam
+      - cron: '0 19 1 * *'
+    workflow_dispatch:
