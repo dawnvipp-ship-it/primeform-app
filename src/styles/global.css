@@ -11,7 +11,7 @@
   --pf-charcoal-3:  #2F2D2A;
   --pf-bone:        #F5F1EA;
   --pf-stone:       #8C877E;
-  --pf-grey:        #6B6B6B;
+  --pf-grey:        #7A756C;
   --pf-gold:        #C9A961;
   --pf-gold-bright: #D8BC7E;
   --pf-gold-deep:   #A8893F;
@@ -27,13 +27,22 @@
   --pf-faint:     var(--pf-grey);
   --pf-line:      rgba(245, 241, 234, 0.10);
   --pf-line-soft: rgba(245, 241, 234, 0.06);
-  --pf-danger:    #B5705F;
+  --pf-danger:    #C4826F;
   --pf-ok:        #7FA17F;
 
   /* Type */
   --pf-display: 'Inter Tight', system-ui, sans-serif;
   --pf-body:    'Inter', system-ui, sans-serif;
-  --pf-serif:   'Instrument Serif', Georgia, serif;
+
+  /* Type scale - keep new inline font-sizes on this scale instead of
+     picking arbitrary values, so hierarchy stays consistent page to page. */
+  --fs-xs:   11px;
+  --fs-sm:   13px;
+  --fs-base: 15px;
+  --fs-lg:   18px;
+  --fs-xl:   22px;
+  --fs-h1:   28px;
+  --fs-hero: 40px;
 
   /* Spacing scale */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px;
@@ -67,7 +76,7 @@ a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
 input, select, textarea { font-family: inherit; }
 
-::selection { background: var(--pf-accent); color: #0B0B0B; }
+::selection { background: var(--pf-accent); color: var(--pf-obsidian); }
 
 /* ---------- Typography helpers ---------- */
 .pf-display { font-family: var(--pf-display); font-weight: 500; letter-spacing: -0.01em; }
@@ -79,7 +88,7 @@ input, select, textarea { font-family: inherit; }
   text-transform: uppercase;
   color: var(--pf-accent);
 }
-.eyebrow-muted { color: var(--pf-faint); }
+.eyebrow-muted { color: var(--pf-muted); }
 
 .muted { color: var(--pf-muted); }
 .faint { color: var(--pf-faint); }
@@ -198,7 +207,7 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
 .bottomnav-inner { display: flex; width: 100%; max-width: var(--maxw); margin: 0 auto; }
 .navitem {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 3px; color: var(--pf-faint); background: none; border: 0;
+  gap: 3px; color: var(--pf-muted); background: none; border: 0;
   font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
   transition: color .15s ease;
 }
@@ -217,7 +226,7 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
   animation: spin .7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.empty { text-align: center; color: var(--pf-faint); padding: var(--s7) var(--s4); }
+.empty { text-align: center; color: var(--pf-muted); padding: var(--s7) var(--s4); }
 
 .skeleton {
   background: linear-gradient(100deg, var(--pf-surface-2) 30%, var(--pf-line) 50%, var(--pf-surface-2) 70%);
@@ -232,6 +241,24 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
   background: var(--pf-surface-2); border: 1px solid var(--pf-line);
   color: var(--pf-text); padding: 10px 16px; border-radius: 999px; font-size: 13px;
   z-index: 100; box-shadow: 0 8px 30px rgba(0,0,0,.5);
+}
+
+/* ---------- Modal ---------- */
+/* Bottom sheet on phone widths (thumb-reachable); centered dialog once
+   there's room, so it doesn't hug the bottom edge of a wide coach screen. */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center;
+}
+.modal-panel {
+  width: 100%; max-width: 560px; background: var(--pf-surface);
+  border: 1px solid var(--pf-line); border-radius: 16px 16px 0 0;
+  padding: 24px; max-height: 88dvh; overflow-y: auto;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+@media (min-width: 720px) {
+  .modal-backdrop { align-items: center; }
+  .modal-panel { border-radius: 16px; padding-bottom: 24px; }
 }
 
 .fade-in { animation: fade .4s ease both; }
@@ -279,6 +306,6 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
 
 /* Coach table */
 .ctable { width: 100%; border-collapse: collapse; }
-.ctable th { text-align: left; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--pf-faint); padding: 10px 12px; border-bottom: 1px solid var(--pf-line); font-weight: 600; }
+.ctable th { text-align: left; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--pf-muted); padding: 10px 12px; border-bottom: 1px solid var(--pf-line); font-weight: 600; }
 .ctable td { padding: 14px 12px; border-bottom: 1px solid var(--pf-line-soft); font-size: 14px; }
 .ctable tr:hover td { background: var(--pf-surface); cursor: pointer; }

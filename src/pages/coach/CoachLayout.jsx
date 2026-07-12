@@ -20,7 +20,7 @@ export default function CoachLayout() {
         background: 'rgba(11,11,11,.86)', backdropFilter: 'blur(18px)',
         borderBottom: '1px solid var(--pf-line)',
       }}>
-        <div className="row-between" style={{ maxWidth: 960, margin: '0 auto', padding: '14px 16px' }}>
+        <div className="row-between" style={{ maxWidth: 960, margin: '0 auto', padding: 'calc(env(safe-area-inset-top) + 14px) 16px 14px' }}>
           <div className="row" style={{ gap: 10, cursor: 'pointer' }} onClick={() => navigate('/coach')}>
             <img src={logo} alt="" style={{ width: 22, height: 'auto' }} />
             <span className="pf-display" style={{ fontSize: 20 }}>Prime Form</span>

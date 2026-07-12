@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { getAssessment, upsertAssessment } from '../../../data/assessments'
 import { Card, Eyebrow, Field, Input, Textarea, InlineLoader } from '../../../components/ui/primitives'
+import { IconCheck } from '../../../components/ui/Icons'
 
 const EMPTY = {
   goal: '', weight: '', target_weight: '', body_fat: '', target_body_fat: '', specific_goal: '',
@@ -111,7 +112,7 @@ export default function AssessmentSection({ clientId }) {
       </Card>
 
       <button className="btn btn-primary btn-block" onClick={save} disabled={busy}>
-        {busy ? 'Đang lưu…' : saved ? '✓ Đã lưu' : 'Lưu đánh giá'}
+        {busy ? 'Đang lưu…' : saved ? <><IconCheck width={14} height={14} /> Đã lưu</> : 'Lưu đánh giá'}
       </button>
     </div>
   )

@@ -1,11 +1,15 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
-import { updateClient } from '../../../data/clients'
+import { updateClient, deleteClient } from '../../../data/clients'
 import { COACHES } from '../../../data/coaches'
-import { Card, Eyebrow, Field, Input } from '../../../components/ui/primitives'
+import { Card, Eyebrow, Field, Input, confirmDialog, showToast } from '../../../components/ui/primitives'
+import { IconCheck } from '../../../components/ui/Icons'
 
 export default function ProfileSection({ client, onSaved }) {
   const { db } = useAuth()
+  const navigate = useNavigate()
+  const [deleting, setDeleting] = useState(false)
   const [f, setF] = useState({
     full_name: client.full_name || '',
     phone: client.phone || '',
@@ -42,6 +46,21 @@ export default function ProfileSection({ client, onSaved }) {
       setSaved(true); onSaved?.()
       setTimeout(() => setSaved(false), 2000)
     } catch (e) { setErr(e.message || 'Lỗi lưu.') } finally { setBusy(false) }
+  }
+
+  async function remove() {
+    const ok = await confirmDialog(`Xoá hồ sơ "${client.full_name}"? Toàn bộ dữ liệu (giáo án, dinh dưỡng, tiến độ) sẽ mất vĩnh viễn.`, {
+      title: 'Xoá hồ sơ khách hàng', confirmLabel: 'Xoá hồ sơ', danger: true,
+    })
+    if (!ok) return
+    setDeleting(true)
+    try {
+      await deleteClient(db, client.id)
+      navigate('/coach')
+    } catch (e) {
+      showToast(e.message || 'Lỗi xoá hồ sơ')
+      setDeleting(false)
+    }
   }
 
   const remaining = (Number(f.total_sessions) || 0) - (Number(f.used_sessions) || 0)
@@ -89,8 +108,16 @@ export default function ProfileSection({ client, onSaved }) {
 
       {err && <div style={{ color: 'var(--pf-danger)', fontSize: 13 }}>{err}</div>}
       <button className="btn btn-primary btn-block" onClick={save} disabled={busy}>
-        {busy ? 'Đang lưu…' : saved ? '✓ Đã lưu' : 'Lưu thay đổi'}
+        {busy ? 'Đang lưu…' : saved ? <><IconCheck width={16} height={16} /> Đã lưu</> : 'Lưu thay đổi'}
       </button>
+
+      <Card className="stack" style={{ borderColor: 'rgba(196,130,111,.3)' }}>
+        <Eyebrow muted>Khu vực nguy hiểm</Eyebrow>
+        <p className="muted" style={{ fontSize: 13 }}>Xoá hồ sơ sẽ xoá vĩnh viễn toàn bộ dữ liệu của khách này, không thể hoàn tác.</p>
+        <button className="btn btn-danger" onClick={remove} disabled={deleting}>
+          {deleting ? 'Đang xoá…' : 'Xoá hồ sơ'}
+        </button>
+      </Card>
     </div>
   )
 }

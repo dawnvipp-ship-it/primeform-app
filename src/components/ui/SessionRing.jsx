@@ -1,5 +1,5 @@
 // Signature element: sessions rendered like a watch face.
-// Thin champagne arc over a faint track, large Fraunces numeral at center.
+// Thin gold arc over a faint track, large numeral at center (Inter Tight).
 
 import { useEffect, useState } from 'react'
 

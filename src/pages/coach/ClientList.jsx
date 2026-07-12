@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
-import { listClients, createClient, deleteClient } from '../../data/clients'
+import { listClients, createClient } from '../../data/clients'
 import { COACHES } from '../../data/coaches'
 import { InlineLoader, Eyebrow, Card, Empty, Modal, Field, Input } from '../../components/ui/primitives'
-import { IconPlus, IconChevron, IconTrash } from '../../components/ui/Icons'
+import { IconPlus, IconChevron } from '../../components/ui/Icons'
 
 function genCode(name) {
   const base = (name || 'PF').normalize('NFD').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || 'PF'
@@ -16,7 +16,7 @@ function genCode(name) {
 export default function ClientList() {
   const { db } = useAuth()
   const navigate = useNavigate()
-  const { data, loading, reload } = useAsync(() => listClients(db), [db])
+  const { data, loading } = useAsync(() => listClients(db), [db])
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ full_name: '', client_code: '', phone: '', email: '', total_sessions: 72, coach: '' })
   const [busy, setBusy] = useState(false)
@@ -60,7 +60,7 @@ export default function ClientList() {
       <div className="row-between">
         <div>
           <Eyebrow>Khách hàng</Eyebrow>
-          <h1 style={{ fontSize: 26, marginTop: 6 }}>{data?.length || 0} hồ sơ</h1>
+          <h1 style={{ fontSize: 'var(--fs-h1)', marginTop: 6 }}>{data?.length || 0} hồ sơ</h1>
         </div>
         <button className="btn btn-primary" onClick={openModal}><IconPlus width={16} height={16} /> Khách mới</button>
       </div>
@@ -94,21 +94,7 @@ export default function ClientList() {
                   {c.coach && <span style={{ marginLeft: 6, color: 'var(--pf-faint)' }}>· {c.coach.split(' ').slice(-1)[0]}</span>}
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button
-                  className="btn-quiet"
-                  onClick={async (e) => {
-                    e.stopPropagation()
-                    if (!confirm(`Xoá hồ sơ "${c.full_name}"? Hành động này không thể hoàn tác.`)) return
-                    try { await deleteClient(db, c.id); reload() }
-                    catch (err) { alert(err.message || 'Lỗi xoá hồ sơ') }
-                  }}
-                  style={{ color: 'var(--pf-danger, #e05c5c)' }}
-                >
-                  <IconTrash width={15} height={15} />
-                </button>
-                <span className="faint"><IconChevron /></span>
-              </div>
+              <span className="faint"><IconChevron /></span>
             </div>
           ))}
         </Card>

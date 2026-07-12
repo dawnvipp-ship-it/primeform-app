@@ -5,8 +5,8 @@ import {
   listPrograms, createProgramDay, deleteProgramDay, setDayExercises, updateProgramDay,
   listPhases, upsertPhase, deletePhaseRow, reorderPhases, renamePhaseOnDays, deletePhaseDays,
 } from '../../../data/programs'
-import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader } from '../../../components/ui/primitives'
-import { IconPlus, IconTrash } from '../../../components/ui/Icons'
+import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader, showToast, confirmDialog } from '../../../components/ui/primitives'
+import { IconPlus, IconTrash, IconCheck, IconEdit, IconChevron, IconX } from '../../../components/ui/Icons'
 import { MUSCLE_GROUPS, detectMuscleGroups } from '../../../data/muscleGroups'
 
 const COLS = ['group_label', 'exercise_name', 'sets', 'reps', 'tempo', 'rest', 'load', 'rpe', 'coaching_cue', 'notes']
@@ -71,7 +71,7 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
       await updateProgramDay(db, day.id, { muscle_groups: guess })
       onChanged?.()
     } catch (e) {
-      alert(e.message || 'Không nhận diện được, thử lại.')
+      showToast(e.message || 'Không nhận diện được, thử lại.')
     }
   }
 
@@ -91,7 +91,7 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
       await updateProgramDay(db, day.id, { counts_for_next: checked })
       onChanged?.()
     } catch (e) {
-      alert(e.message || 'Không lưu được, thử lại.')
+      showToast(e.message || 'Không lưu được, thử lại.')
     }
   }
 
@@ -102,7 +102,7 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
       await updateProgramDay(db, day.id, { muscle_groups: next })
       onChanged?.()
     } catch (e) {
-      alert(e.message || 'Không lưu được, thử lại.')
+      showToast(e.message || 'Không lưu được, thử lại.')
     }
   }
 
@@ -140,7 +140,7 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
             <div className="pf-display" style={{ fontSize: 18 }}>{day.workout_day}</div>
             <div className="muted" style={{ fontSize: 12 }}>
               {day.phase || '—'}
-              <span style={{ marginLeft: 6, opacity: 0.45, fontSize: 11 }}>✎ sửa</span>
+              <span style={{ marginLeft: 6, opacity: 0.45, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 2 }}><IconEdit width={11} height={11} /> sửa</span>
             </div>
           </div>
         )}
@@ -195,7 +195,7 @@ function DayCard({ day, allDays, onChanged, onDelete }) {
       <div className="row-between">
         <span className="faint" style={{ fontSize: 12 }}>{count} bài tập</span>
         <button className="btn btn-primary btn-sm" onClick={save} disabled={busy}>
-          {busy ? 'Đang lưu…' : saved ? '✓ Đã lưu' : 'Lưu ngày này'}
+          {busy ? 'Đang lưu…' : saved ? <><IconCheck width={14} height={14} /> Đã lưu</> : 'Lưu ngày này'}
         </button>
       </div>
     </Card>
@@ -252,7 +252,7 @@ export default function ProgramSection({ clientId }) {
       reloadPhases()
       if (editing) reload()
     } catch (e) {
-      alert(e.message || 'Không lưu được, thử lại.')
+      showToast(e.message || 'Không lưu được, thử lại.')
     } finally { setBusy(false) }
   }
 
@@ -264,14 +264,14 @@ export default function ProgramSection({ clientId }) {
     list.splice(from, 1); list.splice(to, 0, name)
     setBusy(true)
     try { await reorderPhases(db, clientId, list); reloadPhases() }
-    catch (e) { alert(e.message || 'Không lưu được, thử lại.') }
+    catch (e) { showToast(e.message || 'Không lưu được, thử lại.') }
     finally { setBusy(false) }
   }
 
   async function removePhase(name) {
     const dayCount = (days || []).filter((d) => d.phase === name).length
     const msg = dayCount > 0 ? `Xoá phase "${name}" và ${dayCount} ngày tập bên trong?` : `Xoá phase "${name}"?`
-    if (!confirm(msg)) return
+    if (!(await confirmDialog(msg, { title: 'Xoá phase', confirmLabel: 'Xoá phase', danger: true }))) return
     setBusy(true)
     try {
       if (dayCount > 0) await deletePhaseDays(db, clientId, name)
@@ -282,7 +282,7 @@ export default function ProgramSection({ clientId }) {
       reloadPhases()
       if (dayCount > 0) reload()
     } catch (e) {
-      alert(e.message || 'Không xoá được, thử lại.')
+      showToast(e.message || 'Không xoá được, thử lại.')
     } finally { setBusy(false) }
   }
 
@@ -298,17 +298,18 @@ export default function ProgramSection({ clientId }) {
       })
       setDayForm(null); reload()
     } catch (e) {
-      alert(e.message || 'Không lưu được, thử lại.')
+      showToast(e.message || 'Không lưu được, thử lại.')
     } finally { setBusy(false) }
   }
 
   async function removeDay(id) {
-    if (!confirm('Xoá ngày tập này và toàn bộ bài tập trong đó?')) return
+    const ok = await confirmDialog('Xoá ngày tập này và toàn bộ bài tập trong đó?', { title: 'Xoá ngày tập', confirmLabel: 'Xoá ngày', danger: true })
+    if (!ok) return
     try {
       await deleteProgramDay(db, id)
       reload()
     } catch (e) {
-      alert(e.message || 'Không xoá được, thử lại.')
+      showToast(e.message || 'Không xoá được, thử lại.')
     }
   }
 
@@ -349,18 +350,18 @@ export default function ProgramSection({ clientId }) {
               </button>
               {ph === selectedPhase && ph !== UNASSIGNED && (
                 <>
-                  <button className="btn-quiet" title="Di chuyển lên" style={{ padding: '4px 5px', fontSize: 11, opacity: .5 }} onClick={() => movePhase(ph, -1)}>‹</button>
-                  <button className="btn-quiet" title="Di chuyển xuống" style={{ padding: '4px 5px', fontSize: 11, opacity: .5 }} onClick={() => movePhase(ph, 1)}>›</button>
+                  <button className="btn-quiet" title="Di chuyển lên" style={{ padding: '4px 5px', opacity: .5 }} onClick={() => movePhase(ph, -1)}><IconChevron width={13} height={13} style={{ transform: 'rotate(180deg)' }} /></button>
+                  <button className="btn-quiet" title="Di chuyển xuống" style={{ padding: '4px 5px', opacity: .5 }} onClick={() => movePhase(ph, 1)}><IconChevron width={13} height={13} /></button>
                   <button
-                    className="btn-quiet" title="Sửa phase" style={{ padding: '4px 6px', fontSize: 12, opacity: .55 }}
+                    className="btn-quiet" title="Sửa phase" style={{ padding: '4px 6px', opacity: .55 }}
                     onClick={() => setPhaseForm({
                       _editing: ph, name: ph,
                       weeks: phaseMap[ph]?.weeks || '',
                       objective: phaseMap[ph]?.objective || '',
                       start_date: phaseMap[ph]?.start_date || new Date().toISOString().split('T')[0],
                     })}
-                  >✎</button>
-                  <button className="btn-quiet" title="Xoá phase" style={{ padding: '4px 6px', fontSize: 13, opacity: .4, color: 'var(--pf-danger, #e05)' }} onClick={() => removePhase(ph)}>×</button>
+                  ><IconEdit width={13} height={13} /></button>
+                  <button className="btn-quiet" title="Xoá phase" style={{ padding: '4px 6px', opacity: .4, color: 'var(--pf-danger)' }} onClick={() => removePhase(ph)}><IconX width={13} height={13} /></button>
                 </>
               )}
             </div>
@@ -452,7 +453,7 @@ export default function ProgramSection({ clientId }) {
               {busy ? 'Đang lưu…' : phaseForm._editing ? 'Lưu thay đổi' : 'Xác nhận'}
             </button>
             {!phaseForm.start_date && (
-              <p className="faint" style={{ fontSize: 11.5, color: 'var(--pf-danger, #e05)', marginTop: -4 }}>
+              <p className="faint" style={{ fontSize: 11.5, color: 'var(--pf-danger)', marginTop: -4 }}>
                 Cần chọn ngày bắt đầu để hiện đúng thời gian phase cho học viên.
               </p>
             )}

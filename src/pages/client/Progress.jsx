@@ -3,12 +3,16 @@ import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { listProgressLogs, listPhotos, signedPhotoUrl } from '../../data/progress'
 import { listPrograms, listCompletions, computeMuscleHeat } from '../../data/programs'
-import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
+import { SkeletonScreen, Eyebrow, Card, Empty } from '../../components/ui/primitives'
 import MuscleBodyMap from '../../components/ui/MuscleBodyMap'
 import BeforeAfterSlider from '../../components/ui/BeforeAfterSlider'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 
-const ACCENT = '#E8D8C3'
+// Matches the live --pf-gold/--pf-surface-2/--pf-line/--pf-text tokens -
+// Recharts renders these as SVG attributes outside the CSS cascade, so the
+// values have to be duplicated here rather than referenced via var().
+const ACCENT = '#C9A961'
+const TICK_COLOR = '#8C877E'
 
 function Chart({ title, unit, dataKey, rows }) {
   const points = rows
@@ -21,11 +25,11 @@ function Chart({ title, unit, dataKey, rows }) {
       <div style={{ height: 180, marginTop: 14 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 6, right: 6, left: -18, bottom: 0 }}>
-            <XAxis dataKey="date" tick={{ fill: '#5A564F', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: '#5A564F', fontSize: 11 }} axisLine={false} tickLine={false} width={40} domain={['auto', 'auto']} />
+            <XAxis dataKey="date" tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} width={40} domain={['auto', 'auto']} />
             <Tooltip
-              contentStyle={{ background: '#1A1917', border: '1px solid rgba(232,216,195,.12)', borderRadius: 8, color: '#F2EEE8' }}
-              labelStyle={{ color: '#8C877E' }}
+              contentStyle={{ background: '#242424', border: '1px solid rgba(245,241,234,.10)', borderRadius: 8, color: '#F5F1EA' }}
+              labelStyle={{ color: TICK_COLOR }}
               formatter={(v) => [`${v}${unit}`, '']}
             />
             <Line type="monotone" dataKey="value" stroke={ACCENT} strokeWidth={2} dot={{ r: 3, fill: ACCENT }} activeDot={{ r: 4 }} />
@@ -50,7 +54,7 @@ export default function Progress() {
     return { logs, photos: withUrls, muscleHeat: computeMuscleHeat(programs, completions) }
   }, [db])
 
-  if (loading) return <div className="screen"><InlineLoader /></div>
+  if (loading) return <div className="screen"><SkeletonScreen /></div>
   if (!data) return <div className="screen"><Empty title="Không tìm thấy hồ sơ." /></div>
 
   const { logs, photos, muscleHeat } = data
@@ -69,7 +73,7 @@ export default function Progress() {
     <div className="screen stack fade-in">
       <div>
         <Eyebrow>Theo dõi</Eyebrow>
-        <h1 style={{ fontSize: 28, marginTop: 6 }}>Tiến độ</h1>
+        <h1 style={{ fontSize: 'var(--fs-h1)', marginTop: 6 }}>Tiến độ</h1>
       </div>
 
       {hasMuscleData && (

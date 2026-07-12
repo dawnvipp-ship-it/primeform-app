@@ -6,8 +6,8 @@ import {
   listPrograms, listPhases, listCompletions, markWorkoutComplete,
   isCompletedToday, getWeekLogs, upsertWeekLog,
 } from '../../data/programs'
-import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
-import { IconPlay } from '../../components/ui/Icons'
+import { SkeletonScreen, Eyebrow, Card, Empty, showToast } from '../../components/ui/primitives'
+import { IconPlay, IconCheck } from '../../components/ui/Icons'
 
 const DEFAULT_WEEKS = 6
 
@@ -40,8 +40,11 @@ function parseWeight(val) {
 }
 
 function Sparkline({ points }) {
-  const width = 200
-  const height = 36
+  // Capped well under the card's content width at a 375px viewport - the
+  // row also carries the "Mức tạ theo tuần" label, so a 200px chart could
+  // force a wrap or overflow next to it.
+  const width = 140
+  const height = 32
   const pad = 4
   const values = points.map((p) => p.value)
   const min = Math.min(...values)
@@ -99,7 +102,7 @@ function WeekLoadGrid({ ex, clientId, minWeeks }) {
     if (!val.trim()) return
     setSavingWeek(week)
     try { await upsertWeekLog(db, clientId, ex.id, week, val.trim()) }
-    catch (e) { alert(e.message || 'Không lưu được, thử lại.') }
+    catch (e) { showToast(e.message || 'Không lưu được, thử lại.') }
     finally { setSavingWeek(null) }
   }
 
@@ -182,7 +185,7 @@ function ExerciseCard({ ex, clientId, minWeeks }) {
         </p>
       )}
       {ex.notes && (
-        <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--pf-accent)', borderLeft: '2px solid var(--pf-accent)', paddingLeft: 12 }}>
+        <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--pf-text)', borderLeft: '2px solid var(--pf-accent)', paddingLeft: 12 }}>
           {ex.notes}
         </p>
       )}
@@ -211,7 +214,7 @@ export default function Program() {
     return { programs, phaseRows, completions, clientId: me.id }
   }, [db])
 
-  if (loading) return <div className="screen"><InlineLoader /></div>
+  if (loading) return <div className="screen"><SkeletonScreen /></div>
   const programs = data?.programs || []
   const phaseRows = data?.phaseRows || []
   const completions = data?.completions || []
@@ -240,7 +243,7 @@ export default function Program() {
     if (!cur || curDone) return
     setCompleting(true)
     try { await markWorkoutComplete(db, cur.id); await reload() }
-    catch (e) { alert(e.message || 'Không lưu được, thử lại.') }
+    catch (e) { showToast(e.message || 'Không lưu được, thử lại.') }
     finally { setCompleting(false) }
   }
 
@@ -248,7 +251,7 @@ export default function Program() {
     <div className="screen stack fade-in">
       <div>
         <Eyebrow>Chương trình</Eyebrow>
-        <h1 style={{ fontSize: 28, marginTop: 6 }}>Giáo án</h1>
+        <h1 style={{ fontSize: 'var(--fs-h1)', marginTop: 6 }}>Giáo án</h1>
       </div>
 
       {programs.length === 0 ? (
@@ -284,8 +287,10 @@ export default function Program() {
                 key={p.id}
                 onClick={() => setActiveDay(i)}
                 className={`seg-tab${i === activeDay ? ' active' : ''}`}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
               >
-                {isCompletedToday(completions, p.id) ? '✓ ' : ''}{p.workout_day || `Ngày ${i + 1}`}
+                {isCompletedToday(completions, p.id) && <IconCheck width={12} height={12} />}
+                {p.workout_day || `Ngày ${i + 1}`}
               </button>
             ))}
           </div>
@@ -302,7 +307,7 @@ export default function Program() {
               ))}
               {(cur.program_exercises || []).length === 0 && <Empty title="Chưa có bài tập cho ngày này" />}
               <button className="btn btn-primary btn-block" onClick={complete} disabled={completing || curDone}>
-                {curDone ? '✓ Đã tập xong hôm nay' : completing ? 'Đang lưu…' : 'Đã tập xong'}
+                {curDone ? <><IconCheck width={16} height={16} /> Đã tập xong hôm nay</> : completing ? 'Đang lưu…' : 'Đã tập xong'}
               </button>
             </>
           )}

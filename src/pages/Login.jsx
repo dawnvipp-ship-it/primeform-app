@@ -29,14 +29,14 @@ export default function Login() {
       {/* Studio photo, darkened */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
         <img src={heroBg} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.32 }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(11,11,11,.65) 0%, rgba(11,11,11,.82) 55%, #0B0B0B 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,10,10,.65) 0%, rgba(10,10,10,.82) 55%, #0A0A0A 100%)' }} />
       </div>
 
       <div className="fade-in" style={{ position: 'relative', width: '100%', maxWidth: 380 }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <img src={logo} alt="Prime Form" style={{ width: 64, height: 'auto', margin: '0 auto 18px', display: 'block' }} />
           <div className="eyebrow" style={{ marginBottom: 12 }}>Private Training</div>
-          <div className="pf-display" style={{ fontSize: 42, letterSpacing: '-0.02em' }}>Prime Form</div>
+          <div className="pf-display" style={{ fontSize: 'var(--fs-hero)', letterSpacing: '-0.02em' }}>Prime Form</div>
           <div className="muted" style={{ marginTop: 12, fontSize: 14 }}>
             Nhập mã truy cập để xem chương trình của bạn.
           </div>

@@ -39,20 +39,14 @@ export default function ClientDetail() {
       <div className="row-between">
         <div>
           <Eyebrow>{client.client_code}</Eyebrow>
-          <h1 style={{ fontSize: 26, marginTop: 6 }}>{client.full_name}</h1>
+          <h1 style={{ fontSize: 'var(--fs-h1)', marginTop: 6 }}>{client.full_name}</h1>
         </div>
         <div className="tag tag-accent">còn {client.remaining_sessions}/{client.total_sessions}</div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', borderBottom: '1px solid var(--pf-line)', paddingBottom: 0 }}>
+      <div className="seg-tabs">
         {SECTIONS.map((s) => (
-          <button key={s.key} onClick={() => setSection(s.key)}
-            style={{
-              background: 'none', border: 'none', padding: '10px 4px', whiteSpace: 'nowrap',
-              color: section === s.key ? 'var(--pf-accent)' : 'var(--pf-muted)',
-              borderBottom: section === s.key ? '2px solid var(--pf-accent)' : '2px solid transparent',
-              fontSize: 13, fontWeight: 600, marginBottom: -1,
-            }}>
+          <button key={s.key} onClick={() => setSection(s.key)} className={`seg-tab seg-tab-accent${section === s.key ? ' active' : ''}`}>
             {s.label}
           </button>
         ))}

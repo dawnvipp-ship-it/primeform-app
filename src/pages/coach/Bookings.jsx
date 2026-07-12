@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { listCoachBookings, confirmBooking, rejectBooking, groupWeeklyTotalsByCoach, SLOT_HOURS } from '../../data/bookings'
 import { COACHES } from '../../data/coaches'
-import { InlineLoader, Eyebrow, Card, Empty, Stat } from '../../components/ui/primitives'
+import { InlineLoader, Eyebrow, Card, Empty, Stat, showToast } from '../../components/ui/primitives'
 import { IconChevron, IconCheck, IconX } from '../../components/ui/Icons'
 
 const STATUS_LABEL = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', cancelled: 'Đã huỷ', completed: 'Đã tập', no_show: 'Vắng' }
@@ -64,7 +64,7 @@ export default function Bookings() {
       await fn(db, id)
       await Promise.all([reloadPending(), reloadWeek()])
     } catch (e) {
-      alert(e.message || 'Không thực hiện được, thử lại.')
+      showToast(e.message || 'Không thực hiện được, thử lại.')
     }
   }
 
@@ -101,7 +101,7 @@ export default function Bookings() {
     <div className="coach-screen stack">
       <div>
         <Eyebrow>Lịch tập</Eyebrow>
-        <h1 style={{ fontSize: 26, marginTop: 6 }}>Đặt lịch</h1>
+        <h1 style={{ fontSize: 'var(--fs-h1)', marginTop: 6 }}>Đặt lịch</h1>
       </div>
 
       <Card className="stack">

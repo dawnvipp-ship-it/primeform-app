@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { getMealPlan, upsertMealPlan } from '../../../data/mealPlans'
 import { Card, Eyebrow, Field, Input, Textarea, InlineLoader } from '../../../components/ui/primitives'
+import { IconCheck } from '../../../components/ui/Icons'
 
 const DEFAULT_DAYS = [
   { label: 'T2 · REST', meals: '' },
@@ -73,14 +74,14 @@ export default function MealSection({ clientId }) {
         <Eyebrow muted>Macros</Eyebrow>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           <div className="stack" style={{ gap: 10 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--pf-accent)', textTransform: 'uppercase', paddingBottom: 4, borderBottom: '1px solid var(--pf-border)' }}>Ngày tập</div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--pf-accent)', textTransform: 'uppercase', paddingBottom: 4, borderBottom: '1px solid var(--pf-line)' }}>Ngày tập</div>
             <Field label="Calories"><Input type="number" placeholder="1800" value={macros.calories} onChange={(e) => setMacros({ ...macros, calories: e.target.value })} /></Field>
             <Field label="Protein (g)"><Input type="number" placeholder="150" value={macros.protein} onChange={(e) => setMacros({ ...macros, protein: e.target.value })} /></Field>
             <Field label="Carbs (g)"><Input type="number" placeholder="180" value={macros.carbs} onChange={(e) => setMacros({ ...macros, carbs: e.target.value })} /></Field>
             <Field label="Fat (g)"><Input type="number" placeholder="55" value={macros.fat} onChange={(e) => setMacros({ ...macros, fat: e.target.value })} /></Field>
           </div>
           <div className="stack" style={{ gap: 10 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--pf-muted)', textTransform: 'uppercase', paddingBottom: 4, borderBottom: '1px solid var(--pf-border)' }}>Ngày nghỉ</div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--pf-muted)', textTransform: 'uppercase', paddingBottom: 4, borderBottom: '1px solid var(--pf-line)' }}>Ngày nghỉ</div>
             <Field label="Calories"><Input type="number" placeholder="1500" value={macrosRest.calories} onChange={(e) => setMacrosRest({ ...macrosRest, calories: e.target.value })} /></Field>
             <Field label="Protein (g)"><Input type="number" placeholder="150" value={macrosRest.protein} onChange={(e) => setMacrosRest({ ...macrosRest, protein: e.target.value })} /></Field>
             <Field label="Carbs (g)"><Input type="number" placeholder="120" value={macrosRest.carbs} onChange={(e) => setMacrosRest({ ...macrosRest, carbs: e.target.value })} /></Field>
@@ -120,7 +121,7 @@ export default function MealSection({ clientId }) {
       </Card>
 
       <button className="btn btn-primary btn-block" onClick={save} disabled={busy}>
-        {busy ? 'Đang lưu…' : saved ? '✓ Đã lưu' : 'Lưu kế hoạch'}
+        {busy ? 'Đang lưu…' : saved ? <><IconCheck width={14} height={14} /> Đã lưu</> : 'Lưu kế hoạch'}
       </button>
     </div>
   )

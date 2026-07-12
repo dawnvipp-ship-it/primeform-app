@@ -5,11 +5,15 @@ import {
   listProgressLogs, addProgressLog, deleteProgressLog,
   listPhotos, uploadPhoto, signedPhotoUrl, deletePhoto,
 } from '../../../data/progress'
-import { Card, Eyebrow, Field, Input, Textarea, InlineLoader, Empty } from '../../../components/ui/primitives'
+import { Card, Eyebrow, Field, Input, Textarea, InlineLoader, Empty, confirmDialog, showToast } from '../../../components/ui/primitives'
 import { IconTrash } from '../../../components/ui/Icons'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 
-const ACCENT = '#E8D8C3'
+// Matches the live --pf-gold/--pf-surface-2/--pf-line/--pf-text tokens -
+// Recharts renders these as SVG attributes outside the CSS cascade, so the
+// values have to be duplicated here rather than referenced via var().
+const ACCENT = '#C9A961'
+const TICK_COLOR = '#8C877E'
 
 function Chart({ title, unit, dataKey, rows }) {
   const points = rows
@@ -22,11 +26,11 @@ function Chart({ title, unit, dataKey, rows }) {
       <div style={{ height: 160 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
-            <XAxis dataKey="date" tick={{ fill: '#5A564F', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: '#5A564F', fontSize: 11 }} axisLine={false} tickLine={false} width={42} domain={['auto', 'auto']} />
+            <XAxis dataKey="date" tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} width={42} domain={['auto', 'auto']} />
             <Tooltip
-              contentStyle={{ background: '#1A1917', border: '1px solid rgba(232,216,195,.12)', borderRadius: 8, color: '#F2EEE8' }}
-              labelStyle={{ color: '#8C877E' }}
+              contentStyle={{ background: '#242424', border: '1px solid rgba(245,241,234,.10)', borderRadius: 8, color: '#F5F1EA' }}
+              labelStyle={{ color: TICK_COLOR }}
               formatter={(v) => [`${v}${unit}`, '']}
             />
             <Line type="monotone" dataKey="value" stroke={ACCENT} strokeWidth={2} dot={{ r: 3, fill: ACCENT }} activeDot={{ r: 4 }} />
@@ -76,12 +80,13 @@ export default function ProgressSection({ clientId }) {
     try {
       await uploadPhoto(db, clientId, file, { week: Number(photoMeta.week), angle: photoMeta.angle })
       reload()
-    } catch (err) { alert(err.message || 'Lỗi tải ảnh') }
+    } catch (err) { showToast(err.message || 'Lỗi tải ảnh') }
     finally { setBusy(false); if (fileRef.current) fileRef.current.value = '' }
   }
 
   async function removePhoto(p) {
-    if (!confirm('Xoá ảnh này?')) return
+    const ok = await confirmDialog('Xoá ảnh này?', { confirmLabel: 'Xoá ảnh', danger: true })
+    if (!ok) return
     await deletePhoto(db, p); reload()
   }
 
@@ -157,8 +162,10 @@ export default function ProgressSection({ clientId }) {
             </select>
           </Field>
         </div>
-        <input ref={fileRef} type="file" accept="image/*" onChange={onUpload} disabled={busy}
-          style={{ fontSize: 13, color: 'var(--pf-muted)' }} />
+        <input ref={fileRef} type="file" accept="image/*" onChange={onUpload} disabled={busy} style={{ display: 'none' }} />
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()} disabled={busy} style={{ alignSelf: 'flex-start' }}>
+          {busy ? 'Đang tải…' : 'Chọn ảnh…'}
+        </button>
 
         {photos.length === 0 ? <Empty title="Chưa có ảnh" /> : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 4 }}>

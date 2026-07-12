@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
-import { Loader } from './components/ui/primitives'
+import { Loader, ToastHost, ConfirmHost } from './components/ui/primitives'
 
 const Login        = lazy(() => import('./pages/Login'))
 const ClientLayout = lazy(() => import('./pages/client/ClientLayout'))
@@ -23,6 +23,9 @@ export default function App() {
   if (status === 'loading') return <Loader label="Đang tải" />
 
   return (
+    <>
+    <ToastHost />
+    <ConfirmHost />
     <Suspense fallback={<Loader label="Đang tải" />}>
       <Routes>
         {/* Entry */}
@@ -67,5 +70,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
+    </>
   )
 }

@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { getMealPlan } from '../../data/mealPlans'
-import { InlineLoader, Eyebrow, Card, Empty } from '../../components/ui/primitives'
+import { SkeletonScreen, Eyebrow, Card, Empty } from '../../components/ui/primitives'
 import MacroRing from '../../components/ui/MacroRing'
 
 const MACRO_LEGEND = [
@@ -44,7 +44,7 @@ function RichLines({ text }) {
         if (idx > 0 && idx < 30) {
           return (
             <div key={i}>
-              <span style={{ fontWeight: 600, color: 'var(--pf-accent)' }}>{line.slice(0, idx)}</span>
+              <span style={{ fontWeight: 600, color: 'var(--pf-text)' }}>{line.slice(0, idx)}</span>
               <span className="muted">{line.slice(idx)}</span>
             </div>
           )
@@ -90,7 +90,7 @@ function ExchangeTable({ exchange }) {
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols.length}, 1fr)`, gap: 12 }}>
         {cols.map((c) => (
           <div key={c.key}>
-            <div className="eyebrow" style={{ marginBottom: 8 }}>{c.label}</div>
+            <div className="eyebrow eyebrow-muted" style={{ marginBottom: 8 }}>{c.label}</div>
             <div className="stack" style={{ gap: 6 }}>
               {exchange[c.key].split('\n').filter((l) => l.trim()).map((l, i) => (
                 <div key={i} className="muted" style={{ fontSize: 12.5 }}>{l}</div>
@@ -112,7 +112,7 @@ export default function Nutrition() {
     return { plan }
   }, [db])
 
-  if (loading) return <div className="screen"><InlineLoader /></div>
+  if (loading) return <div className="screen"><SkeletonScreen /></div>
   const plan = data?.plan
   const ms = plan?.meal_structure || {}
   const days = (ms.days || []).filter((d) => (d.label || d.meals))
@@ -122,7 +122,7 @@ export default function Nutrition() {
     <div className="screen stack fade-in">
       <div>
         <Eyebrow>Dinh dưỡng</Eyebrow>
-        <h1 style={{ fontSize: 28, marginTop: 6 }}>Kế hoạch ăn</h1>
+        <h1 style={{ fontSize: 'var(--fs-h1)', marginTop: 6 }}>Kế hoạch ăn</h1>
       </div>
 
       {!plan ? (
@@ -130,7 +130,7 @@ export default function Nutrition() {
       ) : (
         <>
           {ms.notes && (
-            <Card style={{ borderColor: 'var(--pf-accent)' }}>
+            <Card style={{ borderLeft: '2px solid var(--pf-accent)' }}>
               <Eyebrow muted>Ghi chú từ HLV</Eyebrow>
               <div style={{ marginTop: 10, whiteSpace: 'pre-wrap' }}>{ms.notes}</div>
             </Card>

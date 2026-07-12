@@ -2,7 +2,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { getAssessment } from '../../data/assessments'
-import { InlineLoader, Eyebrow, Card, KV, Empty } from '../../components/ui/primitives'
+import { SkeletonScreen, Eyebrow, Card, KV, Empty } from '../../components/ui/primitives'
 
 function Note({ label, text }) {
   if (!text) return null
@@ -22,14 +22,14 @@ export default function Assessment() {
     return { a }
   }, [db])
 
-  if (loading) return <div className="screen"><InlineLoader /></div>
+  if (loading) return <div className="screen"><SkeletonScreen /></div>
   const a = data?.a
 
   return (
     <div className="screen stack fade-in">
       <div>
         <Eyebrow>Hồ sơ</Eyebrow>
-        <h1 style={{ fontSize: 28, marginTop: 6 }}>Đánh giá ban đầu</h1>
+        <h1 style={{ fontSize: 'var(--fs-h1)', marginTop: 6 }}>Đánh giá ban đầu</h1>
       </div>
 
       {!a ? (

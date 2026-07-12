@@ -30,7 +30,7 @@ export default function CoachLogin() {
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <img src={logo} alt="" style={{ width: 48, height: 'auto', margin: '0 auto 16px', display: 'block' }} />
           <div className="eyebrow" style={{ marginBottom: 12 }}>Huấn luyện viên</div>
-          <div className="pf-display" style={{ fontSize: 34 }}>Prime Form</div>
+          <div className="pf-display" style={{ fontSize: 'var(--fs-hero)' }}>Prime Form</div>
         </div>
 
         <div className="stack">

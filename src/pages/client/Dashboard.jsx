@@ -6,7 +6,7 @@ import { getAssessment } from '../../data/assessments'
 import { listPrograms, listPhases, listCompletions } from '../../data/programs'
 import { listMyBookings } from '../../data/bookings'
 import { Eyebrow, Card } from '../../components/ui/primitives'
-import { IconChevron, IconLogout } from '../../components/ui/Icons'
+import { IconChevron, IconClipboard } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
 import logo from '../../assets/logo.png'
 import lounge from '../../assets/studio-lounge.jpg'
@@ -121,7 +121,7 @@ export default function Dashboard() {
       {/* Studio banner */}
       <div style={{ position: 'relative', margin: '0 calc(var(--s4) * -1)', height: 150, overflow: 'hidden' }}>
         <img src={lounge} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(11,11,11,.45), #0B0B0B)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,10,10,.45), #0A0A0A)' }} />
         <div className="row" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '0 var(--s4) var(--s4)', gap: 10 }}>
           <img src={logo} alt="" style={{ width: 30, height: 'auto' }} />
           <span className="eyebrow">Private Studio</span>
@@ -187,6 +187,14 @@ export default function Dashboard() {
           <div className="pf-display" style={{ fontSize: 22, marginTop: 6 }}>{nextLabel}</div>
         </div>
         <span style={{ color: 'var(--pf-accent)' }}><IconChevron /></span>
+      </Card>
+
+      <Card className="row-between" onClick={() => navigate('/app/assessment')} style={{ cursor: 'pointer' }}>
+        <div className="row" style={{ gap: 10 }}>
+          <IconClipboard width={18} height={18} style={{ color: 'var(--pf-muted)' }} />
+          <span style={{ fontWeight: 600 }}>Đánh giá ban đầu</span>
+        </div>
+        <span className="faint"><IconChevron /></span>
       </Card>
     </div>
   )

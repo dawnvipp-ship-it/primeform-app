@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { listMyBookings, listSlotsForRange, createBooking, cancelMyBooking, SLOT_HOURS } from '../../data/bookings'
-import { InlineLoader, Eyebrow, Card, Empty, Modal, Field, Textarea } from '../../components/ui/primitives'
+import { SkeletonScreen, Eyebrow, Card, Empty, Modal, Field, Textarea, confirmDialog, showToast } from '../../components/ui/primitives'
 import { IconCalendar } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
 
@@ -90,16 +90,17 @@ export default function Sessions() {
   }
 
   async function cancel(id) {
-    if (!window.confirm('Huỷ buổi tập này?')) return
+    const ok = await confirmDialog('Huỷ buổi tập này?', { confirmLabel: 'Huỷ buổi tập', danger: true })
+    if (!ok) return
     try {
       await cancelMyBooking(db, id)
       await reload()
     } catch (e) {
-      alert(e.message || 'Không huỷ được, thử lại.')
+      showToast(e.message || 'Không huỷ được, thử lại.')
     }
   }
 
-  if (loading) return <div className="screen"><InlineLoader /></div>
+  if (loading) return <div className="screen"><SkeletonScreen /></div>
   if (!me) return <div className="screen"><Empty title="Không tìm thấy hồ sơ." /></div>
 
   const pct = me.total_sessions > 0 ? Math.round((me.used_sessions / me.total_sessions) * 100) : 0
@@ -109,7 +110,7 @@ export default function Sessions() {
     <div className="screen stack-lg fade-in">
       <div>
         <Eyebrow>Gói tập</Eyebrow>
-        <h1 style={{ fontSize: 28, marginTop: 6 }}>Buổi tập</h1>
+        <h1 style={{ fontSize: 'var(--fs-h1)', marginTop: 6 }}>Buổi tập</h1>
       </div>
 
       <Card style={{ display: 'flex', justifyContent: 'center', padding: '36px 24px' }}>
@@ -188,7 +189,7 @@ export default function Sessions() {
                   <button
                     type="button" key={t} disabled={taken}
                     className={t === selectedTime ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm'}
-                    style={{ opacity: taken ? 0.35 : 1 }}
+                    style={taken ? { color: 'var(--pf-faint)', borderColor: 'transparent', textDecoration: 'line-through' } : undefined}
                     onClick={() => setSelectedTime(t)}
                   >
                     {t}
