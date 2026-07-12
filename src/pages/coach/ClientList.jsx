@@ -6,6 +6,7 @@ import { listClients, createClient } from '../../data/clients'
 import { COACHES } from '../../data/coaches'
 import { InlineLoader, Eyebrow, Card, Empty, Modal, Field, Input } from '../../components/ui/primitives'
 import { IconPlus, IconChevron } from '../../components/ui/Icons'
+import NotificationPrompt from '../../components/notify/NotificationPrompt'
 
 function genCode(name) {
   const base = (name || 'PF').normalize('NFD').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || 'PF'
@@ -14,7 +15,7 @@ function genCode(name) {
 }
 
 export default function ClientList() {
-  const { db } = useAuth()
+  const { db, coachUser } = useAuth()
   const navigate = useNavigate()
   const { data, loading } = useAsync(() => listClients(db), [db])
   const [open, setOpen] = useState(false)
@@ -64,6 +65,8 @@ export default function ClientList() {
         </div>
         <button className="btn btn-primary" onClick={openModal}><IconPlus width={16} height={16} /> Khách mới</button>
       </div>
+
+      {coachUser?.id && <NotificationPrompt ownerType="coach" coachId={coachUser.id} />}
 
       {!loading && data?.length > 0 && (
         <>

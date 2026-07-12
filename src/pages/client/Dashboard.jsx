@@ -10,6 +10,7 @@ import { HABITS, getRecentHabitLogs, toggleHabit, computeStreak } from '../../da
 import { Eyebrow, Card, showToast } from '../../components/ui/primitives'
 import { IconChevron, IconClipboard, IconDroplet, IconMoon, IconDumbbell, IconLeaf, IconCheck } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
+import NotificationPrompt from '../../components/notify/NotificationPrompt'
 import logo from '../../assets/logo.png'
 import lounge from '../../assets/studio-lounge.jpg'
 
@@ -155,6 +156,8 @@ export default function Dashboard() {
           Chào, {client?.full_name?.split(' ').slice(-1)[0] || me.full_name}
         </h1>
       </div>
+
+      <NotificationPrompt ownerType="client" clientId={me.id} />
 
       <Card style={{ display: 'flex', justifyContent: 'center', padding: '32px 24px' }}>
         <SessionRing total={me.total_sessions} used={me.used_sessions} />
