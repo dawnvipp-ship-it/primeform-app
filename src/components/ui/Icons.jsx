@@ -23,3 +23,5 @@ export const IconEdit = (p) => (<svg {...base} {...p}><path d="M12 20h9" /><path
 export const IconDroplet = (p) => (<svg {...base} {...p}><path d="M12 3c4 5 7 9 7 12.5a7 7 0 1 1-14 0C5 12 8 8 12 3Z" /></svg>)
 export const IconMoon = (p) => (<svg {...base} {...p}><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11Z" /></svg>)
 export const IconShare = (p) => (<svg {...base} {...p}><path d="M12 15V3" /><path d="M8 7l4-4 4 4" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>)
+export const IconMessage = (p) => (<svg {...base} {...p}><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4Z" /></svg>)
+export const IconSend = (p) => (<svg {...base} {...p}><path d="M4 12 20 4l-6 16-3-7-7-3Z" /></svg>)

@@ -1,16 +1,19 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { IconHome, IconDumbbell, IconLeaf, IconChart, IconTicket, IconLogout } from '../../components/ui/Icons'
+import { IconHome, IconDumbbell, IconLeaf, IconChart, IconTicket, IconMessage, IconLogout } from '../../components/ui/Icons'
 
 // "Đánh giá" is a read-only reference page, not a frequent destination - it
-// lives as a card link on Tổng quan instead of taking a fifth+sixth bottomnav
-// slot (6 tabs don't fit a 375px phone without wrapping/crowding labels).
+// lives as a card link on Tổng quan instead of taking a bottomnav slot.
+// Nhắn tin earns a slot despite the 6-tab width squeeze on a 375px phone
+// (see global.css .navitem) because it's a frequent, two-way destination,
+// unlike Đánh giá.
 const tabs = [
   { to: '/app', end: true, label: 'Tổng quan', Icon: IconHome },
   { to: '/app/program', label: 'Giáo án', Icon: IconDumbbell },
   { to: '/app/nutrition', label: 'Dinh dưỡng', Icon: IconLeaf },
   { to: '/app/progress', label: 'Tiến độ', Icon: IconChart },
   { to: '/app/sessions', label: 'Buổi tập', Icon: IconTicket },
+  { to: '/app/messages', label: 'Nhắn tin', Icon: IconMessage },
 ]
 
 export default function ClientLayout() {

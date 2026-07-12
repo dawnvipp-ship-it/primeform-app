@@ -11,6 +11,7 @@ import AssessmentSection from './sections/AssessmentSection'
 import MealSection from './sections/MealSection'
 import ProgramSection from './sections/ProgramSection'
 import ProgressSection from './sections/ProgressSection'
+import MessagesSection from './sections/MessagesSection'
 
 const SECTIONS = [
   { key: 'profile', label: 'Hồ sơ & buổi tập' },
@@ -18,6 +19,7 @@ const SECTIONS = [
   { key: 'meal', label: 'Dinh dưỡng' },
   { key: 'program', label: 'Giáo án' },
   { key: 'progress', label: 'Tiến độ' },
+  { key: 'messages', label: 'Tin nhắn' },
 ]
 
 export default function ClientDetail() {
@@ -58,6 +60,7 @@ export default function ClientDetail() {
         {section === 'meal' && <MealSection clientId={client.id} />}
         {section === 'program' && <ProgramSection clientId={client.id} />}
         {section === 'progress' && <ProgressSection clientId={client.id} />}
+        {section === 'messages' && <MessagesSection clientId={client.id} />}
       </div>
     </div>
   )

@@ -208,10 +208,10 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
 .navitem {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 3px; color: var(--pf-muted); background: none; border: 0;
-  font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
-  transition: color .15s ease;
+  font-size: 10px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase;
+  transition: color .15s ease; padding: 0 2px; text-align: center;
 }
-.navitem svg { width: 20px; height: 20px; }
+.navitem svg { width: 19px; height: 19px; }
 .navitem.active { color: var(--pf-accent); }
 
 /* ---------- Session ring (signature element) ---------- */
