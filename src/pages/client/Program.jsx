@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
@@ -69,6 +69,8 @@ function WeekLoadGrid({ ex, clientId, minWeeks }) {
   const [savingWeek, setSavingWeek] = useState(null)
   const [extraWeeks, setExtraWeeks] = useState(0)
   const weekCount = Math.max(minWeeks || 0, DEFAULT_WEEKS) + extraWeeks
+  // Debounce timers per week, keyed so typing in one cell doesn't reset another's.
+  const pending = useRef({})
 
   useEffect(() => {
     if (!ex.id) return
@@ -84,12 +86,36 @@ function WeekLoadGrid({ ex, clientId, minWeeks }) {
     }).catch(() => {})
   }, [db, ex.id, clientId])
 
+  // If the client switches exercise/day mid-typing, fire any save that was
+  // still waiting on its debounce so a just-typed value isn't dropped.
+  useEffect(() => () => {
+    Object.entries(pending.current).forEach(([week, p]) => {
+      clearTimeout(p.timeout)
+      if (p.value.trim()) upsertWeekLog(db, clientId, ex.id, Number(week), p.value.trim()).catch(() => {})
+    })
+  }, [db, clientId, ex.id])
+
   async function save(week, val) {
     if (!val.trim()) return
     setSavingWeek(week)
     try { await upsertWeekLog(db, clientId, ex.id, week, val.trim()) }
     catch (e) { alert(e.message || 'Không lưu được, thử lại.') }
     finally { setSavingWeek(null) }
+  }
+
+  // Auto-save shortly after the client stops typing - no need to tap out of
+  // the field first.
+  function onType(week, val) {
+    setValues((v) => ({ ...v, [week]: val }))
+    if (pending.current[week]) clearTimeout(pending.current[week].timeout)
+    const timeout = setTimeout(() => { delete pending.current[week]; save(week, val) }, 600)
+    pending.current[week] = { timeout, value: val }
+  }
+
+  // Leaving the field earlier than the debounce shouldn't wait it out.
+  function flush(week, val) {
+    if (pending.current[week]) { clearTimeout(pending.current[week].timeout); delete pending.current[week] }
+    save(week, val)
   }
 
   const trendPoints = Object.entries(values)
@@ -110,8 +136,8 @@ function WeekLoadGrid({ ex, clientId, minWeeks }) {
             <input
               type="text"
               value={values[week] ?? ''}
-              onChange={(e) => setValues((v) => ({ ...v, [week]: e.target.value }))}
-              onBlur={(e) => save(week, e.target.value)}
+              onChange={(e) => onType(week, e.target.value)}
+              onBlur={(e) => flush(week, e.target.value)}
               placeholder={ex.load || '—'}
               style={{
                 background: 'var(--pf-surface-2)', border: '1px solid var(--pf-line)', borderRadius: 6,
