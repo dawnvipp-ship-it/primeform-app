@@ -1,0 +1,26 @@
+name: Monthly Supabase Backup
+
+on:
+  schedule:
+    # Ngày 1 mỗi tháng, 19:00 UTC = 02:00 sáng giờ Việt Nam
+    - cron: '0 19 1 * *'
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Dump database
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: pg_dump "$DATABASE_URL" -F c -f backup-$(date +%F).dump
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: backup-*.dump
+          retention-days: 90
