@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
@@ -5,11 +6,15 @@ import { getMyClient } from '../../data/clients'
 import { getAssessment } from '../../data/assessments'
 import { listPrograms, listPhases, listCompletions } from '../../data/programs'
 import { listMyBookings } from '../../data/bookings'
-import { Eyebrow, Card } from '../../components/ui/primitives'
-import { IconChevron, IconClipboard } from '../../components/ui/Icons'
+import { HABITS, getRecentHabitLogs, toggleHabit, computeStreak } from '../../data/habits'
+import { Eyebrow, Card, showToast } from '../../components/ui/primitives'
+import { IconChevron, IconClipboard, IconDroplet, IconMoon, IconDumbbell, IconLeaf, IconCheck } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
 import logo from '../../assets/logo.png'
 import lounge from '../../assets/studio-lounge.jpg'
+
+const HABIT_ICONS = { water: IconDroplet, sleep: IconMoon, move: IconDumbbell, diet: IconLeaf }
+const todayStr = () => new Date().toISOString().split('T')[0]
 
 const BOOKING_STATUS_LABEL = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận' }
 const BOOKING_STATUS_COLOR = { pending: 'var(--pf-accent)', confirmed: 'var(--pf-ok)' }
@@ -23,6 +28,7 @@ function DashboardSkeleton() {
       <Card style={{ display: 'flex', justifyContent: 'center', padding: '32px 24px' }}>
         <div className="skeleton" style={{ width: 180, height: 180, borderRadius: '50%' }} />
       </Card>
+      <Card style={{ height: 148 }} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: '1fr', gap: 12 }}>
         {[0, 1, 2, 3].map((i) => (
           <Card key={i} className="stack" style={{ gap: 8 }}>
@@ -54,20 +60,36 @@ export default function Dashboard() {
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     if (!me) return null
-    const [assessment, programs, phaseRows, completions, bookings] = await Promise.all([
+    const [assessment, programs, phaseRows, completions, bookings, habitLogs] = await Promise.all([
       getAssessment(db, me.id),
       listPrograms(db, me.id),
       listPhases(db, me.id),
       listCompletions(db, me.id),
       listMyBookings(db),
+      getRecentHabitLogs(db, me.id),
     ])
-    return { me, assessment, programs, phaseRows, completions, bookings }
+    return { me, assessment, programs, phaseRows, completions, bookings, habitLogs }
   }, [db])
+
+  // Local, optimistically-updated copy - habit taps shouldn't wait on a
+  // full dashboard refetch to show the checked state.
+  const [habitLogs, setHabitLogs] = useState([])
+  useEffect(() => { if (data?.habitLogs) setHabitLogs(data.habitLogs) }, [data])
 
   if (loading) return <DashboardSkeleton />
   if (!data?.me) return <div className="screen"><div className="empty">Không tìm thấy hồ sơ.</div></div>
 
   const { me, assessment, programs, phaseRows, completions, bookings } = data
+
+  async function onToggleHabit(key, currentlyDone) {
+    const next = !currentlyDone
+    setHabitLogs((prev) => [
+      ...prev.filter((l) => !(l.habit_key === key && l.log_date === todayStr())),
+      { habit_key: key, log_date: todayStr(), done: next },
+    ])
+    try { await toggleHabit(db, me.id, key, next) }
+    catch (e) { showToast(e.message || 'Không lưu được, thử lại.') }
+  }
 
   // Nearest upcoming booked appointment (separate system from the program's
   // day rotation below - a client can have a scheduled time with their coach
@@ -136,6 +158,38 @@ export default function Dashboard() {
 
       <Card style={{ display: 'flex', justifyContent: 'center', padding: '32px 24px' }}>
         <SessionRing total={me.total_sessions} used={me.used_sessions} />
+      </Card>
+
+      <Card className="stack" style={{ gap: 4 }}>
+        <Eyebrow muted>Thói quen hôm nay</Eyebrow>
+        {HABITS.map((h) => {
+          const Icon = HABIT_ICONS[h.key]
+          const done = habitLogs.some((l) => l.habit_key === h.key && l.log_date === todayStr() && l.done)
+          const streak = computeStreak(habitLogs, h.key)
+          return (
+            <button
+              key={h.key}
+              onClick={() => onToggleHabit(h.key, done)}
+              className="row-between"
+              style={{ background: 'none', border: 'none', padding: '8px 0', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+            >
+              <div className="row" style={{ gap: 10 }}>
+                <Icon width={18} height={18} style={{ color: done ? 'var(--pf-accent)' : 'var(--pf-muted)' }} />
+                <span style={{ fontWeight: 600, color: done ? 'var(--pf-text)' : 'var(--pf-muted)' }}>{h.label}</span>
+              </div>
+              <div className="row" style={{ gap: 10 }}>
+                {streak > 1 && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--pf-accent)' }}>{streak} ngày</span>}
+                <span style={{
+                  width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', flexShrink: 0,
+                  border: `1px solid ${done ? 'var(--pf-accent)' : 'var(--pf-line)'}`,
+                  background: done ? 'var(--pf-accent)' : 'transparent',
+                }}>
+                  {done && <IconCheck width={13} height={13} style={{ color: 'var(--pf-obsidian)' }} />}
+                </span>
+              </div>
+            </button>
+          )
+        })}
       </Card>
 
       {me.remaining_sessions <= LOW_SESSIONS_THRESHOLD && (
