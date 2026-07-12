@@ -26,9 +26,25 @@ export default function CoachLayout() {
             <span className="pf-display" style={{ fontSize: 20 }}>Prime Form</span>
             <span className="tag">Coach</span>
           </div>
-          <div className="row" style={{ gap: 12 }}>
-            <span className="muted" style={{ fontSize: 12 }}>{coachUser?.email}</span>
-            <button className="btn-quiet" onClick={async () => { await logout(); navigate('/'); }} title="Đăng xuất"><IconLogout /></button>
+          <div className="row" style={{ gap: 10 }}>
+            <span
+              className="muted"
+              style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150, flexShrink: 1 }}
+            >
+              {coachUser?.email}
+            </span>
+            <button
+              onClick={async () => { await logout(); navigate('/'); }}
+              title="Đăng xuất"
+              aria-label="Đăng xuất"
+              style={{
+                width: 44, height: 44, borderRadius: 999, display: 'grid', placeItems: 'center', flexShrink: 0,
+                background: 'rgba(255,255,255,.06)', border: '1px solid var(--pf-line)', color: 'var(--pf-text)',
+                WebkitTapHighlightColor: 'transparent', cursor: 'pointer',
+              }}
+            >
+              <IconLogout width={20} height={20} />
+            </button>
           </div>
         </div>
         <div className="seg-tabs" style={{ maxWidth: 960, margin: '0 auto', padding: '0 16px 10px' }}>
