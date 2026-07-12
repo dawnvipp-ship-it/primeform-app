@@ -136,6 +136,12 @@ export default function Nutrition() {
             </Card>
           )}
 
+          <Card>
+            <p className="faint" style={{ fontSize: 12, lineHeight: 1.6 }}>
+              Kế hoạch dinh dưỡng và supplement này được xây dựng theo mục tiêu tập luyện của bạn tại Prime Form — không thay thế tư vấn từ bác sĩ hoặc chuyên gia dinh dưỡng, đặc biệt nếu bạn có bệnh nền hoặc đang dùng thuốc điều trị.
+            </p>
+          </Card>
+
           <MacroCard title="Ngày tập" calories={plan.calories} protein={plan.protein} carbs={plan.carbs} fat={plan.fat} />
 
           {ms.macros_rest && (ms.macros_rest.calories || ms.macros_rest.protein) && (
