@@ -11,11 +11,12 @@ import { Eyebrow, Card, showToast } from '../../components/ui/primitives'
 import { IconChevron, IconClipboard, IconDroplet, IconMoon, IconDumbbell, IconLeaf, IconCheck } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
 import NotificationPrompt from '../../components/notify/NotificationPrompt'
+import { localISODate } from '../../lib/date'
 import logo from '../../assets/logo.png'
 import lounge from '../../assets/studio-lounge.jpg'
 
 const HABIT_ICONS = { water: IconDroplet, sleep: IconMoon, move: IconDumbbell, diet: IconLeaf }
-const todayStr = () => new Date().toISOString().split('T')[0]
+const todayStr = () => localISODate()
 
 const BOOKING_STATUS_LABEL = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận' }
 const BOOKING_STATUS_COLOR = { pending: 'var(--pf-accent)', confirmed: 'var(--pf-ok)' }
@@ -95,7 +96,7 @@ export default function Dashboard() {
   // Nearest upcoming booked appointment (separate system from the program's
   // day rotation below - a client can have a scheduled time with their coach
   // that has nothing to do with which workout day is "next" in the plan).
-  const today = new Date().toISOString().split('T')[0]
+  const today = localISODate()
   const nextBooking = (bookings || [])
     .filter((b) => (b.status === 'pending' || b.status === 'confirmed') && b.date >= today)
     .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))[0] || null

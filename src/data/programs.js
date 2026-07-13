@@ -1,3 +1,5 @@
+import { localISODate } from '../lib/date'
+
 // A "program" row = one workout day (within a phase/week).
 // program_exercises hang off it, ordered by order_index.
 
@@ -145,7 +147,7 @@ export async function listCompletions(db, clientId) {
 }
 
 export function isCompletedToday(completions, programId) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = localISODate()
   return (completions || []).some((c) => c.program_id === programId && c.completed_date === today)
 }
 
@@ -173,7 +175,7 @@ export async function upsertWeekLog(db, clientId, exerciseId, weekNumber, topSet
         exercise_id: exerciseId,
         week_number: weekNumber,
         top_set_weight: topSetWeight,
-        logged_at: new Date().toISOString().split('T')[0],
+        logged_at: localISODate(),
       },
       { onConflict: 'client_id,exercise_id,week_number' }
     )
@@ -190,7 +192,7 @@ export async function upsertWeekLog(db, clientId, exerciseId, weekNumber, topSet
 export function computeMuscleHeat(programs, completions, { days = 30 } = {}) {
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - days)
-  const cutoffStr = cutoff.toISOString().split('T')[0]
+  const cutoffStr = localISODate(cutoff)
 
   const programById = {}
   programs.forEach((p) => { programById[p.id] = p })

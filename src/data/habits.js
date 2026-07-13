@@ -1,3 +1,5 @@
+import { localISODate } from '../lib/date'
+
 // Fixed habit set - not coach-configurable (v1 keeps this simple; a
 // per-client custom list can come later if it turns out to matter).
 export const HABITS = [
@@ -7,7 +9,7 @@ export const HABITS = [
   { key: 'diet', label: 'Ăn đúng kế hoạch' },
 ]
 
-const today = () => new Date().toISOString().split('T')[0]
+const today = () => localISODate()
 
 // Recent window wide enough for a meaningful streak count without pulling
 // the client's entire history every time the dashboard loads.
@@ -18,7 +20,7 @@ export async function getRecentHabitLogs(db, clientId, days = 35) {
     .from('habit_logs')
     .select('habit_key, log_date, done')
     .eq('client_id', clientId)
-    .gte('log_date', since.toISOString().split('T')[0])
+    .gte('log_date', localISODate(since))
   if (error) throw error
   return data || []
 }
@@ -43,7 +45,7 @@ export function computeStreak(logs, habitKey) {
   const d = new Date()
   if (!doneDates.has(today())) d.setDate(d.getDate() - 1)
   let streak = 0
-  while (doneDates.has(d.toISOString().split('T')[0])) {
+  while (doneDates.has(localISODate(d))) {
     streak++
     d.setDate(d.getDate() - 1)
   }

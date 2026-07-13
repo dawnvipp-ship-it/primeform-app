@@ -7,6 +7,7 @@ import {
 } from '../../../data/progress'
 import { Card, Eyebrow, Field, Input, Textarea, InlineLoader, Empty, confirmDialog, showToast } from '../../../components/ui/primitives'
 import { IconTrash } from '../../../components/ui/Icons'
+import { localISODate } from '../../../lib/date'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 
 // Matches the live --pf-gold/--pf-surface-2/--pf-line/--pf-text tokens -
@@ -41,7 +42,7 @@ function Chart({ title, unit, dataKey, rows }) {
   )
 }
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => localISODate()
 const LOG_EMPTY = () => ({ log_date: today(), weight: '', body_fat: '', waist: '', chest: '', hip: '', belly: '', arm: '', notes: '' })
 
 export default function ProgressSection({ clientId }) {

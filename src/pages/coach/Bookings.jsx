@@ -5,6 +5,7 @@ import { listCoachBookings, confirmBooking, rejectBooking, groupWeeklyTotalsByCo
 import { COACHES } from '../../data/coaches'
 import { InlineLoader, Eyebrow, Card, Empty, Stat, showToast } from '../../components/ui/primitives'
 import { IconChevron, IconCheck, IconX } from '../../components/ui/Icons'
+import { localISODate } from '../../lib/date'
 
 const STATUS_LABEL = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', cancelled: 'Đã huỷ', completed: 'Đã tập', no_show: 'Vắng' }
 const STATUS_COLOR = { pending: 'var(--pf-accent)', confirmed: 'var(--pf-ok)', cancelled: 'var(--pf-danger)', completed: 'var(--pf-muted)', no_show: 'var(--pf-danger)' }
@@ -22,7 +23,7 @@ function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); retu
 function monthStartOf(d) { return new Date(d.getFullYear(), d.getMonth(), 1) }
 function monthEndOf(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0) }
 function addMonths(d, n) { const x = new Date(d); x.setMonth(x.getMonth() + n); return x }
-function toISO(d) { return d.toISOString().slice(0, 10) }
+const toISO = localISODate
 function formatShort(d) { return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }) }
 function formatMonthLabel(d) { return d.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' }) }
 function shortName(full) { return full ? full.split(' ').slice(-1)[0] : '' }

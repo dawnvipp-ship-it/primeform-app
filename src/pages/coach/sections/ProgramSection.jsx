@@ -8,6 +8,7 @@ import {
 import { Card, Eyebrow, Field, Input, Textarea, Modal, Empty, InlineLoader, showToast, confirmDialog } from '../../../components/ui/primitives'
 import { IconPlus, IconTrash, IconCheck, IconEdit, IconChevron, IconX } from '../../../components/ui/Icons'
 import { MUSCLE_GROUPS, detectMuscleGroups } from '../../../data/muscleGroups'
+import { localISODate } from '../../../lib/date'
 
 const COLS = ['group_label', 'exercise_name', 'sets', 'reps', 'tempo', 'rest', 'load', 'rpe', 'coaching_cue', 'notes']
 const HEADER = 'Nhóm | Tên bài | Sets | Reps | Tempo | Nghỉ | Mức tạ | RPE | Cue | Ghi chú'
@@ -328,7 +329,7 @@ export default function ProgramSection({ clientId }) {
         <Eyebrow muted>Giai đoạn</Eyebrow>
         <button
           className="btn btn-ghost btn-sm"
-          onClick={() => setPhaseForm({ name: '', weeks: '', objective: '', start_date: new Date().toISOString().split('T')[0] })}
+          onClick={() => setPhaseForm({ name: '', weeks: '', objective: '', start_date: localISODate() })}
         >
           <IconPlus width={15} height={15} /> Phase
         </button>
@@ -358,7 +359,7 @@ export default function ProgramSection({ clientId }) {
                       _editing: ph, name: ph,
                       weeks: phaseMap[ph]?.weeks || '',
                       objective: phaseMap[ph]?.objective || '',
-                      start_date: phaseMap[ph]?.start_date || new Date().toISOString().split('T')[0],
+                      start_date: phaseMap[ph]?.start_date || localISODate(),
                     })}
                   ><IconEdit width={13} height={13} /></button>
                   <button className="btn-quiet" title="Xoá phase" style={{ padding: '4px 6px', opacity: .4, color: 'var(--pf-danger)' }} onClick={() => removePhase(ph)}><IconX width={13} height={13} /></button>

@@ -6,6 +6,7 @@ import { listMyBookings, listSlotsForRange, createBooking, cancelMyBooking, SLOT
 import { SkeletonScreen, Eyebrow, Card, Empty, Modal, Field, Textarea, confirmDialog, showToast } from '../../components/ui/primitives'
 import { IconCalendar } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
+import { localISODate } from '../../lib/date'
 
 const STATUS_LABEL = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', cancelled: 'Đã huỷ', completed: 'Đã tập', no_show: 'Vắng' }
 const STATUS_COLOR = { pending: 'var(--pf-accent)', confirmed: 'var(--pf-ok)', cancelled: 'var(--pf-danger)', completed: 'var(--pf-muted)', no_show: 'var(--pf-danger)' }
@@ -21,7 +22,7 @@ function nextDays(n) {
   for (let i = 0; i < n; i++) {
     const d = new Date(today)
     d.setDate(d.getDate() + i)
-    out.push(d.toISOString().slice(0, 10))
+    out.push(localISODate(d))
   }
   return out
 }
