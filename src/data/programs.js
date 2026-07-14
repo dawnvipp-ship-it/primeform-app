@@ -125,8 +125,11 @@ export async function reorderPhases(db, clientId, orderedNames) {
 // done goes through this one narrow function instead - it resolves the caller's
 // own client row via auth.uid(), verifies the program day belongs to them, logs
 // the completion, and increments used_sessions (capped at total_sessions).
-export async function markWorkoutComplete(db, programId) {
-  const { error } = await db.rpc('complete_workout', { p_program_id: programId })
+export async function markWorkoutComplete(db, programId, durationSeconds) {
+  const { error } = await db.rpc('complete_workout', {
+    p_program_id: programId,
+    p_duration_seconds: durationSeconds ?? null,
+  })
   if (error) throw error
 }
 

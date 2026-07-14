@@ -4,12 +4,65 @@ import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import {
   listPrograms, listPhases, listCompletions, markWorkoutComplete,
-  isCompletedToday, getWeekLogs, upsertWeekLog,
+  isCompletedToday, getWeekLogs, upsertWeekLog, updateExercise,
 } from '../../data/programs'
+import { localISODate } from '../../lib/date'
 import { SkeletonScreen, Eyebrow, Card, Empty, showToast } from '../../components/ui/primitives'
 import { IconPlay, IconCheck } from '../../components/ui/Icons'
 
 const DEFAULT_WEEKS = 6
+
+// ---------- Live session timing (rest timer + total workout duration) ----------
+// Kept in localStorage, not the DB - this is a live-use aid for whoever's
+// running today's session (coach logged in as the client, in the room), not
+// a historical record. Keyed by day + today's date so switching tabs mid-set
+// or the phone locking doesn't lose progress, but a repeat of the same day
+// next week starts every set unchecked again.
+
+function freshSession() {
+  return { date: localISODate(), startedAt: Date.now(), sets: {}, restEndsAt: null }
+}
+
+function loadSession(dayId) {
+  try {
+    const raw = localStorage.getItem(`pf-session-${dayId}`)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    // Stale session from a previous day - don't resurrect yesterday's ticks.
+    return parsed.date === localISODate() ? parsed : null
+  } catch { return null }
+}
+
+function formatMMSS(totalSeconds) {
+  const s = Math.max(0, Math.round(totalSeconds))
+  const m = Math.floor(s / 60)
+  return `${m}:${String(s % 60).padStart(2, '0')}`
+}
+
+// Leading integer set count ("3" -> 3, "3 rounds" -> 3, "Sets"/"" -> null) -
+// only exercises with a clean count get tappable set buttons; anything else
+// falls back to the plain spec text so odd paste-import data doesn't break.
+function parseSetCount(val) {
+  const m = String(val ?? '').match(/^\s*(\d+)/)
+  return m ? Number(m[1]) : null
+}
+
+// Rest duration in seconds from free-text coach input. Real data in this
+// project is almost all "60s"/"45s"/"2min", plus a `"` seconds mark from a
+// past paste-import ("45\""). Text like "Nghỉ" or "phần còn lại nghỉ" means
+// "rest as needed" / EMOM-style - deliberately returns null there rather
+// than guess a duration, since auto-starting a timer would be wrong.
+function parseRestSeconds(val) {
+  const s = String(val ?? '').trim().toLowerCase()
+  if (!s || s === '-') return null
+  let m = s.match(/(\d+)\s*min/)
+  if (m) return Number(m[1]) * 60
+  m = s.match(/(\d+)\s*(?:s|")/)
+  if (m) return Number(m[1])
+  m = s.match(/^(\d+)$/)
+  if (m) return Number(m[1])
+  return null
+}
 
 function Spec({ label, value }) {
   if (!value) return null
@@ -163,7 +216,78 @@ function WeekLoadGrid({ ex, clientId, minWeeks }) {
   )
 }
 
-function ExerciseCard({ ex, clientId, minWeeks }) {
+function ExerciseNote({ ex }) {
+  const { db } = useAuth()
+  const [value, setValue] = useState(ex.client_note || '')
+  const [saving, setSaving] = useState(false)
+  const pending = useRef(null)
+
+  async function save(val) {
+    setSaving(true)
+    try { await updateExercise(db, ex.id, { client_note: val.trim() || null }) }
+    catch (e) { showToast(e.message || 'Không lưu được, thử lại.') }
+    finally { setSaving(false) }
+  }
+
+  // Same debounce-while-typing, flush-on-blur pattern as the weekly weight
+  // grid below - auto-saves without the client needing to tap out of the field.
+  function onType(val) {
+    setValue(val)
+    if (pending.current) clearTimeout(pending.current)
+    pending.current = setTimeout(() => { pending.current = null; save(val) }, 600)
+  }
+  function flush(val) {
+    if (pending.current) { clearTimeout(pending.current); pending.current = null }
+    save(val)
+  }
+
+  return (
+    <div className="stack" style={{ gap: 4 }}>
+      <div style={{ fontSize: 12, color: 'var(--pf-muted)' }}>Ghi chú của bạn{saving ? ' …' : ''}</div>
+      <textarea
+        value={value}
+        onChange={(e) => onType(e.target.value)}
+        onBlur={(e) => flush(e.target.value)}
+        placeholder="Có vấn đề gì khi tập bài này? (đau, khó thở, không đúng form...)"
+        rows={2}
+        style={{
+          background: 'var(--pf-surface-2)', border: '1px solid var(--pf-line)', borderRadius: 6,
+          padding: '6px 8px', fontSize: 13, color: 'var(--pf-text)', resize: 'vertical', fontFamily: 'inherit',
+        }}
+      />
+    </div>
+  )
+}
+
+function SetButtons({ ex, setsDone, onToggleSet }) {
+  const count = parseSetCount(ex.sets)
+  if (!count) return null
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {Array.from({ length: count }, (_, i) => i).map((i) => {
+        const done = !!setsDone[i]
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onToggleSet(i, parseRestSeconds(ex.rest))}
+            style={{
+              width: 34, height: 34, borderRadius: '50%', fontSize: 13, fontWeight: 600,
+              border: `1px solid ${done ? 'var(--pf-accent)' : 'var(--pf-line)'}`,
+              background: done ? 'var(--pf-accent)' : 'var(--pf-surface-2)',
+              color: done ? 'var(--pf-bg, #0a0a0a)' : 'var(--pf-text)',
+            }}
+            title={`Set ${i + 1}${done ? ' — đã xong' : ''}`}
+          >
+            {done ? '✓' : i + 1}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function ExerciseCard({ ex, clientId, minWeeks, setsDone, onToggleSet }) {
   return (
     <Card className="stack" style={{ padding: 'var(--s4)' }}>
       <div className="row" style={{ gap: 10, alignItems: 'baseline' }}>
@@ -178,6 +302,7 @@ function ExerciseCard({ ex, clientId, minWeeks }) {
         <Spec label="Nghỉ" value={ex.rest} />
         <Spec label="RPE" value={ex.rpe} />
       </div>
+      {onToggleSet && <SetButtons ex={ex} setsDone={setsDone || []} onToggleSet={onToggleSet} />}
       <WeekLoadGrid ex={ex} clientId={clientId} minWeeks={minWeeks} />
       {ex.coaching_cue && (
         <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.6, borderLeft: '2px solid var(--pf-line)', paddingLeft: 12 }}>
@@ -189,12 +314,92 @@ function ExerciseCard({ ex, clientId, minWeeks }) {
           {ex.notes}
         </p>
       )}
+      <ExerciseNote ex={ex} />
       {ex.video_url && (
         <a href={ex.video_url} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }}>
           <IconPlay width={16} height={16} /> Xem video
         </a>
       )}
     </Card>
+  )
+}
+
+// One mounted instance per program day (keyed by day.id at the call site,
+// so switching days remounts fresh rather than needing manual re-sync).
+function DayWorkout({ day, clientId, minWeeks, curDone, completing, onComplete }) {
+  const [session, setSession] = useState(() => (curDone ? null : loadSession(day.id) || freshSession()))
+  const [, tick] = useState(0)
+
+  useEffect(() => {
+    if (!session) return
+    try { localStorage.setItem(`pf-session-${day.id}`, JSON.stringify(session)) } catch {}
+  }, [session, day.id])
+
+  // Re-render every second so the elapsed/rest displays count up/down live.
+  useEffect(() => {
+    if (!session) return
+    const id = setInterval(() => tick((n) => n + 1), 1000)
+    return () => clearInterval(id)
+  }, [session])
+
+  function toggleSet(exerciseId, index, restSeconds) {
+    setSession((s) => {
+      if (!s) return s
+      const arr = s.sets[exerciseId] ? [...s.sets[exerciseId]] : []
+      const wasDone = !!arr[index]
+      arr[index] = !wasDone
+      const next = { ...s, sets: { ...s.sets, [exerciseId]: arr } }
+      if (!wasDone && restSeconds) next.restEndsAt = Date.now() + restSeconds * 1000
+      return next
+    })
+  }
+
+  function skipRest() {
+    setSession((s) => (s ? { ...s, restEndsAt: null } : s))
+  }
+
+  async function handleComplete() {
+    const totalSeconds = session ? Math.round((Date.now() - session.startedAt) / 1000) : null
+    await onComplete(totalSeconds)
+    try { localStorage.removeItem(`pf-session-${day.id}`) } catch {}
+  }
+
+  const elapsed = session ? Math.max(0, Math.floor((Date.now() - session.startedAt) / 1000)) : 0
+  const restRemaining = session?.restEndsAt ? Math.max(0, Math.ceil((session.restEndsAt - Date.now()) / 1000)) : 0
+
+  return (
+    <>
+      <div className="row-between" style={{ alignItems: 'flex-end' }}>
+        <div className="pf-display" style={{ fontSize: 20 }}>{day.workout_day}</div>
+        <div className="row" style={{ gap: 10, alignItems: 'baseline' }}>
+          {day.week && <div className="eyebrow eyebrow-muted">Tuần {day.week}</div>}
+          {session && <div className="eyebrow eyebrow-muted" title="Thời gian buổi tập">{formatMMSS(elapsed)}</div>}
+        </div>
+      </div>
+      {restRemaining > 0 && (
+        <div className="row-between" style={{
+          padding: '8px 12px', borderRadius: 8, background: 'var(--pf-surface-2)',
+          border: '1px solid var(--pf-accent)', alignItems: 'center',
+        }}>
+          <span style={{ fontSize: 13.5 }}>Đang nghỉ… <strong>{formatMMSS(restRemaining)}</strong></span>
+          <button type="button" className="btn-quiet" style={{ fontSize: 12, padding: '4px 8px' }} onClick={skipRest}>
+            Bỏ qua
+          </button>
+        </div>
+      )}
+      <div className="divider" />
+      {(day.program_exercises || []).map((ex) => (
+        <ExerciseCard
+          key={ex.id} ex={ex} clientId={clientId} minWeeks={minWeeks}
+          setsDone={session?.sets?.[ex.id]}
+          onToggleSet={session ? (i, restSeconds) => toggleSet(ex.id, i, restSeconds) : null}
+        />
+      ))}
+      {(day.program_exercises || []).length === 0 && <Empty title="Chưa có bài tập cho ngày này" />}
+      <button className="btn btn-primary btn-block" onClick={handleComplete} disabled={completing || curDone}>
+        {curDone ? <><IconCheck width={16} height={16} /> Đã tập xong hôm nay</> : completing ? 'Đang lưu…' : 'Đã tập xong'}
+      </button>
+    </>
   )
 }
 
@@ -239,10 +444,10 @@ export default function Program() {
     setActiveDay(0)
   }
 
-  async function complete() {
+  async function complete(durationSeconds) {
     if (!cur || curDone) return
     setCompleting(true)
-    try { await markWorkoutComplete(db, cur.id); await reload() }
+    try { await markWorkoutComplete(db, cur.id, durationSeconds); await reload() }
     catch (e) { showToast(e.message || 'Không lưu được, thử lại.') }
     finally { setCompleting(false) }
   }
@@ -296,20 +501,15 @@ export default function Program() {
           </div>
 
           {cur && (
-            <>
-              <div className="row-between" style={{ alignItems: 'flex-end' }}>
-                <div className="pf-display" style={{ fontSize: 20 }}>{cur.workout_day}</div>
-                {cur.week && <div className="eyebrow eyebrow-muted">Tuần {cur.week}</div>}
-              </div>
-              <div className="divider" />
-              {(cur.program_exercises || []).map((ex) => (
-                <ExerciseCard key={ex.id} ex={ex} clientId={clientId} minWeeks={phaseRow?.weeks} />
-              ))}
-              {(cur.program_exercises || []).length === 0 && <Empty title="Chưa có bài tập cho ngày này" />}
-              <button className="btn btn-primary btn-block" onClick={complete} disabled={completing || curDone}>
-                {curDone ? <><IconCheck width={16} height={16} /> Đã tập xong hôm nay</> : completing ? 'Đang lưu…' : 'Đã tập xong'}
-              </button>
-            </>
+            <DayWorkout
+              key={cur.id}
+              day={cur}
+              clientId={clientId}
+              minWeeks={phaseRow?.weeks}
+              curDone={curDone}
+              completing={completing}
+              onComplete={complete}
+            />
           )}
         </>
       )}
