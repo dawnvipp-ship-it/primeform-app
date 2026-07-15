@@ -5,8 +5,53 @@ import {
   listProgressLogs, addProgressLog, deleteProgressLog,
   listPhotos, uploadPhoto, signedPhotoUrl, deletePhoto,
 } from '../../../data/progress'
-import { Card, Eyebrow, Field, Input, Textarea, InlineLoader, Empty, confirmDialog, showToast } from '../../../components/ui/primitives'
+import { Card, Eyebrow, Field, Input, Textarea, InlineLoader, confirmDialog, showToast } from '../../../components/ui/primitives'
 import { IconTrash } from '../../../components/ui/Icons'
+
+const ANGLES = [
+  { key: 'front', label: 'Trước' },
+  { key: 'side', label: 'Nghiêng' },
+  { key: 'back', label: 'Sau' },
+]
+
+// One upload slot per angle - the angle is fixed by which slot you click,
+// so there's no shared dropdown left to forget to change between shots.
+function AngleSlot({ label, photo, uploading, disabled, onPick, onRemove }) {
+  const inputRef = useRef()
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f) }}
+        disabled={disabled}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={disabled}
+        style={{
+          width: '100%', aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', padding: 0,
+          background: 'var(--pf-surface-2)', border: photo ? '1px solid var(--pf-line)' : '1px dashed var(--pf-line)',
+          display: 'grid', placeItems: 'center', cursor: disabled ? 'default' : 'pointer',
+        }}
+      >
+        {uploading ? (
+          <span className="eyebrow eyebrow-muted" style={{ fontSize: 11 }}>Đang tải…</span>
+        ) : photo?.url ? (
+          <img src={photo.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <span className="eyebrow eyebrow-muted" style={{ fontSize: 11 }}>+ {label}</span>
+        )}
+      </button>
+      {onRemove && !uploading && (
+        <button onClick={onRemove} style={{
+          position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', border: 'none',
+          borderRadius: 6, color: '#fff', width: 26, height: 26, display: 'grid', placeItems: 'center',
+        }}><IconTrash width={14} height={14} /></button>
+      )}
+    </div>
+  )
+}
 import { localISODate } from '../../../lib/date'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 
@@ -56,7 +101,8 @@ export default function ProgressSection({ clientId }) {
 
   const [log, setLog] = useState(LOG_EMPTY())
   const [busy, setBusy] = useState(false)
-  const [photoMeta, setPhotoMeta] = useState({ week: 1, angle: 'front' })
+  const [photoWeek, setPhotoWeek] = useState(1)
+  const [uploadingAngle, setUploadingAngle] = useState(null)
   const set = (k) => (e) => setLog({ ...log, [k]: e.target.value })
 
   async function saveLog() {
@@ -74,15 +120,21 @@ export default function ProgressSection({ clientId }) {
     } finally { setBusy(false) }
   }
 
-  async function onUpload(e) {
+  // Each angle has its own hidden file input (see ANGLES below), so a photo
+  // is always uploaded with the angle its slot was clicked from - no shared
+  // dropdown to forget to change between shots, which used to let several
+  // photos in the same sitting silently save under whatever angle was left
+  // selected from the previous upload.
+  async function onUpload(angle, e) {
     const file = e.target.files?.[0]
     if (!file) return
     setBusy(true)
+    setUploadingAngle(angle)
     try {
-      await uploadPhoto(db, clientId, file, { week: Number(photoMeta.week), angle: photoMeta.angle })
+      await uploadPhoto(db, clientId, file, { week: Number(photoWeek), angle })
       reload()
     } catch (err) { showToast(err.message || 'Lỗi tải ảnh') }
-    finally { setBusy(false); if (fileRef.current) fileRef.current.value = '' }
+    finally { setBusy(false); setUploadingAngle(null); e.target.value = '' }
   }
 
   async function removePhoto(p) {
@@ -151,38 +203,49 @@ export default function ProgressSection({ clientId }) {
 
       <Card className="stack">
         <Eyebrow muted>Hình ảnh tiến độ</Eyebrow>
-        <div className="field-grid">
-          <Field label="Tuần">
-            <select className="select" value={photoMeta.week} onChange={(e) => setPhotoMeta({ ...photoMeta, week: e.target.value })}>
-              {[1, 4, 8, 12].map((w) => <option key={w} value={w}>Tuần {w}</option>)}
-            </select>
-          </Field>
-          <Field label="Góc">
-            <select className="select" value={photoMeta.angle} onChange={(e) => setPhotoMeta({ ...photoMeta, angle: e.target.value })}>
-              <option value="front">Trước</option><option value="side">Nghiêng</option><option value="back">Sau</option>
-            </select>
-          </Field>
-        </div>
-        <input ref={fileRef} type="file" accept="image/*" onChange={onUpload} disabled={busy} style={{ display: 'none' }} />
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()} disabled={busy} style={{ alignSelf: 'flex-start' }}>
-          {busy ? 'Đang tải…' : 'Chọn ảnh…'}
-        </button>
+        <Field label="Tuần">
+          <select className="select" value={photoWeek} onChange={(e) => setPhotoWeek(Number(e.target.value))}>
+            {[1, 4, 8, 12].map((w) => <option key={w} value={w}>Tuần {w}</option>)}
+          </select>
+        </Field>
 
-        {photos.length === 0 ? <Empty title="Chưa có ảnh" /> : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 4 }}>
-            {photos.map((p) => (
-              <div key={p.id} style={{ position: 'relative' }}>
-                <div style={{ aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', background: 'var(--pf-surface-2)', border: '1px solid var(--pf-line)' }}>
-                  {p.url && <img src={p.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                </div>
-                <div className="eyebrow eyebrow-muted" style={{ marginTop: 4 }}>T{p.week} · {p.angle}</div>
-                <button onClick={() => removePhoto(p)} style={{
-                  position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', border: 'none',
-                  borderRadius: 6, color: '#fff', width: 26, height: 26, display: 'grid', placeItems: 'center',
-                }}><IconTrash width={14} height={14} /></button>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 4 }}>
+          {ANGLES.map(({ key, label }) => {
+            const existing = photos.find((p) => p.week === photoWeek && p.angle === key)
+            return (
+              <div key={key}>
+                <AngleSlot
+                  label={label}
+                  photo={existing}
+                  uploading={uploadingAngle === key}
+                  disabled={busy}
+                  onPick={(file) => onUpload(key, { target: { files: [file], value: '' } })}
+                  onRemove={existing ? () => removePhoto(existing) : null}
+                />
+                <div className="eyebrow eyebrow-muted" style={{ marginTop: 4, textAlign: 'center' }}>{label}</div>
               </div>
-            ))}
-          </div>
+            )
+          })}
+        </div>
+
+        {photos.length > 0 && (
+          <>
+            <Eyebrow muted style={{ marginTop: 8 }}>Toàn bộ ảnh đã tải</Eyebrow>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+              {photos.map((p) => (
+                <div key={p.id} style={{ position: 'relative' }}>
+                  <div style={{ aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', background: 'var(--pf-surface-2)', border: '1px solid var(--pf-line)' }}>
+                    {p.url && <img src={p.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  </div>
+                  <div className="eyebrow eyebrow-muted" style={{ marginTop: 4 }}>T{p.week} · {p.angle}</div>
+                  <button onClick={() => removePhoto(p)} style={{
+                    position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', border: 'none',
+                    borderRadius: 6, color: '#fff', width: 26, height: 26, display: 'grid', placeItems: 'center',
+                  }}><IconTrash width={14} height={14} /></button>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </Card>
     </div>

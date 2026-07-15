@@ -7,7 +7,7 @@ import { listPrograms, listCompletions, computeMuscleHeat } from '../../data/pro
 import { SkeletonScreen, Eyebrow, Card, Empty, showToast } from '../../components/ui/primitives'
 import { IconShare } from '../../components/ui/Icons'
 import MuscleBodyMap from '../../components/ui/MuscleBodyMap'
-import BeforeAfterSlider from '../../components/ui/BeforeAfterSlider'
+import BeforeAfterCompare from '../../components/ui/BeforeAfterCompare'
 import { buildProgressShareCard, shareOrDownload } from '../../lib/shareCard'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import logo from '../../assets/logo.png'
@@ -160,7 +160,7 @@ export default function Progress() {
               {comparisons.map(({ angle, before, after }) => (
                 <Card key={angle} className="stack">
                   <div className="eyebrow eyebrow-muted">{angle}</div>
-                  <BeforeAfterSlider
+                  <BeforeAfterCompare
                     beforeUrl={before.url} beforeLabel={`Tuần ${before.week}`}
                     afterUrl={after.url} afterLabel={`Tuần ${after.week}`}
                   />
