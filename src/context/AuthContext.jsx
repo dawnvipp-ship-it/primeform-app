@@ -4,13 +4,29 @@ import * as authApi from '../data/auth'
 
 const AuthCtx = createContext(null)
 
+// Neither getSession() nor resolveRole() had a catch anywhere they were
+// called from this file - a rejected (or simply hung) request left `status`
+// stuck at 'loading' forever, since nothing ever set a terminal value. App.jsx
+// renders a full-screen loader for that whole time, so the only way out was
+// force-quitting and reopening the app (a fresh mount gives the network
+// another chance). Race every resolveRole()/getSession() call against this
+// so a slow/dead connection times out into 'anon' (the login screen) instead
+// of hanging indefinitely - worse case is re-entering the access code, not a
+// frozen app.
+function withTimeout(promise, ms = 10000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ])
+}
+
 export function AuthProvider({ children }) {
-  // If no Supabase session is stored locally, skip the loading screen entirely
+  // If no Supabase session is stored locally, skip the loading screen entirely.
+  // storageKey is 'pf-auth' (set in supabase.js), so check that exact key —
+  // not the default 'sb-*' pattern which never matches a custom storageKey.
   const [status, setStatus] = useState(() => {
     try {
-      const hasSession = Object.keys(localStorage).some(
-        k => k.startsWith('sb-') && k.includes('auth')
-      )
+      const hasSession = !!localStorage.getItem('pf-auth')
       return hasSession ? 'loading' : 'anon'
     } catch {
       return 'loading'
@@ -40,11 +56,15 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true
     ;(async () => {
-      const session = await authApi.getSession()
-      if (!active) return
-      if (!session?.user) { setStatus('anon'); return }
-      const r = await authApi.resolveRole()
-      if (active) applyResolved(r)
+      try {
+        const session = await withTimeout(authApi.getSession())
+        if (!active) return
+        if (!session?.user) { setStatus('anon'); return }
+        const r = await withTimeout(authApi.resolveRole())
+        if (active) applyResolved(r)
+      } catch {
+        if (active) setStatus('anon')
+      }
     })()
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_e, sess) => {
@@ -54,8 +74,16 @@ export function AuthProvider({ children }) {
         setIsHeadCoach(false); setCoachFullName(null); setStatus('anon')
         return
       }
-      const r = await authApi.resolveRole()
-      applyResolved(r)
+      try {
+        const r = await withTimeout(authApi.resolveRole())
+        applyResolved(r)
+      } catch {
+        // resolveRole() timed out or hit a network error, but the session is
+        // still valid (sess.user is present). Don't log the user out — a slow
+        // mobile connection or a TOKEN_REFRESHED event mid-handoff shouldn't
+        // kick someone to the login screen. Keep the current status so they
+        // stay in the app; the next event or page reload will re-resolve.
+      }
     })
     return () => { active = false; sub?.subscription?.unsubscribe?.() }
   }, [applyResolved])
@@ -63,8 +91,14 @@ export function AuthProvider({ children }) {
   const loginClient = useCallback(async (code) => {
     resolving.current = true
     try {
-      const c = await authApi.clientLogin(code)
+      // 15-second timeout covers Edge Function cold-start (~3-4s) + slow mobile
+      // network. Without this, the button stays at "Đang mở…" forever on a
+      // hung request and the only escape is force-quitting the app.
+      const c = await withTimeout(authApi.clientLogin(code), 15000)
       setRole('client'); setClient(c); setCoachUser(null); setStatus('authed')
+    } catch (e) {
+      if (e.message === 'timeout') throw new Error('Kết nối chậm, thử lại.')
+      throw e
     } finally { resolving.current = false }
   }, [])
 
@@ -75,7 +109,7 @@ export function AuthProvider({ children }) {
       // Re-resolve (rather than trusting the raw login response) so
       // isHeadCoach/coachFullName are populated immediately, not just after
       // the next onAuthStateChange tick.
-      const r = await authApi.resolveRole()
+      const r = await withTimeout(authApi.resolveRole())
       applyResolved(r)
     } finally { resolving.current = false }
   }, [applyResolved])
