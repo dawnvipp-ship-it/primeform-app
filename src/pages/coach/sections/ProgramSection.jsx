@@ -220,8 +220,10 @@ export default function ProgramSection({ clientId }) {
   // then anything left over that only exists as a bare tag on a day.
   const seenPhases = (days || []).map((d) => d.phase).filter(Boolean)
     .filter((ph, i, arr) => arr.indexOf(ph) === i)
+  // Include ALL rows from program_phases (even empty ones), then append any
+  // day-tagged phases that don't have a row yet.
   const phases = [
-    ...(phaseRows || []).map((r) => r.name).filter((n) => seenPhases.includes(n)),
+    ...(phaseRows || []).map((r) => r.name),
     ...seenPhases.filter((n) => !(phaseRows || []).some((r) => r.name === n)),
   ]
   const hasUnassigned = (days || []).some((d) => !d.phase)
@@ -232,7 +234,7 @@ export default function ProgramSection({ clientId }) {
   }, [days, phaseRows]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function savePhase() {
-    if (!phaseForm?.name || !phaseForm?.start_date) return
+    if (!phaseForm?.name) return
     setBusy(true)
     try {
       const name = phaseForm.name.trim()
@@ -246,6 +248,9 @@ export default function ProgramSection({ clientId }) {
         start_date: phaseForm.start_date || null,
         weeks: phaseForm.weeks ? Number(phaseForm.weeks) : null,
         objective: phaseForm.objective?.trim() || null,
+        volume_reps: phaseForm.volume_reps?.trim() || null,
+        rpe: phaseForm.rpe?.trim() || null,
+        sessions_per_week: phaseForm.sessions_per_week?.trim() || null,
         order_index: orderIndex,
       })
       setSelectedPhase(name)
@@ -329,7 +334,7 @@ export default function ProgramSection({ clientId }) {
         <Eyebrow muted>Giai đoạn</Eyebrow>
         <button
           className="btn btn-ghost btn-sm"
-          onClick={() => setPhaseForm({ name: '', weeks: '', objective: '', start_date: localISODate() })}
+          onClick={() => setPhaseForm({ name: '', weeks: '', objective: '', start_date: '', volume_reps: '', rpe: '', sessions_per_week: '' })}
         >
           <IconPlus width={15} height={15} /> Phase
         </button>
@@ -359,7 +364,10 @@ export default function ProgramSection({ clientId }) {
                       _editing: ph, name: ph,
                       weeks: phaseMap[ph]?.weeks || '',
                       objective: phaseMap[ph]?.objective || '',
-                      start_date: phaseMap[ph]?.start_date || localISODate(),
+                      start_date: phaseMap[ph]?.start_date || '',
+                      volume_reps: phaseMap[ph]?.volume_reps || '',
+                      rpe: phaseMap[ph]?.rpe || '',
+                      sessions_per_week: phaseMap[ph]?.sessions_per_week || '',
                     })}
                   ><IconEdit width={13} height={13} /></button>
                   <button className="btn-quiet" title="Xoá phase" style={{ padding: '4px 6px', opacity: .4, color: 'var(--pf-danger)' }} onClick={() => removePhase(ph)}><IconX width={13} height={13} /></button>
@@ -372,7 +380,7 @@ export default function ProgramSection({ clientId }) {
 
       {selectedPhase && (
         <>
-          {(curPhaseRow?.objective || curPhaseRow?.start_date) && (
+          {(curPhaseRow?.objective || curPhaseRow?.start_date || curPhaseRow?.volume_reps || curPhaseRow?.rpe || curPhaseRow?.sessions_per_week) && (
             <div style={{ borderLeft: '2px solid var(--pf-gold, var(--pf-accent))', paddingLeft: 12, marginTop: 4 }}>
               {curPhaseRow?.start_date && (
                 <div className="eyebrow eyebrow-muted" style={{ marginBottom: 4 }}>
@@ -382,8 +390,30 @@ export default function ProgramSection({ clientId }) {
               {curPhaseRow?.objective && (
                 <>
                   <div className="eyebrow eyebrow-muted" style={{ marginBottom: 4 }}>Mục tiêu phase</div>
-                  <p style={{ fontSize: 13, color: 'var(--pf-muted)', lineHeight: 1.6 }}>{curPhaseRow.objective}</p>
+                  <p style={{ fontSize: 13, color: 'var(--pf-muted)', lineHeight: 1.6, marginBottom: 8 }}>{curPhaseRow.objective}</p>
                 </>
+              )}
+              {(curPhaseRow?.volume_reps || curPhaseRow?.rpe || curPhaseRow?.sessions_per_week) && (
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 4 }}>
+                  {curPhaseRow.volume_reps && (
+                    <div>
+                      <div className="eyebrow eyebrow-muted" style={{ marginBottom: 2 }}>Volume × Reps</div>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{curPhaseRow.volume_reps}</div>
+                    </div>
+                  )}
+                  {curPhaseRow.rpe && (
+                    <div>
+                      <div className="eyebrow eyebrow-muted" style={{ marginBottom: 2 }}>RPE</div>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{curPhaseRow.rpe}</div>
+                    </div>
+                  )}
+                  {curPhaseRow.sessions_per_week && (
+                    <div>
+                      <div className="eyebrow eyebrow-muted" style={{ marginBottom: 2 }}>Buổi/tuần</div>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{curPhaseRow.sessions_per_week}</div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -450,14 +480,26 @@ export default function ProgramSection({ clientId }) {
                 </Field>
               </div>
             </div>
-            <button className="btn btn-primary btn-block" onClick={savePhase} disabled={!phaseForm.name || !phaseForm.start_date || busy}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <Field label="Volume × Reps">
+                  <Input value={phaseForm.volume_reps || ''} onChange={(e) => setPhaseForm({ ...phaseForm, volume_reps: e.target.value })} placeholder="3–4 × 10–12" />
+                </Field>
+              </div>
+              <div style={{ flex: 1 }}>
+                <Field label="RPE">
+                  <Input value={phaseForm.rpe || ''} onChange={(e) => setPhaseForm({ ...phaseForm, rpe: e.target.value })} placeholder="6–7" />
+                </Field>
+              </div>
+              <div style={{ flex: 1 }}>
+                <Field label="Buổi/tuần">
+                  <Input value={phaseForm.sessions_per_week || ''} onChange={(e) => setPhaseForm({ ...phaseForm, sessions_per_week: e.target.value })} placeholder="3–4" />
+                </Field>
+              </div>
+            </div>
+            <button className="btn btn-primary btn-block" onClick={savePhase} disabled={!phaseForm.name || busy}>
               {busy ? 'Đang lưu…' : phaseForm._editing ? 'Lưu thay đổi' : 'Xác nhận'}
             </button>
-            {!phaseForm.start_date && (
-              <p className="faint" style={{ fontSize: 11.5, color: 'var(--pf-danger)', marginTop: -4 }}>
-                Cần chọn ngày bắt đầu để hiện đúng thời gian phase cho học viên.
-              </p>
-            )}
           </div>
         )}
       </Modal>
