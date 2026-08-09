@@ -23,6 +23,18 @@ function Chart({ title, unit, dataKey, rows }) {
     .filter((r) => r[dataKey] != null)
     .map((r) => ({ date: r.log_date?.slice(5), value: Number(r[dataKey]) }))
   if (points.length === 0) return null
+
+  // Compute domain from actual data so Recharts doesn't produce "nice" ticks
+  // that land nowhere near the real values (the default 'auto' pads heavily
+  // and can show floats like 65.333 that look wrong on a body-metrics chart).
+  const vals = points.map((p) => p.value)
+  const lo = Math.min(...vals)
+  const hi = Math.max(...vals)
+  const pad = hi === lo ? Math.max(lo * 0.05, 1) : (hi - lo) * 0.15
+  const domainMin = Math.floor((lo - pad) * 10) / 10
+  const domainMax = Math.ceil((hi + pad) * 10) / 10
+  const fmtTick = (v) => { const n = Number(v); return Number.isInteger(n) ? String(n) : n.toFixed(1) }
+
   return (
     <Card>
       <Eyebrow muted>{title}</Eyebrow>
@@ -30,7 +42,7 @@ function Chart({ title, unit, dataKey, rows }) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 6, right: 6, left: -18, bottom: 0 }}>
             <XAxis dataKey="date" tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} width={40} domain={['auto', 'auto']} />
+            <YAxis tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} width={40} domain={[domainMin, domainMax]} tickFormatter={fmtTick} />
             <Tooltip
               contentStyle={{ background: '#242424', border: '1px solid rgba(245,241,234,.10)', borderRadius: 8, color: '#F5F1EA' }}
               labelStyle={{ color: TICK_COLOR }}
