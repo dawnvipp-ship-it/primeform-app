@@ -40,9 +40,9 @@ function Chart({ title, unit, dataKey, rows }) {
       <Eyebrow muted>{title}</Eyebrow>
       <div style={{ height: 180, marginTop: 14 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={points} margin={{ top: 6, right: 6, left: -18, bottom: 0 }}>
+          <LineChart data={points} margin={{ top: 6, right: 6, left: 4, bottom: 0 }}>
             <XAxis dataKey="date" tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} width={40} domain={[domainMin, domainMax]} tickFormatter={fmtTick} />
+            <YAxis tick={{ fill: TICK_COLOR, fontSize: 11 }} axisLine={false} tickLine={false} width={38} domain={[domainMin, domainMax]} tickFormatter={fmtTick} />
             <Tooltip
               contentStyle={{ background: '#242424', border: '1px solid rgba(245,241,234,.10)', borderRadius: 8, color: '#F5F1EA' }}
               labelStyle={{ color: TICK_COLOR }}
