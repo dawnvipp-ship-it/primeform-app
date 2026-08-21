@@ -7,26 +7,41 @@ import { IconHome, IconDumbbell, IconLeaf, IconChart, IconTicket, IconMessage, I
 // Nhắn tin earns a slot despite the 6-tab width squeeze on a 375px phone
 // (see global.css .navitem) because it's a frequent, two-way destination,
 // unlike Đánh giá.
-const tabs = [
-  { to: '/app', end: true, label: 'Tổng quan', Icon: IconHome },
-  { to: '/app/program', label: 'Giáo án', Icon: IconDumbbell },
-  { to: '/app/nutrition', label: 'Dinh dưỡng', Icon: IconLeaf },
-  { to: '/app/progress', label: 'Tiến độ', Icon: IconChart },
-  { to: '/app/sessions', label: 'Buổi tập', Icon: IconTicket },
-  { to: '/app/messages', label: 'Nhắn tin', Icon: IconMessage },
-]
+function tabsFor(base) {
+  return [
+    { to: base, end: true, label: 'Tổng quan', Icon: IconHome },
+    { to: `${base}/program`, label: 'Giáo án', Icon: IconDumbbell },
+    { to: `${base}/nutrition`, label: 'Dinh dưỡng', Icon: IconLeaf },
+    { to: `${base}/progress`, label: 'Tiến độ', Icon: IconChart },
+    { to: `${base}/sessions`, label: 'Buổi tập', Icon: IconTicket },
+    { to: `${base}/messages`, label: 'Nhắn tin', Icon: IconMessage },
+  ]
+}
 
-export default function ClientLayout() {
+// basePath lets the coach-preview route (/coach/preview, see
+// pages/coach/PreviewClient.jsx) reuse this exact layout+tabs instead of
+// duplicating them — the real client app keeps the default untouched.
+// previewMode: the "exit" button closes the tab (it was opened via
+// window.open from ClientDetail specifically for this preview) instead of
+// signing out + redirecting, since there's no client-facing "/" to land on.
+export default function ClientLayout({ basePath = '/app', previewMode = false }) {
   const { logout } = useAuth()
   const navigate = useNavigate()
+  const tabs = tabsFor(basePath)
+
+  async function handleExit() {
+    await logout()
+    if (previewMode) { window.close(); return }
+    navigate('/', { replace: true })
+  }
 
   return (
     <>
       {/* Persistent exit button (all tabs) */}
       <button
-        onClick={async () => { await logout(); navigate('/', { replace: true }) }}
-        title="Đăng xuất"
-        aria-label="Đăng xuất"
+        onClick={handleExit}
+        title={previewMode ? 'Đóng xem trước' : 'Đăng xuất'}
+        aria-label={previewMode ? 'Đóng xem trước' : 'Đăng xuất'}
         style={{
           position: 'fixed', top: 'calc(env(safe-area-inset-top) + 10px)', right: 12, zIndex: 60,
           width: 44, height: 44, borderRadius: 999, display: 'grid', placeItems: 'center',

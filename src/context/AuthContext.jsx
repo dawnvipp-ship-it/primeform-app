@@ -2,7 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback, u
 import { supabase } from '../lib/supabase'
 import * as authApi from '../data/auth'
 
-const AuthCtx = createContext(null)
+// Exported (not just the hook below) so PreviewAuthContext.jsx can provide a
+// value through this same context — the client pages under /coach/preview
+// call useAuth() unmodified and receive whichever provider is nearest.
+export const AuthCtx = createContext(null)
 
 // Neither getSession() nor resolveRole() had a catch anywhere they were
 // called from this file - a rejected (or simply hung) request left `status`

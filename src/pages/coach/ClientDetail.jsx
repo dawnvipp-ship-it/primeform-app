@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getClient } from '../../data/clients'
 import { InlineLoader, Eyebrow, Empty } from '../../components/ui/primitives'
-import { IconBack } from '../../components/ui/Icons'
+import { IconBack, IconEye } from '../../components/ui/Icons'
 
 import ProfileSection from './sections/ProfileSection'
 import AssessmentSection from './sections/AssessmentSection'
@@ -43,7 +43,16 @@ export default function ClientDetail() {
           <Eyebrow>{client.client_code}</Eyebrow>
           <h1 style={{ fontSize: 'var(--fs-h1)', marginTop: 6 }}>{client.full_name}</h1>
         </div>
-        <div className="tag tag-accent">còn {client.remaining_sessions}/{client.total_sessions}</div>
+        <div className="row" style={{ gap: 10 }}>
+          <button
+            className="btn-quiet"
+            title="Mở giao diện học viên trong tab mới — không cần nhập mã"
+            onClick={() => window.open(`/coach/preview?code=${encodeURIComponent(client.client_code)}`, '_blank', 'noopener')}
+          >
+            <IconEye width={16} height={16} /> Xem như học viên
+          </button>
+          <div className="tag tag-accent">còn {client.remaining_sessions}/{client.total_sessions}</div>
+        </div>
       </div>
 
       <div className="seg-tabs">

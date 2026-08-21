@@ -17,6 +17,7 @@ const CoachLayout  = lazy(() => import('./pages/coach/CoachLayout'))
 const ClientList   = lazy(() => import('./pages/coach/ClientList'))
 const ClientDetail = lazy(() => import('./pages/coach/ClientDetail'))
 const Bookings     = lazy(() => import('./pages/coach/Bookings'))
+const PreviewClient = lazy(() => import('./pages/coach/PreviewClient'))
 
 export default function App() {
   const { status, role } = useAuth()
@@ -67,6 +68,22 @@ export default function App() {
           <Route index element={<ClientList />} />
           <Route path="client/:id" element={<ClientDetail />} />
           <Route path="bookings" element={<Bookings />} />
+        </Route>
+
+        {/* Coach "Xem như học viên" preview — opened in a new tab from
+            ClientDetail with ?code=<client_code>. Runs on the isolated
+            preview Supabase session (see lib/supabasePreview.js), so it does
+            NOT require role === 'coach' here; PreviewClient/PreviewAuthContext
+            gate access on their own. */}
+        <Route path="/coach/preview" element={<PreviewClient />}>
+          <Route element={<ClientLayout basePath="/coach/preview" previewMode />}>
+            <Route index element={<Dashboard />} />
+            <Route path="program" element={<Program />} />
+            <Route path="nutrition" element={<Nutrition />} />
+            <Route path="progress" element={<Progress />} />
+            <Route path="sessions" element={<Sessions />} />
+            <Route path="messages" element={<Messages />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

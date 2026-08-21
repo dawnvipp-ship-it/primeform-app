@@ -25,3 +25,4 @@ export const IconMoon = (p) => (<svg {...base} {...p}><path d="M20.5 14.5A8.5 8.
 export const IconShare = (p) => (<svg {...base} {...p}><path d="M12 15V3" /><path d="M8 7l4-4 4 4" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>)
 export const IconMessage = (p) => (<svg {...base} {...p}><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4Z" /></svg>)
 export const IconSend = (p) => (<svg {...base} {...p}><path d="M4 12 20 4l-6 16-3-7-7-3Z" /></svg>)
+export const IconEye = (p) => (<svg {...base} {...p}><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>)
