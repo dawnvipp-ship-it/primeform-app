@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
-import { listMyBookings, listSlotsForRange, createBooking, cancelMyBooking, SLOT_HOURS } from '../../data/bookings'
+import { listMyBookings, listSlotsForRange, createBooking, cancelMyBooking, SLOT_TIMES } from '../../data/bookings'
 import { SkeletonScreen, Eyebrow, Card, Empty, Modal, Field, Textarea, confirmDialog, showToast } from '../../components/ui/primitives'
 import { IconCalendar } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
@@ -183,8 +183,7 @@ export default function Sessions() {
 
           <Field label="Chọn giờ (7:00 - 21:00)">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-              {SLOT_HOURS.map((h) => {
-                const t = `${String(h).padStart(2, '0')}:00`
+              {SLOT_TIMES.map((t) => {
                 const taken = takenTimes.has(t)
                 return (
                   <button

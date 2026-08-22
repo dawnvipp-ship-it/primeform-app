@@ -4,7 +4,13 @@
 // coach_select_scoped / coach_update_scoped policies on the `bookings` table,
 // so these functions stay thin wrappers, same shape as clients.js/programs.js.
 
-export const SLOT_HOURS = Array.from({ length: 14 }, (_, i) => i + 7) // 07:00..20:00
+// 07:00..20:00 in 30-minute steps ("HH:MM" strings, not hour ints) - last
+// slot is 20:00 (not 20:30) so a 1-hour session still finishes by 21:00.
+export const SLOT_TIMES = Array.from({ length: 27 }, (_, i) => {
+  const h = 7 + Math.floor(i / 2)
+  const m = i % 2 === 0 ? '00' : '30'
+  return `${String(h).padStart(2, '0')}:${m}`
+})
 
 export async function listMyBookings(db) {
   const { data, error } = await db

@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
-import { listCoachBookings, confirmBooking, rejectBooking, groupWeeklyTotalsByCoach, SLOT_HOURS } from '../../data/bookings'
+import { listCoachBookings, confirmBooking, rejectBooking, groupWeeklyTotalsByCoach, SLOT_TIMES } from '../../data/bookings'
 import { COACHES } from '../../data/coaches'
 import { InlineLoader, Eyebrow, Card, Empty, Stat, showToast } from '../../components/ui/primitives'
 import { IconChevron, IconCheck, IconX } from '../../components/ui/Icons'
@@ -183,11 +183,17 @@ export default function Bookings() {
                 </div>
               ))}
 
-              {SLOT_HOURS.map((h) => {
-                const t = `${String(h).padStart(2, '0')}:00`
+              {SLOT_TIMES.map((t) => {
+                // On-the-hour rows get the visible border/label; :30 rows sit
+                // quietly between them so the now-27-row grid (was 14, hourly
+                // only) doesn't read as a denser wall of identical lines.
+                const onHour = t.endsWith(':00')
                 return (
-                  <Fragment key={h}>
-                    <div style={{ fontSize: 11, color: 'var(--pf-faint)', padding: '6px 4px', borderTop: '1px solid var(--pf-line-soft)' }}>
+                  <Fragment key={t}>
+                    <div style={{
+                      fontSize: 11, color: onHour ? 'var(--pf-faint)' : 'var(--pf-line)', padding: '6px 4px',
+                      borderTop: onHour ? '1px solid var(--pf-line-soft)' : 'none',
+                    }}>
                       {t}
                     </div>
                     {weekDates.map((d, i) => {
@@ -197,8 +203,9 @@ export default function Bookings() {
                         <div
                           key={i}
                           style={{
-                            borderTop: '1px solid var(--pf-line-soft)', borderLeft: '1px solid var(--pf-line-soft)',
-                            padding: 3, minHeight: 34,
+                            borderTop: onHour ? '1px solid var(--pf-line-soft)' : 'none',
+                            borderLeft: '1px solid var(--pf-line-soft)',
+                            padding: 3, minHeight: 28,
                           }}
                         >
                           {cellBookings.map((b) => (
