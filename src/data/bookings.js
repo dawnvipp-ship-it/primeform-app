@@ -22,18 +22,23 @@ export async function listMyBookings(db) {
   return data || []
 }
 
-// Existing (non-cancelled) bookings for one coach in a date range, so the
-// client UI can grey out slots that are already taken.
-export async function listSlotsForRange(db, coach, fromDate, toDate) {
-  const { data, error } = await db
-    .from('bookings')
-    .select('date, time')
-    .eq('coach_id', coach)
-    .in('status', ['pending', 'confirmed'])
-    .gte('date', fromDate)
-    .lte('date', toDate)
+// Existing (non-cancelled) bookings for one coach on one date, so the client
+// UI can grey out slots that are already taken by ANOTHER client. A client's
+// own session can only SELECT their own rows (RLS policy client_select_own),
+// so a direct `.from('bookings')` query here would silently return nothing
+// for other clients' bookings - looked like "no slots taken" instead of
+// erroring, so it went unnoticed until someone tried to double-book a slot.
+// get_booked_slots() is a SECURITY DEFINER RPC (already existed + already
+// granted to `authenticated`, just never wired up here) that returns only
+// coach_id/date/time for one day - no client identity, safe for any client
+// to call regardless of whose bookings they are.
+// fromDate/toDate: kept for the caller's signature, but the RPC is one day
+// at a time - the only caller (Sessions.jsx) always passes the same date for
+// both, so this just uses fromDate.
+export async function listSlotsForRange(db, coach, fromDate, _toDate) {
+  const { data, error } = await db.rpc('get_booked_slots', { p_coach_id: coach, p_date: fromDate })
   if (error) throw error
-  return data || []
+  return (data || []).map((r) => ({ time: r.slot_time }))
 }
 
 export async function createBooking(db, { clientId, coach, date, time, notes }) {
