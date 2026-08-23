@@ -165,6 +165,7 @@ export default function Progress() {
           <Chart title="Mông" unit=" cm" dataKey="hip" rows={logs} />
           <Chart title="Bụng" unit=" cm" dataKey="belly" rows={logs} />
           <Chart title="Tay" unit=" cm" dataKey="arm" rows={logs} />
+          <Chart title="Đùi" unit=" cm" dataKey="thigh" rows={logs} />
 
           {comparisons.length > 0 && (
             <div className="stack">

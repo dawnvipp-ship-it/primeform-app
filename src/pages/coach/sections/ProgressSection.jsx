@@ -88,7 +88,7 @@ function Chart({ title, unit, dataKey, rows }) {
 }
 
 const today = () => localISODate()
-const LOG_EMPTY = () => ({ log_date: today(), weight: '', body_fat: '', waist: '', chest: '', hip: '', belly: '', arm: '', notes: '' })
+const LOG_EMPTY = () => ({ log_date: today(), weight: '', body_fat: '', waist: '', chest: '', hip: '', belly: '', arm: '', thigh: '', notes: '' })
 
 export default function ProgressSection({ clientId }) {
   const { db } = useAuth()
@@ -113,7 +113,7 @@ export default function ProgressSection({ clientId }) {
         log_date: log.log_date,
         weight: num(log.weight), body_fat: num(log.body_fat),
         waist: num(log.waist), chest: num(log.chest),
-        hip: num(log.hip), belly: num(log.belly), arm: num(log.arm),
+        hip: num(log.hip), belly: num(log.belly), arm: num(log.arm), thigh: num(log.thigh),
         notes: log.notes || null,
       })
       setLog(LOG_EMPTY()); reload()
@@ -159,6 +159,7 @@ export default function ProgressSection({ clientId }) {
           <Field label="Mông (cm)"><Input type="number" value={log.hip} onChange={set('hip')} /></Field>
           <Field label="Bụng (cm)"><Input type="number" value={log.belly} onChange={set('belly')} /></Field>
           <Field label="Tay (cm)"><Input type="number" value={log.arm} onChange={set('arm')} /></Field>
+          <Field label="Đùi (cm)"><Input type="number" value={log.thigh} onChange={set('thigh')} /></Field>
         </div>
         <Field label="Ghi chú"><Textarea value={log.notes} onChange={set('notes')} /></Field>
         <button className="btn btn-primary btn-block" onClick={saveLog} disabled={busy}>{busy ? 'Đang lưu…' : 'Thêm số đo'}</button>
@@ -179,6 +180,7 @@ export default function ProgressSection({ clientId }) {
                     l.hip && `mông ${l.hip}cm`,
                     l.belly && `bụng ${l.belly}cm`,
                     l.arm && `tay ${l.arm}cm`,
+                    l.thigh && `đùi ${l.thigh}cm`,
                   ].filter(Boolean).join(' · ')}
                 </div>
               </div>
@@ -198,6 +200,7 @@ export default function ProgressSection({ clientId }) {
           <Chart title="Mông (cm)" unit=" cm" dataKey="hip" rows={logs.slice().reverse()} />
           <Chart title="Bụng (cm)" unit=" cm" dataKey="belly" rows={logs.slice().reverse()} />
           <Chart title="Tay (cm)" unit=" cm" dataKey="arm" rows={logs.slice().reverse()} />
+          <Chart title="Đùi (cm)" unit=" cm" dataKey="thigh" rows={logs.slice().reverse()} />
         </Card>
       )}
 
