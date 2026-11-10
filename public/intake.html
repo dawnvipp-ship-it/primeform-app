@@ -209,6 +209,83 @@ textarea{resize:none;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .toast.success{color:var(--green);border-color:rgba(76,175,80,.3);}
 .toast.error{color:var(--red);border-color:rgba(244,67,54,.3);}
+/* DRAFT BAR */
+.draft-bar{display:none;align-items:center;gap:10px;flex-wrap:wrap;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:12px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:var(--secondary);}
+.draft-bar.show{display:flex;}
+.draft-bar b{color:var(--bone);font-weight:600;}
+.draft-bar .db-txt{flex:1;min-width:150px;line-height:1.5;}
+.draft-bar button{padding:8px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--secondary);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+.draft-bar button.db-keep{border-color:var(--gold-border);color:var(--gold);}
+
+/* REFER SCRIPT */
+.refer-list{font-size:12px;color:var(--bone);line-height:1.7;margin-bottom:14px;text-align:left;}
+.refer-list div::before{content:'• ';color:var(--red);}
+.refer-script{background:rgba(0,0,0,.28);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.7;color:var(--bone);font-style:italic;text-align:left;margin-bottom:14px;}
+.refer-script-lbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-style:normal;margin-bottom:6px;}
+
+/* BODY MAP */
+.bm-wrap{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;}
+.bm-fig{flex:0 0 auto;width:220px;margin:0 auto;text-align:center;}
+.bm-fig svg{width:100%;height:auto;display:block;touch-action:manipulation;-webkit-user-select:none;user-select:none;}
+.bm-cap{font-size:9px;letter-spacing:1px;color:var(--muted);margin-top:8px;}
+.bm-side{flex:1;min-width:230px;}
+.bm-base{fill:#1E1E1E;stroke:rgba(255,255,255,.06);stroke-width:1;}
+.bm-zone{fill:rgba(245,241,234,.11);stroke:rgba(245,241,234,.26);stroke-width:1;cursor:pointer;transition:fill .2s,stroke .2s;}
+.bm-zone.lv-none{fill:rgba(201,169,97,.22);stroke:var(--gold);}
+.bm-zone.lv-low{fill:rgba(76,175,80,.30);stroke:var(--green);}
+.bm-zone.lv-mid{fill:rgba(255,152,0,.32);stroke:var(--orange);}
+.bm-zone.lv-high{fill:rgba(244,67,54,.36);stroke:var(--red);}
+.bm-zone.active{stroke-width:2.6;}
+.bm-num{font-size:12px;font-weight:700;fill:var(--bone);text-anchor:middle;dominant-baseline:central;pointer-events:none;font-family:inherit;}
+.bm-lr{font-size:11px;font-weight:700;fill:rgba(245,241,234,.4);text-anchor:middle;font-family:inherit;}
+.bm-hint{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+.bm-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+.bm-chip{padding:7px 12px;border-radius:100px;border:1px solid var(--gold-border);background:var(--gold-dim);color:var(--gold);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.bm-chip.lv-low{border-color:var(--green);background:rgba(76,175,80,.12);color:var(--green);}
+.bm-chip.lv-mid{border-color:var(--orange);background:rgba(255,152,0,.12);color:var(--orange);}
+.bm-chip.lv-high{border-color:var(--red);background:rgba(244,67,54,.12);color:var(--red);}
+.bm-chip.active{box-shadow:0 0 0 2px rgba(245,241,234,.22);}
+.bm-picker{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;}
+.bm-picker-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.bm-picker-lbl b{color:var(--bone);font-weight:700;}
+.bm-levels{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px;}
+.bm-levels button{height:40px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;}
+.bm-levels button.sel.lv-low{border-color:var(--green);background:rgba(76,175,80,.15);color:var(--green);}
+.bm-levels button.sel.lv-mid{border-color:var(--orange);background:rgba(255,152,0,.15);color:var(--orange);}
+.bm-levels button.sel.lv-high{border-color:var(--red);background:rgba(244,67,54,.15);color:var(--red);}
+.bm-remove{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:4px 0;}
+
+/* MOVEMENT CARDS */
+.mv-hint{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;}
+.mv-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+.mv-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.mv-name{font-size:13px;font-weight:600;}
+.mv-focus{font-size:10px;color:var(--muted);margin-top:2px;}
+.mv-how{font-size:11px;color:var(--secondary);margin-top:6px;line-height:1.5;}
+.mv-sub{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.fault-chips{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px;}
+.mv-group{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);flex-basis:100%;margin-top:2px;}
+.fault-chip{padding:8px 13px;border-radius:100px;border:1px solid var(--border2);background:transparent;color:var(--secondary);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.fault-chip:active{transform:scale(.96);}
+.fault-chip.sel{border-color:var(--orange);background:rgba(255,152,0,.12);color:var(--orange);}
+.fault-detail{background:var(--surface3);border:1px solid var(--border);border-left:2px solid var(--orange);border-radius:10px;padding:12px;margin-bottom:10px;}
+.fd-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.fd-name{font-size:13px;font-weight:600;color:var(--orange);}
+.fd-side{display:flex;align-items:center;gap:5px;}
+.fd-mini{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-right:3px;}
+.fd-row{padding:9px 0;border-top:1px solid var(--border);}
+.fd-lbl{font-size:8px;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+.fd-txt{font-size:13px;line-height:1.6;color:var(--bone);}
+.fd-opts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;}
+.mini-pill{padding:7px 12px;border-radius:100px;border:1px solid var(--border2);background:transparent;color:var(--secondary);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;}
+.mini-pill.sel{border-color:var(--gold);background:var(--gold-dim);color:var(--gold);}
+.mv-foot{display:flex;align-items:center;gap:8px;margin-top:2px;}
+.mv-pain-btn{flex-shrink:0;padding:9px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap;}
+.mv-pain-btn.on{border-color:var(--red);background:rgba(244,67,54,.15);color:var(--red);}
+.mv-note{flex:1;min-width:0;background:var(--surface3)!important;border-radius:8px!important;font-size:13px!important;padding:9px 12px!important;}
+.mv-warn{background:var(--red-dim);border:1px solid var(--red-border);border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:12px;line-height:1.7;color:var(--secondary);}
+.mv-warn b{color:var(--red);}
+.mv-warn button{display:inline-block;margin-top:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--red-border);background:transparent;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
 </style>
 </head>
 <body>
@@ -246,7 +323,7 @@ textarea{resize:none;}
     <div class="mode-card" onclick="selectMode('a')">
       <div class="mode-icon">📋</div>
       <div class="mode-label">Assessment</div>
-      <div class="mode-desc">Đánh giá thể chất · PAR-Q · movement · lộ trình</div>
+      <div class="mode-desc">Đánh giá thể chất · sàng lọc · movement · lộ trình</div>
     </div>
   </div>
 </div>
@@ -355,7 +432,7 @@ textarea{resize:none;}
           <button class="tag" onclick="C.togglePainTag(this)">Hông</button>
           <button class="tag" onclick="C.togglePainTag(this)">Gối</button>
           <button class="tag" onclick="C.togglePainTag(this)">Cổ chân</button>
-          <button class="tag sel-none" onclick="C.togglePainNone(this)">Không có</button>
+          <button class="tag" data-none="1" onclick="C.togglePainNone(this)">Không có</button>
         </div>
       </div>
       <div class="grid2">
@@ -535,6 +612,7 @@ textarea{resize:none;}
   </div>
 
   <div class="content" id="a-content">
+    <div class="draft-bar" id="a-draft-bar"><div class="db-txt">↩ Đã khôi phục bản nháp của <b id="a-draft-name"></b></div><button class="db-keep" onclick="A.hideDraftBar()">Tiếp tục</button><button id="a-draft-discard" onclick="A.discardDraft(this)">Bắt đầu mới</button></div>
     <div class="step-bar" id="a-step-bar"></div>
 
     <!-- A: CONTEXT -->
@@ -619,38 +697,38 @@ textarea{resize:none;}
       <div class="step-eyebrow">C · Screening</div>
       <div class="step-title">Red Flag & Đau</div>
       <div class="flag-block">
-        <div class="flag-block-title"><span>⚠</span> Kiểm tra chống chỉ định (PAR-Q+)</div>
-        <div class="flag-q"><div class="flag-text">Bác sĩ từng nói bạn có vấn đề tim mạch và chỉ nên vận động có giám sát y tế?</div><div class="flag-btns"><button class="flag-btn yes" onclick="A.flagAns(0,'yes',this)">Có</button><button class="flag-btn no" onclick="A.flagAns(0,'no',this)">Không</button></div></div>
-        <div class="flag-q"><div class="flag-text">Bạn bị đau ngực khi nghỉ ngơi hoặc khi vận động trong tháng vừa qua?</div><div class="flag-btns"><button class="flag-btn yes" onclick="A.flagAns(1,'yes',this)">Có</button><button class="flag-btn no" onclick="A.flagAns(1,'no',this)">Không</button></div></div>
-        <div class="flag-q"><div class="flag-text">Bạn bị chóng mặt, mất thăng bằng hoặc ngất trong 12 tháng gần đây?</div><div class="flag-btns"><button class="flag-btn yes" onclick="A.flagAns(2,'yes',this)">Có</button><button class="flag-btn no" onclick="A.flagAns(2,'no',this)">Không</button></div></div>
-        <div class="flag-q"><div class="flag-text">Bạn có chấn thương xương/khớp mà bác sĩ chưa cho phép vận động trở lại?</div><div class="flag-btns"><button class="flag-btn yes" onclick="A.flagAns(3,'yes',this)">Có</button><button class="flag-btn no" onclick="A.flagAns(3,'no',this)">Không</button></div></div>
-        <div class="flag-q"><div class="flag-text">Bạn đang mang thai hoặc có bệnh mãn tính chưa được bác sĩ kiểm soát?</div><div class="flag-btns"><button class="flag-btn yes" onclick="A.flagAns(4,'yes',this)">Có</button><button class="flag-btn no" onclick="A.flagAns(4,'no',this)">Không</button></div></div>
+        <div class="flag-block-title"><span>⚠</span> Sàng lọc sức khoẻ chung</div>
+        <div id="flag-list-general"></div>
+      </div>
+      <div class="flag-block">
+        <div class="flag-block-title"><span>⚠</span> Red flag về đau</div>
+        <div id="flag-list-pain"></div>
       </div>
       <div class="refer-banner" id="refer-banner">
-        <div class="refer-title">⛔ CHỐNG CHỈ ĐỊNH — REFER OUT</div>
-        <div class="refer-text">Khách có yếu tố chống chỉ định.<br>Cần bác sĩ clearance trước khi bắt đầu chương trình.</div>
-        <div class="field" style="margin-bottom:14px;text-align:left;"><label>Ghi chú (câu nào Yes)</label><textarea id="c-flag-notes" rows="2" placeholder="VD: Q2 — đau ngực khi leo cầu thang tuần trước..."></textarea></div>
+        <div class="refer-title">⛔ DỪNG — REFER RA NGOÀI</div>
+        <div class="refer-text">Khách có dấu hiệu cần chuyên gia y tế kiểm tra trước khi bắt đầu tập.</div>
+        <div class="refer-list" id="refer-list"></div>
+        <div class="refer-script"><div class="refer-script-lbl">Nói với khách</div>"Với những gì mình quan sát, mình nghĩ bạn nên được một chuyên gia y tế kiểm tra trước khi bắt đầu tập. Đây là điều đúng cho cơ thể bạn — không phải Prime Form từ chối bạn."</div>
+        <div class="field" style="margin-bottom:14px;text-align:left;"><label>Ghi chú thêm (không bắt buộc)</label><textarea id="c-flag-notes" rows="2" placeholder="VD: đau ngực khi leo cầu thang tuần trước..."></textarea></div>
         <button class="btn-refer" id="btn-refer" onclick="A.submitReferOut()">Lưu & Refer Out →</button>
       </div>
       <div id="pain-section">
-        <div class="field"><label>Vùng đau / khó chịu</label>
-          <div class="pain-grid" id="c-pain">
-            <button class="pain-tag" data-val="Cổ">Cổ</button>
-            <button class="pain-tag" data-val="Vai T">Vai (T)</button>
-            <button class="pain-tag" data-val="Vai P">Vai (P)</button>
-            <button class="pain-tag" data-val="Lưng trên">Lưng trên</button>
-            <button class="pain-tag" data-val="Lưng dưới">Lưng dưới</button>
-            <button class="pain-tag" data-val="Hông T">Hông (T)</button>
-            <button class="pain-tag" data-val="Hông P">Hông (P)</button>
-            <button class="pain-tag" data-val="Gối T">Gối (T)</button>
-            <button class="pain-tag" data-val="Gối P">Gối (P)</button>
-            <button class="pain-tag" data-val="Cổ chân">Cổ chân</button>
-            <button class="pain-tag" data-val="Khác">Khác</button>
-            <button class="pain-tag" id="c-no-pain" data-val="none">Không có</button>
+        <div class="field"><label>Vùng đau / khó chịu — chạm vào hình</label>
+          <div class="bm-wrap">
+            <div class="bm-fig">
+              <svg id="bm-svg" viewBox="0 0 200 416" xmlns="http://www.w3.org/2000/svg"></svg>
+              <div class="bm-cap">Nhìn từ phía sau · T = trái · P = phải</div>
+            </div>
+            <div class="bm-side">
+              <div id="bm-dyn"></div>
+              <div class="pain-grid">
+                <button class="pain-tag" id="c-pain-other" onclick="A.toggleOther()">Vùng khác</button>
+                <button class="pain-tag" id="c-no-pain" onclick="A.toggleNoPain()">Không có đau</button>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="field"><label>Mô tả chi tiết</label><textarea id="c-desc" rows="2" placeholder="Đau khi nào, kiểu gì, lan không, bao lâu rồi..."></textarea></div>
-        <div class="field"><label>Mức độ đau (0–10)</label><div style="display:flex;gap:5px;flex-wrap:wrap;" id="c-scale"></div></div>
+        <div class="field"><label>Mô tả chi tiết</label><textarea id="c-desc" rows="2" placeholder="Đau khi nào, kiểu gì, bao lâu rồi..."></textarea></div>
         <div class="field"><label>Nhận định nhanh (1 câu)</label><input type="text" id="c-dx" placeholder="VD: Lower-cross do ngồi nhiều..."></div>
       </div>
     </div>
@@ -659,7 +737,8 @@ textarea{resize:none;}
     <div class="step-panel" id="ast-d">
       <div class="step-eyebrow">D · Movement</div>
       <div class="step-title">Kiểm tra chuyển động</div>
-      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">1 = Không được · 2 = Có bù trừ · 3 = Kiểm soát tốt</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">1 = Không được · 2 = Có bù trừ · 3 = Kiểm soát tốt</div>
+      <div class="mv-hint">Quan sát trước, chưa sửa tại chỗ. Bấm lỗi nhìn thấy để xem test phân biệt và bài can thiệp nhanh.</div>
       <div id="movement-list"></div>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
         <span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Tổng điểm</span>
@@ -839,11 +918,12 @@ const C = {
   init() {
     if (this._inited) return;
     this._inited = true;
+    const prevSid = localStorage.getItem('wc_sid'); // đọc trước khi newSession() ghi đè
     this.buildStepBar(); this.buildPainScale(); this.setToday(); this.newSession(); this.updateClock();
     document.getElementById('panel-0').classList.add('active');
     setInterval(() => this.updateClock(), 1000);
     setInterval(() => this.autoSave(), 10000);
-    this.tryRestoreDraft();
+    this.tryRestoreDraft(prevSid);
   },
 
   newSession() { this.sid = 'WC-' + Date.now(); localStorage.setItem('wc_sid', this.sid); },
@@ -902,16 +982,16 @@ const C = {
   selPill(el) { el.closest('.pills').querySelectorAll('.pill').forEach(p=>p.classList.remove('sel')); el.classList.add('sel'); },
   toggleTag(el) { el.classList.toggle('sel'); },
   togglePainTag(el) {
-    const nb = document.querySelector('#pain-tags .sel-none'); if (nb) nb.classList.remove('sel');
-    el.classList.toggle('sel-pain'); el.classList.toggle('tag');
+    const nb = document.querySelector('#pain-tags [data-none]'); if (nb) nb.classList.remove('sel-none');
+    el.classList.toggle('sel-pain');
   },
   togglePainNone(el) {
-    document.querySelectorAll('#pain-tags button').forEach(b => { if (b!==el){b.classList.remove('sel-pain');b.classList.add('tag');} });
-    el.classList.toggle('sel');
+    document.querySelectorAll('#pain-tags button').forEach(b => { if (b!==el) b.classList.remove('sel-pain'); });
+    el.classList.toggle('sel-none');
   },
   selReadiness(el, val) { document.querySelectorAll('.r-card').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); this.readinessVal=val; },
 
-  getTagVals(cid) { return Array.from(document.querySelectorAll(`#${cid} button`)).filter(b=>b.classList.contains('sel')||b.classList.contains('sel-pain')||b.classList.contains('sel-life')).map(b=>b.textContent.trim()).join(', '); },
+  getTagVals(cid) { return Array.from(document.querySelectorAll(`#${cid} button`)).filter(b=>b.classList.contains('sel')||b.classList.contains('sel-pain')||b.classList.contains('sel-life')||b.classList.contains('sel-none')).map(b=>b.textContent.trim()).join(', '); },
   getPillVal(cid) { const s=document.querySelector(`#${cid} .pill.sel`); return s?s.textContent.trim():''; },
   v(id) { const el=document.getElementById(id); return el?el.value.trim():''; },
 
@@ -949,12 +1029,12 @@ const C = {
     else{el.className='save-badge';el.textContent='';}
   },
 
-  async tryRestoreDraft() {
-    const saved = localStorage.getItem('wc_sid'); if (!saved) return;
+  async tryRestoreDraft(saved) {
+    if (!saved) return;
     const res = await gasPost({action:'load_draft', session_id:saved});
     if (res&&res.data&&res.data.client_name) {
-      if (confirm(`Tiếp tục draft của "${res.data.client_name}"?`)) { this.sid=saved; this.restoreForm(res.data); }
-      else { await gasPost({action:'delete_draft',session_id:saved}); localStorage.removeItem('wc_sid'); }
+      if (confirm(`Tiếp tục draft của "${res.data.client_name}"?`)) { this.sid=saved; localStorage.setItem('wc_sid', saved); this.restoreForm(res.data); }
+      else { await gasPost({action:'delete_draft',session_id:saved}); }
     }
   },
 
@@ -970,6 +1050,8 @@ const C = {
       const vals=[d.timeline,d.priority,d.treatment_history,d.training_history,d.work_type,d.sleep,d.sessions_per_week,d.recommended_package];
       if(vals[i])document.querySelectorAll(`#${cid} .pill`).forEach(p=>{if(p.textContent.trim()===vals[i])p.classList.add('sel');});
     });
+    const setTags=(cid,str,cls)=>{const vals=String(str||'').split(',').map(x=>x.trim()).filter(Boolean);document.querySelectorAll(`#${cid} button`).forEach(b=>{if(vals.includes(b.textContent.trim()))b.classList.add(b.dataset.none?'sel-none':cls);});};
+    setTags('goals-tags',d.goals,'sel');setTags('pain-tags',d.pain_areas,'sel-pain');setTags('lifestyle-tags',d.lifestyle_flags,'sel');setTags('nextstep-tags',d.next_steps,'sel');
     if(d.readiness){this.readinessVal=Number(d.readiness);document.querySelectorAll('.r-card').forEach(c=>{if(c.querySelector('.r-num')?.textContent==d.readiness)c.classList.add('sel');});}
     if(d.pain_level!==''){this.painVal=Number(d.pain_level);const btns=document.querySelectorAll('#pain-scale button');if(btns[this.painVal])btns[this.painVal].click();}
   },
@@ -1011,7 +1093,7 @@ const C = {
   resetForm() {
     document.querySelectorAll('#section-c input[type=text],#section-c input[type=tel],#section-c input[type=number],#section-c input[type=date],#section-c input[type=datetime-local],#section-c textarea').forEach(el=>el.value='');
     document.querySelectorAll('#section-c .pill.sel').forEach(el=>el.classList.remove('sel'));
-    document.querySelectorAll('#section-c .tag.sel,#section-c .tag.sel-pain,#section-c .tag.sel-life').forEach(el=>el.classList.remove('sel','sel-pain','sel-life'));
+    document.querySelectorAll('#section-c .tag.sel,#section-c .tag.sel-pain,#section-c .tag.sel-life,#section-c .tag.sel-none').forEach(el=>el.classList.remove('sel','sel-pain','sel-life','sel-none'));
     document.querySelectorAll('#section-c .r-card.sel').forEach(el=>el.classList.remove('sel'));
     document.querySelectorAll('#pain-scale button').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='transparent';b.style.color='var(--secondary)';delete b.dataset.sel;});
     this.readinessVal=null;this.painVal=null;this.snapData=null;this.step=0;this.setToday();
@@ -1022,22 +1104,116 @@ const C = {
   },
 };
 
+// ── ASSESSMENT DATA ─────────────────────────────────────────
+const FLAGS = [
+  {g:'general',short:'Tim mạch, cần giám sát y tế',q:'Bác sĩ từng nói bạn có vấn đề tim mạch và chỉ nên vận động có giám sát y tế?'},
+  {g:'general',short:'Đau ngực',q:'Bạn bị đau ngực khi nghỉ ngơi hoặc khi vận động trong tháng vừa qua?'},
+  {g:'general',short:'Chóng mặt / ngất',q:'Bạn bị chóng mặt, mất thăng bằng hoặc ngất trong 12 tháng gần đây?'},
+  {g:'general',short:'Chấn thương chưa được bác sĩ cho tập lại',q:'Bạn có chấn thương xương/khớp mà bác sĩ chưa cho phép vận động trở lại?'},
+  {g:'general',short:'Mang thai / bệnh mãn tính chưa kiểm soát',q:'Bạn đang mang thai hoặc có bệnh mãn tính chưa được bác sĩ kiểm soát?'},
+  {g:'pain',short:'Đau lan / tê bì xuống tay chân',q:'Cơn đau có lan hoặc gây tê bì xuống tay, chân không?'},
+  {g:'pain',short:'Đau ban đêm không liên quan vận động',q:'Bạn có bị đau về đêm, kể cả khi nằm yên không vận động?'},
+  {g:'pain',short:'Đau cấp / sưng / kẹt khớp / mất tầm vận động đột ngột',q:'Có khớp nào đang đau cấp, sưng, bị kẹt hoặc đột ngột mất tầm vận động?'},
+  {g:'pain',short:'Chấn thương cấp chưa qua khám',q:'Bạn có chấn thương mới gần đây mà chưa đi khám?'},
+  {g:'pain',short:'Sụt cân không rõ nguyên nhân',q:'Gần đây bạn có sụt cân mà không rõ nguyên nhân?'},
+];
+
+const ZONES = [
+  {k:'Cổ',t:'rect',a:{x:89,y:52,width:22,height:22,rx:8}},
+  {k:'Vai T',t:'ellipse',a:{cx:56,cy:90,rx:18,ry:15}},
+  {k:'Vai P',t:'ellipse',a:{cx:144,cy:90,rx:18,ry:15}},
+  {k:'Lưng trên',t:'rect',a:{x:76,y:78,width:48,height:62,rx:12}},
+  {k:'Lưng dưới',t:'rect',a:{x:78,y:144,width:44,height:42,rx:12}},
+  {k:'Hông T',t:'rect',a:{x:70,y:190,width:29,height:40,rx:12}},
+  {k:'Hông P',t:'rect',a:{x:101,y:190,width:29,height:40,rx:12}},
+  {k:'Gối T',t:'ellipse',a:{cx:84.5,cy:318,rx:15,ry:15}},
+  {k:'Gối P',t:'ellipse',a:{cx:115.5,cy:318,rx:15,ry:15}},
+  {k:'Cổ chân T',t:'ellipse',a:{cx:84.5,cy:398,rx:13,ry:10}},
+  {k:'Cổ chân P',t:'ellipse',a:{cx:115.5,cy:398,rx:13,ry:10}},
+];
+const OTHER_ZONE = 'Khác';
+const ZONE_KEYS = ZONES.map(z=>z.k).concat(OTHER_ZONE);
+const BODY_BASE = '<circle class="bm-base" cx="100" cy="28" r="20"/>'
+  + '<rect class="bm-base" x="31" y="98" width="16" height="116" rx="8"/><rect class="bm-base" x="153" y="98" width="16" height="116" rx="8"/>'
+  + '<rect class="bm-base" x="71" y="234" width="27" height="66" rx="12"/><rect class="bm-base" x="102" y="234" width="27" height="66" rx="12"/>'
+  + '<rect class="bm-base" x="74" y="336" width="21" height="50" rx="10"/><rect class="bm-base" x="105" y="336" width="21" height="50" rx="10"/>'
+  + '<text class="bm-lr" x="12" y="94">T</text><text class="bm-lr" x="188" y="94">P</text>';
+
+// Bảng lỗi: squat / hinge / push / pull lấy từ decision tree của Prime Form;
+// overhead / balance / core theo bản Anthony duyệt 2026-11-10.
+const MOVES = [
+  {id:'overhead',name:'Overhead Reach',focus:'Vai · Lưng trên',how:'Đứng, giơ hai tay qua đầu · nhìn cạnh và trước',faults:[
+    {id:'rib',label:'Ưỡn lưng dưới, bung sườn',t1:'Lưng trên cứng, thắt lưng bù',test:'Giơ tay nằm ngửa, gối co: vẫn không tới sàn = cứng thật',fix:'Thoracic extension, lat stretch'},
+    {id:'short',label:'Tay không lên hết, khuỷu cong',side:1,t1:'Lat hoặc ngực căng',test:'HLV đỡ nhẹ tay: lên thêm được = thiếu kiểm soát',fix:'Lat và pec stretch, wall slide'},
+    {id:'shrug',label:'Nhún vai lên tai',side:1,t1:'Upper trap làm thay',test:'Wall slide với cue "vai xa tai": hết = chỉ cần cue',fix:'Serratus wall slide'},
+    {id:'asym',label:'Lệch một bên',side:1,t1:'Bất đối xứng vai, lưng trên',test:'Giơ từng tay khi nằm ngửa',fix:'Mobility bên hạn chế'},
+  ]},
+  {id:'squat',name:'Squat Pattern',focus:'Gối · Hông',how:'Bodyweight squat × 5 · nhìn cạnh và trước',faults:[
+    {id:'heel',label:'Gót nhấc',side:1,t1:'Ankle dorsiflexion hạn chế',test:'Heel-elevated squat: lỗi biến mất = ankle',fix:'Heel-elevated goblet squat'},
+    {id:'valgus',label:'Gối đổ vào',side:1,t1:'Hip control / glute med yếu',test:'Cue "đẩy gối ra ngoài": hết ngay = chỉ cần cue',fix:'Band-resisted squat'},
+    {id:'lean',label:'Ngả người nhiều',t1:'Ankle restriction, bù bằng gập thân',test:'Heel-elevated: thân dựng = ankle',fix:'Ankle mobility + heel-elevated'},
+    {id:'wink',label:'Butt wink',t1:'Xuống quá range hông',test:'Box squat cao hơn điểm wink: lưng neutral = depth',fix:'Giới hạn depth, box squat'},
+    {id:'shift',label:'Lệch 1 bên',side:1,t1:'Bất đối xứng mobility / strength',test:'Split squat 2 bên',fix:'Unilateral work bên yếu'},
+  ]},
+  {id:'hinge',name:'Hip Hinge',focus:'Lưng dưới · Hamstring',how:'Dowel hinge · gậy chạm 3 điểm: đầu, lưng giữa, xương cùng',faults:[
+    {id:'round',label:'Cong lưng',t1:'Không dissociate hip ↔ spine',test:'Wall hinge: làm sạch = chỉ cần dạy',fix:'Wall hinge → dowel hinge, cue "đẩy hông ra sau"'},
+    {id:'back',label:'Hinge bằng lưng',t1:'Glute không initiate',test:'Cable pull-through: cảm nhận mông = học được',fix:'Cable pull-through → hip thrust → RDL'},
+    {id:'knee',label:'Gập gối nhiều',t1:'Không hiểu pattern hinge',test:'Wall hinge có mốc gối',fix:'Cue "ống chân thẳng, hông ra sau"'},
+  ]},
+  {id:'balance',name:'Single-Leg Balance',focus:'Cổ chân · Stability',how:'Đứng một chân 20–30 giây mỗi bên',sideLabel:'Chân trụ',faults:[
+    {id:'drop',label:'Hông bên kia rớt xuống',side:1,t1:'Glute med chân trụ yếu',test:'Chạm nhẹ tay vào tường: hông vẫn rớt = lực hông',fix:'Side-lying abduction, band walk'},
+    {id:'foot',label:'Cổ chân lắc, vòm sập',side:1,t1:'Bàn chân, cổ chân thiếu ổn định',test:'Cue "3 điểm bàn chân": ổn ngay = chỉ cần dạy',fix:'Short foot, calf raise chậm'},
+    {id:'lean',label:'Thân nghiêng về chân trụ',side:1,t1:'Bù cho hông và core bên',test:'Side plank gối 15 giây: sập = core bên yếu',fix:'Side plank, suitcase carry'},
+    {id:'asym',label:'Chênh rõ hai bên',side:1,t1:'Bất đối xứng',test:'Split squat hai bên',fix:'Unilateral bên yếu'},
+  ]},
+  {id:'push',name:'Push / Pull',focus:'Thân trên · Scapula',how:'Push-up hoặc incline · Seated row / TRX row / band row',faults:[
+    {id:'wing',group:'Push',label:'Bả vai nhô / cánh',side:1,t1:'Serratus anterior yếu',test:'Incline push-up: hết wing = load quá cao',fix:'Push-up plus, serratus wall slide'},
+    {id:'sag',group:'Push',label:'Lưng võng / hông sệ',t1:'Anterior core yếu',test:'Plank 20s: sập ngay = control kém',fix:'Dead bug, plank, incline push-up'},
+    {id:'pshrug',group:'Push',label:'Nhún vai / đầu chui trước',t1:'Upper trap dominance',test:'Regress tải: còn shrug = pattern',fix:'Scapular setting, wall slide'},
+    {id:'rshrug',group:'Pull',label:'Nhún vai',side:1,t1:'Kéo bằng upper trap thay vì lưng',test:'Chest-supported row: giảm = motor',fix:'Chest-supported row, cue "bắt đầu từ bả vai"'},
+    {id:'swing',group:'Pull',label:'Cong lưng / đung đưa',t1:'Load quá nặng',test:'Giảm tải: thân ổn = load',fix:'Giảm tải, tempo, chest-supported'},
+    {id:'noretract',group:'Pull',label:'Không retract bả vai',side:1,t1:'Motor control / mind-muscle',test:'Scapular-only row: tách được = dạy nhanh',fix:'Scapular row isolation → band row'},
+  ]},
+  {id:'core',name:'Core Stability',focus:'Plank · Dead bug',how:'Plank 20–30 giây · Dead bug 5 rep mỗi bên',faults:[
+    {id:'sag',label:'Lưng võng, hông sệ',t1:'Core trước thiếu kiểm soát',test:'Plank gối: giữ được = thiếu lực, vẫn võng = chưa biết gồng',fix:'Dead bug, incline plank'},
+    {id:'pike',label:'Mông đẩy cao',t1:'Né tải core',test:'Cue "siết mông, kéo sườn về hông": sửa được = cue',fix:'Plank ngắn có cue'},
+    {id:'arch',label:'Lưng rời sàn khi dead bug',t1:'Chống ưỡn kém',test:'Chỉ chạm gót: giữ được = cần lùi bài',fix:'Dead bug heel tap'},
+    {id:'rot',label:'Thân xoay, lắc',t1:'Chống xoay kém',test:'Bird dog chỉ nhấc tay',fix:'Bird dog, Pallof press'},
+    {id:'breath',label:'Nín thở, gồng cổ vai',t1:'Cách thở và gồng sai',test:'Yêu cầu thở đều: giữ form được = dạy thở',fix:'90/90 breathing'},
+  ]},
+];
+const SIDE_LBL   = {T:'T',P:'P',B:'2 bên'};
+const TEST_LBL   = {gone:'lỗi hết/giảm',remain:'vẫn còn'};
+const RETEST_LBL = {better:'tốt hơn rõ',slight:'hơi tốt hơn',same:'không đổi'};
+
 // ── ASSESSMENT ──────────────────────────────────────────────
 const A = {
-  step:0, scores:{}, flags:[null,null,null,null,null], sid:null, snapData:null, _inited:false,
+  step:0, flags:FLAGS.map(()=>null), pain:{}, noPain:false, activeZone:null, mv:{}, sid:null, snapData:null, _inited:false, _lt:null,
   STEPS:[{id:'a',lbl:'Context'},{id:'b',lbl:'Baseline'},{id:'c',lbl:'Screen'},{id:'d',lbl:'Movement'},{id:'e',lbl:'Diagnosis'},{id:'f',lbl:'Program'}],
+  PILL_GROUPS:['a-priority','a-timeline','b-sessions','b-fitness','b-history','e-response'],
+  LS_KEY:'pf_a_draft',
+
+  blankMv(){const o={};MOVES.forEach(m=>{o[m.id]={score:null,note:'',pain:false,faults:{}};});return o;},
 
   init() {
     if (this._inited) return;
     this._inited = true;
-    this.buildBar(); this.buildMovement(); this.buildPainScale();
+    this.mv=this.blankMv();
+    this.buildBar(); this.renderFlags(); this.renderBody(); this.renderPainSide(); this.renderMovement();
     document.getElementById('a-date').value = new Date().toISOString().slice(0,10);
-    this.initPills(); this.initPainTags();
+    this.initPills();
     ['b-weight','b-height'].forEach(id=>document.getElementById(id).addEventListener('input',()=>this.calcBMI()));
-    document.querySelectorAll('#b-history .pill').forEach(p=>{p.addEventListener('click',()=>{const show=['Bỏ ngang','Tự tập','Đã có PT'].includes(p.dataset.val);document.getElementById('stopped-wrap').style.display=show?'block':'none';});});
+    document.querySelectorAll('#b-history .pill').forEach(p=>p.addEventListener('click',()=>this.updateStoppedWrap()));
+    // Bản nháp lưu ngay trên máy sau mỗi thao tác — tải lại trang không mất lựa chọn.
+    const sec=document.getElementById('section-a');
+    ['input','click','change'].forEach(ev=>sec.addEventListener(ev,()=>this.queueLocal()));
+    window.addEventListener('pagehide',()=>this.saveLocal());
+    const hadSid=!!localStorage.getItem('pf_sid');
     this.sid=localStorage.getItem('pf_sid');
-    if (!this.sid){this.sid='as_draft_'+[...crypto.getRandomValues(new Uint8Array(8))].map(b=>b.toString(16).padStart(2,'0')).join('');localStorage.setItem('pf_sid',this.sid);}
-    else{this.loadDraft();}
+    if(!this.sid)this.newSession();
+    const local=this.readLocal();
+    if(local&&local.fields&&String(local.fields['a-name']||'').trim()){this.applyState(local);this.showDraftBar(local.fields['a-name']);}
+    else if(hadSid){this.loadDraft();}
     setInterval(()=>this.autoSave(),10000);
     setInterval(()=>{document.getElementById('a-clock').textContent=new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});},1000);
     document.getElementById('a-clock').textContent=new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
@@ -1050,54 +1226,70 @@ const A = {
 
   refreshBar() { this.STEPS.forEach((_,i)=>{document.getElementById('sd'+i).className='step-dot'+(i===this.step?' active':i<this.step?' done':'');document.getElementById('si'+i).className='step-item'+(i===this.step?' active':i<this.step?' done':'');}); },
 
-  nav(dir) {
-    const next=this.step+dir; if(next<0)return;
-    if(next>=this.STEPS.length){this.showSnap();return;}
-    if(dir>0&&!this.validate())return;
+  goStep(n) {
     document.querySelectorAll('#section-a .step-panel').forEach(p=>p.classList.remove('active'));
-    document.getElementById('ast-'+this.STEPS[next].id).classList.add('active');
-    this.step=next; this.refreshBar();
+    document.getElementById('ast-'+this.STEPS[n].id).classList.add('active');
+    this.step=n; this.refreshBar();
     document.getElementById('a-btn-back').style.display=this.step===0?'none':'block';
     document.getElementById('a-btn-next').textContent=this.step===this.STEPS.length-1?'Xem & Lưu →':'Tiếp theo →';
     document.getElementById('a-content').scrollTop=0;
   },
 
+  nav(dir) {
+    const next=this.step+dir; if(next<0)return;
+    if(next>=this.STEPS.length){this.showSnap();return;}
+    if(dir>0&&!this.validate())return;
+    this.goStep(next);
+  },
+
+  flagsOk() {
+    const u=this.flags.filter(f=>f===null).length;
+    if(u>0){toast(`Còn ${u} câu sàng lọc chưa trả lời`,'error');return false;}
+    if(this.flags.some(f=>f==='yes')){toast('Cần Refer Out trước khi tiếp tục','error');return false;}
+    return true;
+  },
+
   validate() {
     if(this.step===0&&!document.getElementById('a-name').value.trim()){toast('Nhập tên khách hàng','error');return false;}
-    if(this.step===2){const u=this.flags.filter(f=>f===null).length;if(u>0){toast(`Còn ${u} câu PAR-Q chưa trả lời`,'error');return false;}if(this.flags.some(f=>f==='yes')){toast('Cần Refer Out trước khi tiếp tục','error');return false;}}
+    if(this.step===2&&!this.flagsOk())return false;
     if(this.step===5&&!document.getElementById('f-dx').value.trim()){toast('Cần nhập Chẩn đoán cốt lõi','error');return false;}
+    return true;
+  },
+
+  // Kiểm tra lại toàn bộ trước khi lưu — kể cả khi hồ sơ được khôi phục từ bản nháp.
+  validateAll() {
+    if(!document.getElementById('a-name').value.trim()){this.goStep(0);toast('Nhập tên khách hàng','error');return false;}
+    if(!this.flagsOk()){this.goStep(2);return false;}
+    if(!document.getElementById('f-dx').value.trim()){this.goStep(5);toast('Cần nhập Chẩn đoán cốt lõi','error');return false;}
     return true;
   },
 
   initPills() { document.querySelectorAll('#section-a .pills').forEach(g=>{g.querySelectorAll('.pill').forEach(p=>{p.addEventListener('click',()=>{g.querySelectorAll('.pill').forEach(x=>x.classList.remove('sel'));p.classList.add('sel');});});}); },
   getSel(id){return document.querySelector('#'+id+' .pill.sel')?.dataset.val||'';},
-
-  initPainTags() {
-    document.querySelectorAll('.pain-tag').forEach(t=>{t.addEventListener('click',function(){if(this.id==='c-no-pain'){document.querySelectorAll('.pain-tag:not(#c-no-pain)').forEach(x=>x.classList.remove('sel'));this.classList.toggle('sel-none');}else{document.getElementById('c-no-pain').classList.remove('sel-none');this.classList.toggle('sel');}});});
-  },
-  getPainAreas(){const s=[...document.querySelectorAll('#c-pain .pain-tag.sel')].map(t=>t.dataset.val);if(s.length)return s.join(', ');if(document.querySelector('#c-no-pain.sel-none'))return 'Không có';return '';},
-  getPainLevel(){return document.querySelector('#c-scale button[data-sel]')?.textContent||'';},
+  setSel(id,val){document.querySelectorAll('#'+id+' .pill').forEach(p=>p.classList.toggle('sel',!!val&&p.dataset.val===String(val)));},
+  updateStoppedWrap(){document.getElementById('stopped-wrap').style.display=['Bỏ ngang','Tự tập','Đã có PT'].includes(this.getSel('b-history'))?'block':'none';},
 
   calcBMI(){const w=parseFloat(document.getElementById('b-weight').value),h=parseFloat(document.getElementById('b-height').value);document.getElementById('b-bmi').value=(w&&h)?(w/Math.pow(h/100,2)).toFixed(1):'';},
 
-  buildPainScale() {
-    const el=document.getElementById('c-scale');
-    for(let i=0;i<=10;i++){const btn=document.createElement('button');btn.textContent=i;btn.style.cssText='width:44px;height:44px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:14px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .2s;';btn.onclick=function(){el.querySelectorAll('button').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='transparent';b.style.color='var(--secondary)';b.style.width='44px';b.style.height='44px';delete b.dataset.sel;});this.style.borderColor='var(--red)';this.style.background='rgba(244,67,54,.15)';this.style.color='var(--red)';this.dataset.sel='1';};el.appendChild(btn);}
+  // ── Red flags ──
+  renderFlags() {
+    const row=(f,i)=>`<div class="flag-q"><div class="flag-text">${esc(f.q)}</div><div class="flag-btns"><button class="flag-btn yes${this.flags[i]==='yes'?' active':''}" onclick="A.flagAns(${i},'yes')">Có</button><button class="flag-btn no${this.flags[i]==='no'?' active':''}" onclick="A.flagAns(${i},'no')">Không</button></div></div>`;
+    ['general','pain'].forEach(g=>{document.getElementById('flag-list-'+g).innerHTML=FLAGS.map((f,i)=>f.g===g?row(f,i):'').join('');});
+    this.updateFlagUI();
   },
-
-  buildMovement() {
-    const moves=[['overhead','Overhead Reach','Vai · Lưng trên'],['squat','Squat Pattern','Gối · Hông'],['hinge','Hip Hinge','Lưng dưới · Hamstring'],['balance','Single-Leg Balance','Cổ chân · Stability'],['push','Push / Pull','Thân trên · Scapula'],['core','Core Stability','Plank · Dead bug']];
-    document.getElementById('movement-list').innerHTML=moves.map(([id,name,focus])=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div><div style="font-size:13px;font-weight:600;">${name}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${focus}</div></div><div class="score-btns"><button class="score-btn s1" onclick="A.setScore('${id}',1,this)">1</button><button class="score-btn s2" onclick="A.setScore('${id}',2,this)">2</button><button class="score-btn s3" onclick="A.setScore('${id}',3,this)">3</button></div></div><input type="text" id="note-${id}" placeholder="Ghi chú quan sát..." style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;color:var(--bone);font-size:12px;padding:8px 12px;outline:none;font-family:inherit;"></div>`).join('');
+  yesFlags(){return FLAGS.filter((_,i)=>this.flags[i]==='yes').map(f=>f.short);},
+  updateFlagUI() {
+    const yes=this.yesFlags(), hasYes=yes.length>0;
+    document.getElementById('refer-banner').classList.toggle('show',hasYes);
+    document.getElementById('refer-list').innerHTML=yes.map(t=>`<div>${esc(t)}</div>`).join('');
+    const ps=document.getElementById('pain-section');ps.style.opacity=hasYes?'0.35':'1';ps.style.pointerEvents=hasYes?'none':'';
   },
-
-  setScore(id,val,btn){btn.closest('.score-btns').querySelectorAll('.score-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');this.scores[id]=val;const total=Object.values(this.scores).reduce((a,b)=>a+b,0);const el=document.getElementById('total-score');el.textContent=total;el.style.color=total>=15?'var(--green)':total>=10?'var(--orange)':'var(--red)';},
-
-  togglePh3(){document.getElementById('f-p3-block').style.display=document.getElementById('f-p3-toggle').checked?'block':'none';},
-
-  flagAns(q,ans,btn){btn.closest('.flag-btns').querySelectorAll('.flag-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');this.flags[q]=ans;const hasYes=this.flags.some(f=>f==='yes');document.getElementById('refer-banner').classList.toggle('show',hasYes);const ps=document.getElementById('pain-section');ps.style.opacity=hasYes?'0.35':'1';ps.style.pointerEvents=hasYes?'none':'';},
+  flagAns(q,ans){this.flags[q]=ans;this.renderFlags();},
 
   async submitReferOut(){
-    const notes=document.getElementById('c-flag-notes').value.trim();if(!notes){toast('Ghi chú câu nào Yes trước','error');return;}
+    if(!document.getElementById('a-name').value.trim()){this.goStep(0);toast('Nhập tên khách hàng','error');return;}
+    const extra=document.getElementById('c-flag-notes').value.trim();
+    const notes='Có: '+this.yesFlags().join('; ')+(extra?' — Ghi chú: '+extra:'');
     const btn=document.getElementById('btn-refer');btn.disabled=true;btn.textContent='Đang lưu...';
     const d=this.collect();d.red_flag=true;d.red_flag_notes=notes;d.sales_status='REFER OUT';
     const res=await gasPost({action:'submit_assessment',data:d});
@@ -1106,13 +1298,103 @@ const A = {
     else{toast('Lỗi: '+res.error,'error');}
   },
 
+  // ── Vùng đau trên hình cơ thể ──
+  lvCls(v){return v==null?'lv-none':v>=7?'lv-high':v>=4?'lv-mid':'lv-low';},
+  renderBody() {
+    const shapes=ZONES.map((z,i)=>{
+      const on=z.k in this.pain, v=this.pain[z.k];
+      const cls='bm-zone'+(on?' '+this.lvCls(v):'')+(this.activeZone===z.k?' active':'');
+      const at=Object.entries(z.a).map(([k,val])=>`${k}="${val}"`).join(' ');
+      const cx=z.t==='rect'?z.a.x+z.a.width/2:z.a.cx, cy=z.t==='rect'?z.a.y+z.a.height/2:z.a.cy;
+      return `<${z.t} class="${cls}" ${at} onclick="A.tapZone(${i})"><title>${z.k}</title></${z.t}>`+(on&&v!=null?`<text class="bm-num" x="${cx}" y="${cy}">${v}</text>`:'');
+    }).join('');
+    document.getElementById('bm-svg').innerHTML=BODY_BASE+shapes;
+  },
+  renderPainSide() {
+    const keys=ZONE_KEYS.filter(k=>k in this.pain);
+    let h='';
+    if(!keys.length&&!this.noPain)h+='<div class="bm-hint">Chạm vào vùng đau trên hình. Mỗi vùng có mức đau riêng.</div>';
+    if(keys.length)h+='<div class="bm-list">'+keys.map(k=>{const v=this.pain[k];return `<button class="bm-chip ${this.lvCls(v)}${this.activeZone===k?' active':''}" onclick="A.pickZone(${ZONE_KEYS.indexOf(k)})">${esc(k)} · ${v==null?'chọn mức':v+'/10'}</button>`;}).join('')+'</div>';
+    if(this.activeZone&&this.activeZone in this.pain){
+      const cur=this.pain[this.activeZone];
+      h+=`<div class="bm-picker"><div class="bm-picker-lbl">Mức đau · <b>${esc(this.activeZone)}</b></div><div class="bm-levels">`
+        +Array.from({length:10},(_,i)=>i+1).map(n=>`<button class="${cur===n?'sel '+this.lvCls(n):''}" onclick="A.setLevel(${n})">${n}</button>`).join('')
+        +`</div><button class="bm-remove" onclick="A.removeZone()">Bỏ vùng này</button></div>`;
+    }
+    document.getElementById('bm-dyn').innerHTML=h;
+    document.getElementById('c-pain-other').classList.toggle('sel',OTHER_ZONE in this.pain);
+    document.getElementById('c-no-pain').classList.toggle('sel-none',this.noPain);
+  },
+  refreshPain(){this.renderBody();this.renderPainSide();},
+  tapZone(i){const k=ZONES[i].k;this.noPain=false;if(!(k in this.pain))this.pain[k]=null;this.activeZone=k;this.refreshPain();},
+  pickZone(i){const k=ZONE_KEYS[i];this.activeZone=this.activeZone===k?null:k;this.refreshPain();},
+  setLevel(n){if(this.activeZone&&this.activeZone in this.pain){this.pain[this.activeZone]=n;this.refreshPain();}},
+  removeZone(){if(this.activeZone){delete this.pain[this.activeZone];this.activeZone=null;this.refreshPain();}},
+  toggleOther(){if(OTHER_ZONE in this.pain){delete this.pain[OTHER_ZONE];if(this.activeZone===OTHER_ZONE)this.activeZone=null;}else{this.noPain=false;this.pain[OTHER_ZONE]=null;this.activeZone=OTHER_ZONE;}this.refreshPain();},
+  toggleNoPain(){this.noPain=!this.noPain;if(this.noPain){this.pain={};this.activeZone=null;}this.refreshPain();},
+  getPainAreas(){const k=ZONE_KEYS.filter(z=>z in this.pain);if(k.length)return k.join(', ');return this.noPain?'Không có':'';},
+  getPainLevel(){const v=Object.values(this.pain).filter(x=>x!=null);return v.length?String(Math.max(...v)):'';},
+  painSummary(){return ZONE_KEYS.filter(k=>this.pain[k]!=null).map(k=>`${k} ${this.pain[k]}/10`).join(' · ');},
+
+  // ── Movement ──
+  renderMovement(){document.getElementById('movement-list').innerHTML=MOVES.map(m=>`<div class="mv-card" id="mv-${m.id}"></div>`).join('');MOVES.forEach(m=>this.renderMove(m.id));this.updateTotal();},
+  faultHTML(m,f,st) {
+    const opt=(key,val,label)=>`<button class="mini-pill${st[key]===val?' sel':''}" onclick="A.setFault('${m.id}','${f.id}','${key}','${val}')">${label}</button>`;
+    const side=f.side?`<span class="fd-side"><span class="fd-mini">${esc(m.sideLabel||'Bên')}</span>${opt('side','T','T')}${opt('side','P','P')}${opt('side','B','2 bên')}</span>`:'';
+    return `<div class="fault-detail"><div class="fd-head"><span class="fd-name">${esc((f.group?f.group+' · ':'')+f.label)}</span>${side}</div>`
+      +`<div class="fd-row"><div class="fd-lbl">Khả năng cao nhất</div><div class="fd-txt">${esc(f.t1)}</div></div>`
+      +`<div class="fd-row"><div class="fd-lbl">Test phân biệt</div><div class="fd-txt">${esc(f.test)}</div><div class="fd-opts"><span class="fd-mini">Kết quả</span>${opt('test','gone','Lỗi hết / giảm')}${opt('test','remain','Vẫn còn')}</div></div>`
+      +`<div class="fd-row"><div class="fd-lbl">Can thiệp nhanh</div><div class="fd-txt">${esc(f.fix)}</div><div class="fd-opts"><span class="fd-mini">Retest</span>${opt('retest','better','Tốt hơn rõ')}${opt('retest','slight','Hơi tốt hơn')}${opt('retest','same','Không đổi')}</div></div></div>`;
+  },
+  renderMove(id) {
+    const m=MOVES.find(x=>x.id===id), s=this.mv[id];
+    const scoreBtns=[1,2,3].map(n=>`<button class="score-btn s${n}${s.score===n?' active':''}" onclick="A.setScore('${id}',${n})">${n}</button>`).join('');
+    let chips='', lastG=null;
+    m.faults.forEach(f=>{if(f.group&&f.group!==lastG){chips+=`<span class="mv-group">${f.group}</span>`;lastG=f.group;}chips+=`<button class="fault-chip${s.faults[f.id]?' sel':''}" onclick="A.toggleFault('${id}','${f.id}')">${esc(f.label)}</button>`;});
+    const details=s.pain
+      ?`<div class="mv-warn"><b>⛔ DỪNG bài này.</b> Không tập qua cơn đau và không gợi ý bài sửa cho động tác đang đau. Kiểm tra lại red flag: đau lan hoặc tê bì, đau cấp, sưng, kẹt khớp thì refer y tế.<br><button onclick="A.goStep(2)">← Về bước Red flag</button></div>`
+      :m.faults.filter(f=>s.faults[f.id]).map(f=>this.faultHTML(m,f,s.faults[f.id])).join('');
+    document.getElementById('mv-'+id).innerHTML=
+      `<div class="mv-head"><div><div class="mv-name">${m.name}</div><div class="mv-focus">${m.focus}</div><div class="mv-how">${esc(m.how)}</div></div><div class="score-btns">${scoreBtns}</div></div>`
+      +`<div class="mv-sub">Lỗi quan sát được</div><div class="fault-chips">${chips}</div>${details}`
+      +`<div class="mv-foot"><button class="mv-pain-btn${s.pain?' on':''}" onclick="A.togglePain('${id}')">⚠ Đau khi làm</button><input type="text" class="mv-note" id="note-${id}" value="${esc(s.note)}" oninput="A.setNote('${id}',this.value)" placeholder="Ghi chú quan sát..."></div>`;
+  },
+  setScore(id,val){const s=this.mv[id];s.score=s.score===val?null:val;this.renderMove(id);this.updateTotal();},
+  toggleFault(id,fid){const fs=this.mv[id].faults;if(fs[fid])delete fs[fid];else fs[fid]={side:'',test:'',retest:''};this.renderMove(id);},
+  setFault(id,fid,key,val){const st=this.mv[id].faults[fid];if(!st)return;st[key]=st[key]===val?'':val;this.renderMove(id);},
+  togglePain(id){this.mv[id].pain=!this.mv[id].pain;this.renderMove(id);},
+  setNote(id,v){this.mv[id].note=v;},
+  totalScore(){return MOVES.reduce((a,m)=>a+(this.mv[m.id].score||0),0);},
+  updateTotal(){const total=this.totalScore(),el=document.getElementById('total-score');const any=MOVES.some(m=>this.mv[m.id].score);el.textContent=any?total:'—';el.style.color=!any?'':total>=15?'var(--green)':total>=10?'var(--orange)':'var(--red)';},
+  // Ghi gọn lỗi, test và retest vào cột chữ movement_notes có sẵn trong Sheet.
+  moveLine(m) {
+    const s=this.mv[m.id], parts=[];
+    if(s.pain)parts.push('ĐAU khi làm');
+    m.faults.forEach(f=>{const st=s.faults[f.id];if(!st)return;let t=(f.group?f.group+' · ':'')+f.label;if(st.side)t+=` (${SIDE_LBL[st.side]||st.side})`;const ex=[];if(st.test)ex.push('test: '+(TEST_LBL[st.test]||st.test));if(st.retest)ex.push('retest: '+(RETEST_LBL[st.retest]||st.retest));if(ex.length)t+=` [${ex.join('; ')}]`;parts.push(t);});
+    if(s.note.trim())parts.push(s.note.trim());
+    return parts.join('; ');
+  },
+  movementNotes(){return MOVES.map(m=>{const l=this.moveLine(m);return l?`${m.id}: ${l}`:null;}).filter(Boolean).join(' | ');},
+
+  togglePh3(){document.getElementById('f-p3-block').style.display=document.getElementById('f-p3-toggle').checked?'block':'none';},
+
   row(k,v){return v?`<div class="snap-row"><span class="snap-key">${esc(k)}</span><span class="snap-val">${esc(v)}</span></div>`:'';}  ,
 
-  genSnapHTML(d){const ph3=d.phase3_recommended?this.row('Phase III',`${d.phase3_goal||'—'} · ${d.phase3_sessions||'—'}/tuần`):'';return `<div class="snap-section"><div class="snap-label">Client</div>${this.row('Tên',d.client_name)}${this.row('HLV',d.hlv)}${this.row('Ngày',d.assess_date)}</div><div class="snap-section"><div class="snap-label">Mục tiêu & Đau</div>${this.row('Goal',d.goal_raw)}${this.row('Why now',d.why_now)}${this.row('Pain',d.pain_areas+(d.pain_level?' · '+d.pain_level+'/10':''))}</div><div class="snap-section"><div class="snap-label">Chẩn đoán</div><div class="snap-block">${esc(d.core_diagnosis)||'—'}</div>${this.row('Movement',`${d.total_score||'—'}/18`)}${this.row('Strength',d.strength)}</div><div class="snap-section"><div class="snap-label">Risk & Reframe</div>${this.row('Risk 1',d.risk_1)}${this.row('Risk 2',d.risk_2)}${d.reframe_statement?`<div class="snap-block" style="margin-top:6px;">"${esc(d.reframe_statement)}"</div>`:''}${d.client_quote?`<div class="snap-block" style="color:var(--gold);margin-top:4px;">Client: "${esc(d.client_quote)}"</div>`:''}</div><div class="snap-section"><div class="snap-label">Lộ trình</div>${this.row('Phase I',`${d.phase1_goal||'—'} · ${d.phase1_duration||'—'} · ${d.phase1_sessions||'—'}/tuần`)}${this.row('Phase II',`${d.phase2_goal||'—'} · ${d.phase2_duration||'—'} · ${d.phase2_sessions||'—'}/tuần`)}${ph3}</div><div class="snap-section"><div class="snap-label">Handoff</div>${this.row('Follow-up',d.follow_up)}${this.row('Status','→ prime-form-sales · Section 5 debrief')}</div>`;},
+  genSnapHTML(d){
+    const ph3=d.phase3_recommended?this.row('Phase III',`${d.phase3_goal||'—'} · ${d.phase3_sessions||'—'}/tuần`):'';
+    const mvRows=MOVES.map(m=>{const s=this.mv[m.id],l=this.moveLine(m);return (s.score||l)?this.row(m.name,`${s.score||'—'}/3${l?' · '+l:''}`):'';}).join('');
+    const painTxt=this.painSummary()||d.pain_areas;
+    return `<div class="snap-section"><div class="snap-label">Client</div>${this.row('Tên',d.client_name)}${this.row('HLV',d.hlv)}${this.row('Ngày',d.assess_date)}</div><div class="snap-section"><div class="snap-label">Mục tiêu & Đau</div>${this.row('Goal',d.goal_raw)}${this.row('Why now',d.why_now)}${this.row('Pain',painTxt)}</div><div class="snap-section"><div class="snap-label">Chẩn đoán</div><div class="snap-block">${esc(d.core_diagnosis)||'—'}</div>${this.row('Movement',`${d.total_score||'—'}/18`)}${this.row('Strength',d.strength)}</div>${mvRows?`<div class="snap-section"><div class="snap-label">Movement chi tiết</div>${mvRows}</div>`:''}<div class="snap-section"><div class="snap-label">Risk & Reframe</div>${this.row('Risk 1',d.risk_1)}${this.row('Risk 2',d.risk_2)}${d.reframe_statement?`<div class="snap-block" style="margin-top:6px;">"${esc(d.reframe_statement)}"</div>`:''}${d.client_quote?`<div class="snap-block" style="color:var(--gold);margin-top:4px;">Client: "${esc(d.client_quote)}"</div>`:''}</div><div class="snap-section"><div class="snap-label">Lộ trình</div>${this.row('Phase I',`${d.phase1_goal||'—'} · ${d.phase1_duration||'—'} · ${d.phase1_sessions||'—'}/tuần`)}${this.row('Phase II',`${d.phase2_goal||'—'} · ${d.phase2_duration||'—'} · ${d.phase2_sessions||'—'}/tuần`)}${ph3}</div><div class="snap-section"><div class="snap-label">Handoff</div>${this.row('Follow-up',d.follow_up)}${this.row('Status','→ prime-form-sales · Section 5 debrief')}</div>`;
+  },
 
-  genSnapText(d){const ph3=d.phase3_recommended?`Phase III: ${d.phase3_goal} · ${d.phase3_sessions}/tuần\n`:'';return `CLIENT SNAPSHOT — ${d.client_name}\nDate: ${d.assess_date} · HLV: ${d.hlv}\n\nGoal: ${d.goal_raw}\nWhy Now: ${d.why_now}\nPain: ${d.pain_areas} · Level ${d.pain_level}/10\n\nROOT PROBLEM: ${d.core_diagnosis}\nMovement: ${d.total_score}/18\nStrength: ${d.strength}\n\nRisk 1: ${d.risk_1}\nRisk 2: ${d.risk_2}\nReframe: "${d.reframe_statement}"\nClient: "${d.client_quote}"\n\nPhase I: ${d.phase1_goal} · ${d.phase1_duration} · ${d.phase1_sessions}/tuần\nPhase II: ${d.phase2_goal} · ${d.phase2_duration} · ${d.phase2_sessions}/tuần\n${ph3}\n→ HANDOFF: prime-form-sales (Section 5 debrief)`;},
+  genSnapText(d){
+    const ph3=d.phase3_recommended?`Phase III: ${d.phase3_goal} · ${d.phase3_sessions}/tuần\n`:'';
+    const mv=d.movement_notes?d.movement_notes.split(' | ').map(l=>'- '+l).join('\n')+'\n':'';
+    const pain=this.painSummary()||(d.pain_areas+(d.pain_level?` · Level ${d.pain_level}/10`:''));
+    return `CLIENT SNAPSHOT — ${d.client_name}\nDate: ${d.assess_date} · HLV: ${d.hlv}\n\nGoal: ${d.goal_raw}\nWhy Now: ${d.why_now}\nPain: ${pain}\n\nROOT PROBLEM: ${d.core_diagnosis}\nMovement: ${d.total_score}/18\n${mv}Strength: ${d.strength}\n\nRisk 1: ${d.risk_1}\nRisk 2: ${d.risk_2}\nReframe: "${d.reframe_statement}"\nClient: "${d.client_quote}"\n\nPhase I: ${d.phase1_goal} · ${d.phase1_duration} · ${d.phase1_sessions}/tuần\nPhase II: ${d.phase2_goal} · ${d.phase2_duration} · ${d.phase2_sessions}/tuần\n${ph3}\n→ HANDOFF: prime-form-sales (Section 5 debrief)`;
+  },
 
-  showSnap(){if(!this.validate())return;this.snapData=this.collect();document.getElementById('a-snapshot-box').innerHTML=this.genSnapHTML(this.snapData);document.getElementById('a-modal').classList.add('show');},
+  showSnap(){if(!this.validateAll())return;this.snapData=this.collect();document.getElementById('a-snapshot-box').innerHTML=this.genSnapHTML(this.snapData);document.getElementById('a-modal').classList.add('show');},
 
   copySnap(){const text=this.snapData?this.genSnapText(this.snapData):document.getElementById('a-snapshot-box').innerText;navigator.clipboard?.writeText(text).then(()=>toast('✓ Đã copy snapshot','success')).catch(()=>{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('✓ Đã copy','success');});},
 
@@ -1121,19 +1403,21 @@ const A = {
     const btn=document.getElementById('a-btn-save');btn.disabled=true;btn.textContent='Đang lưu...';
     const res=await gasPost({action:'submit_assessment',data:this.snapData});
     btn.disabled=false;btn.textContent='Lưu vào Sheet →';
-    if(!res.error){await gasPost({action:'delete_draft',session_id:this.sid});this.newSession();document.getElementById('a-modal').classList.remove('show');document.getElementById('a-success-id').textContent=this.snapData.assessment_id;document.getElementById('a-success-name').textContent=this.snapData.client_name;document.getElementById('a-success').classList.add('show');}
+    if(!res.error){await gasPost({action:'delete_draft',session_id:this.sid});this.newSession();this._done=true;this.clearLocal();document.getElementById('a-modal').classList.remove('show');document.getElementById('a-success-id').textContent=this.snapData.assessment_id;document.getElementById('a-success-name').textContent=this.snapData.client_name;document.getElementById('a-success').classList.add('show');}
     else{toast('Lỗi: '+res.error,'error');}
   },
 
   startNew(){document.getElementById('a-success').classList.remove('show');this.resetForm();},
 
+  // Các cột gửi lên Sheet giữ nguyên tên như cũ — chỉ nội dung chữ chi tiết hơn.
   collect(){
     const w=parseFloat(document.getElementById('b-weight').value)||null,h=parseFloat(document.getElementById('b-height').value)||null;
     const bmi=(w&&h)?parseFloat((w/Math.pow(h/100,2)).toFixed(1)):null;
-    const total=Object.values(this.scores).reduce((a,b)=>a+b,0)||null;
-    const moveNotes=['overhead','squat','hinge','balance','push','core'].map(id=>{const n=document.getElementById('note-'+id)?.value;return n?`${id}: ${n}`:null;}).filter(Boolean).join(' | ');
+    const total=this.totalScore()||null;
     const ph3=document.getElementById('f-p3-toggle').checked;
     const val=id=>document.getElementById(id)?.value||'';
+    const ps=this.painSummary();
+    const sc=id=>this.mv[id].score||null;
     return {
       timestamp:new Date().toISOString(),
       assessment_id:'AS-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+Math.floor(Math.random()*900+100),
@@ -1143,10 +1427,10 @@ const A = {
       sessions_per_week:this.getSel('b-sessions'),fitness_level:this.getSel('b-fitness'),training_history:this.getSel('b-history'),
       previous_attempts:val('b-prev'),why_stopped:val('b-stopped'),
       red_flag:false,red_flag_notes:'',
-      pain_areas:this.getPainAreas(),pain_description:val('c-desc'),pain_level:this.getPainLevel(),coach_quick_dx:val('c-dx'),
-      score_overhead:this.scores.overhead||null,score_squat:this.scores.squat||null,score_hinge:this.scores.hinge||null,
-      score_balance:this.scores.balance||null,score_push:this.scores.push||null,score_core:this.scores.core||null,
-      total_score:total,movement_notes:moveNotes,
+      pain_areas:this.getPainAreas(),pain_description:(ps?`[${ps}] `:'')+val('c-desc'),pain_level:this.getPainLevel(),coach_quick_dx:val('c-dx'),
+      score_overhead:sc('overhead'),score_squat:sc('squat'),score_hinge:sc('hinge'),
+      score_balance:sc('balance'),score_push:sc('push'),score_core:sc('core'),
+      total_score:total,movement_notes:this.movementNotes(),
       risk_1:val('e-risk1'),risk_2:val('e-risk2'),strength:val('e-strength'),best_drill:val('e-drill'),
       client_response:this.getSel('e-response'),client_quote:val('e-quote'),reframe_statement:val('e-reframe'),
       phase1_goal:val('f-p1g'),phase1_duration:val('f-p1t'),phase1_sessions:val('f-p1s'),
@@ -1157,27 +1441,64 @@ const A = {
     };
   },
 
+  // ── Bản nháp ──
+  getState() {
+    const fields={};
+    document.querySelectorAll('#section-a input[id],#section-a textarea[id],#section-a select[id]').forEach(el=>{if(el.type==='checkbox'||el.id.startsWith('note-')||el.id==='b-bmi')return;fields[el.id]=el.value;});
+    const pills={};this.PILL_GROUPS.forEach(g=>{pills[g]=this.getSel(g);});
+    return {v:2,savedAt:Date.now(),sid:this.sid,step:this.step,fields,pills,flags:this.flags,pain:this.pain,noPain:this.noPain,mv:this.mv,ph3:document.getElementById('f-p3-toggle').checked};
+  },
+  applyState(s) {
+    Object.entries(s.fields||{}).forEach(([id,v])=>{const el=document.getElementById(id);if(el&&v!=null&&el.closest('#section-a'))el.value=v;});
+    this.PILL_GROUPS.forEach(g=>this.setSel(g,(s.pills||{})[g]||''));
+    this.flags=FLAGS.map((_,i)=>{const f=(s.flags||[])[i];return f==='yes'||f==='no'?f:null;});
+    this.pain={};Object.entries(s.pain||{}).forEach(([k,v])=>{if(ZONE_KEYS.includes(k))this.pain[k]=(Number.isInteger(v)&&v>=1&&v<=10)?v:null;});
+    this.noPain=!!s.noPain&&!Object.keys(this.pain).length;this.activeZone=null;
+    this.mv=this.blankMv();
+    MOVES.forEach(m=>{const src=(s.mv||{})[m.id];if(!src)return;const dst=this.mv[m.id];dst.score=[1,2,3].includes(src.score)?src.score:null;dst.note=String(src.note||'');dst.pain=!!src.pain;m.faults.forEach(f=>{const fs=(src.faults||{})[f.id];if(fs)dst.faults[f.id]={side:String(fs.side||''),test:String(fs.test||''),retest:String(fs.retest||'')};});});
+    document.getElementById('f-p3-toggle').checked=!!s.ph3;this.togglePh3();
+    this.calcBMI();this.updateStoppedWrap();this.renderFlags();this.refreshPain();this.renderMovement();
+    if(s.sid){this.sid=s.sid;localStorage.setItem('pf_sid',s.sid);}
+    this.goStep(Math.min(Math.max(0,parseInt(s.step)||0),this.STEPS.length-1));
+  },
+  readLocal(){try{const s=JSON.parse(localStorage.getItem(this.LS_KEY)||'null');return s&&typeof s==='object'?s:null;}catch(e){return null;}},
+  saveLocal(){if(!this._inited||this._done)return;try{localStorage.setItem(this.LS_KEY,JSON.stringify(this.getState()));}catch(e){}},
+  queueLocal(){clearTimeout(this._lt);this._lt=setTimeout(()=>this.saveLocal(),300);},
+  clearLocal(){clearTimeout(this._lt);try{localStorage.removeItem(this.LS_KEY);}catch(e){}},
+
+  showDraftBar(name){const bar=document.getElementById('a-draft-bar');document.getElementById('a-draft-name').textContent=name||'';const b=document.getElementById('a-draft-discard');b.textContent='Bắt đầu mới';delete b.dataset.arm;bar.classList.add('show');},
+  hideDraftBar(){document.getElementById('a-draft-bar').classList.remove('show');},
+  async discardDraft(btn){
+    if(!btn.dataset.arm){btn.dataset.arm='1';btn.textContent='Chạm lần nữa để xoá';setTimeout(()=>{if(btn.dataset.arm){delete btn.dataset.arm;btn.textContent='Bắt đầu mới';}},4000);return;}
+    const old=this.sid;this.newSession();this.resetForm();toast('Đã xoá bản nháp','success');
+    gasPost({action:'delete_draft',session_id:old});
+  },
+
   async autoSave(){
-    const name=document.getElementById('a-name').value.trim();if(!name)return;
+    const name=document.getElementById('a-name').value.trim();if(!name||this._done)return;
     this.setSave('saving');
-    try{await gasPost({action:'save_draft',session_id:this.sid,hlv:document.getElementById('a-hlv').value,client_name:name,step_at:this.step,data:this.collect()});this.setSave('saved');setTimeout(()=>this.setSave(''),3000);}
+    try{const data=this.collect();data._state=JSON.stringify(this.getState());await gasPost({action:'save_draft',session_id:this.sid,hlv:document.getElementById('a-hlv').value,client_name:name,step_at:this.step,data});this.setSave('saved');setTimeout(()=>this.setSave(''),3000);}
     catch(e){this.setSave('');}
   },
 
+  // Dự phòng khi mở trên máy khác: lấy bản nháp từ Sheet.
   async loadDraft(){
     try{
-      const res=await fetch(GAS_URL+'?action=load_draft&session_id='+this.sid);const j=await res.json();if(!j.data)return;
-      this.restore(j.data);
-      if(j.step_at!=null){this.step=Math.max(0,+j.step_at);document.querySelectorAll('#section-a .step-panel').forEach(p=>p.classList.remove('active'));document.getElementById('ast-'+this.STEPS[this.step].id).classList.add('active');this.refreshBar();document.getElementById('a-btn-back').style.display=this.step===0?'none':'block';document.getElementById('a-btn-next').textContent=this.step===this.STEPS.length-1?'Xem & Lưu →':'Tiếp theo →';}
-      toast('↩ Draft khôi phục','success');
+      // Google script chỉ trả bản nháp qua POST (GET trả về trang trạng thái chung).
+      const j=await gasPost({action:'load_draft',session_id:this.sid});if(!j||!j.data)return;
+      let st=null;try{if(j.data._state)st=typeof j.data._state==='string'?JSON.parse(j.data._state):j.data._state;}catch(e){}
+      if(st&&st.fields){st.sid=this.sid;this.applyState(st);}
+      else{this.restore(j.data);if(j.step_at!=null)this.goStep(Math.min(Math.max(0,+j.step_at||0),this.STEPS.length-1));}
+      this.showDraftBar(j.data.client_name);
     }catch(e){}
   },
 
+  // Khôi phục từ dữ liệu cột Sheet (bản nháp cũ, không có trạng thái đầy đủ).
   restore(d){
     const s=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
     s('a-name',d.client_name);s('a-phone',d.client_phone);s('a-date',d.assess_date);s('a-hlv',d.hlv);
     s('a-goal',d.goal_raw);s('a-why-now',d.why_now);s('b-age',d.age);s('b-weight',d.weight_kg);s('b-height',d.height_cm);
-    s('b-prev',d.previous_attempts);s('b-stopped',d.why_stopped);s('c-desc',d.pain_description);s('c-dx',d.coach_quick_dx);
+    s('b-prev',d.previous_attempts);s('b-stopped',d.why_stopped);s('c-dx',d.coach_quick_dx);
     s('e-risk1',d.risk_1);s('e-risk2',d.risk_2);s('e-strength',d.strength);s('e-drill',d.best_drill);
     s('e-quote',d.client_quote);s('e-reframe',d.reframe_statement);
     s('f-p1g',d.phase1_goal);s('f-p1t',d.phase1_duration);s('f-p1s',d.phase1_sessions);
@@ -1186,7 +1507,18 @@ const A = {
     s('f-dx',d.core_diagnosis);s('f-conclusion',d.conclusion);s('f-followup',d.follow_up);
     this.calcBMI();
     if(d.phase3_recommended){document.getElementById('f-p3-toggle').checked=true;document.getElementById('f-p3-block').style.display='block';}
-    if(d.why_stopped)document.getElementById('stopped-wrap').style.display='block';
+    this.setSel('a-priority',d.priority);this.setSel('a-timeline',d.timeline);this.setSel('b-sessions',d.sessions_per_week);
+    this.setSel('b-fitness',d.fitness_level);this.setSel('b-history',d.training_history);this.setSel('e-response',d.client_response);
+    this.updateStoppedWrap();
+    // vùng đau + mức đau nằm trong ngoặc vuông đầu cột mô tả
+    const desc=String(d.pain_description||''),mt=desc.match(/^\[([^\]]*)\]\s*/);
+    s('c-desc',mt?desc.slice(mt[0].length):desc);
+    this.pain={};this.noPain=false;
+    String(d.pain_areas||'').split(',').map(x=>x.trim()).forEach(k=>{if(k==='Không có')this.noPain=true;else if(ZONE_KEYS.includes(k))this.pain[k]=null;});
+    if(mt)mt[1].split('·').forEach(p=>{const r=p.trim().match(/^(.*)\s(\d+)\/10$/);if(r&&r[1] in this.pain)this.pain[r[1]]=+r[2];});
+    if(Object.keys(this.pain).length)this.noPain=false;
+    MOVES.forEach(m=>{const v=+d['score_'+m.id];this.mv[m.id].score=[1,2,3].includes(v)?v:null;});
+    this.refreshPain();this.renderMovement();
   },
 
   setSave(state){const el=document.getElementById('a-save-badge');if(state==='saving'){el.className='save-badge saving';el.innerHTML='<span class="save-dot"></span>Đang lưu';}else if(state==='saved'){el.className='save-badge saved';el.textContent='✓ Lưu lúc '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});}else{el.className='save-badge';el.textContent='';}},
@@ -1194,21 +1526,15 @@ const A = {
   newSession(){this.sid='as_draft_'+[...crypto.getRandomValues(new Uint8Array(8))].map(b=>b.toString(16).padStart(2,'0')).join('');localStorage.setItem('pf_sid',this.sid);},
 
   resetForm(){
-    this.step=0;this.scores={};this.flags=[null,null,null,null,null];this.snapData=null;
-    document.querySelectorAll('#section-a input:not([readonly]),#section-a textarea,#section-a select').forEach(el=>el.value='');
-    document.querySelectorAll('#section-a .pill.sel,#section-a .pain-tag.sel,#section-a .pain-tag.sel-none,#section-a .flag-btn.active,#section-a .score-btn.active').forEach(el=>el.classList.remove('sel','sel-none','active'));
-    document.querySelectorAll('#c-scale button').forEach(b=>{b.style.cssText='width:44px;height:44px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--secondary);font-size:14px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .2s;';delete b.dataset.sel;});
-    document.getElementById('total-score').textContent='—';document.getElementById('total-score').style.color='';
+    this.flags=FLAGS.map(()=>null);this.pain={};this.noPain=false;this.activeZone=null;this.mv=this.blankMv();this.snapData=null;this._done=false;
+    document.querySelectorAll('#section-a input:not([readonly]):not([type=checkbox]),#section-a textarea,#section-a select').forEach(el=>el.value='');
+    document.querySelectorAll('#section-a .pill.sel').forEach(el=>el.classList.remove('sel'));
     document.getElementById('b-bmi').value='';
-    document.getElementById('refer-banner').classList.remove('show');
-    const ps=document.getElementById('pain-section');ps.style.opacity='1';ps.style.pointerEvents='';
     document.getElementById('stopped-wrap').style.display='none';
     document.getElementById('f-p3-toggle').checked=false;document.getElementById('f-p3-block').style.display='none';
-    document.querySelectorAll('#section-a .step-panel').forEach(p=>p.classList.remove('active'));
-    document.getElementById('ast-a').classList.add('active');this.refreshBar();
-    document.getElementById('a-btn-back').style.display='none';document.getElementById('a-btn-next').textContent='Tiếp theo →';
+    this.renderFlags();this.refreshPain();this.renderMovement();
     document.getElementById('a-date').value=new Date().toISOString().slice(0,10);
-    document.getElementById('a-content').scrollTop=0;
+    this.hideDraftBar();this.goStep(0);this.clearLocal();
   },
 };
 
