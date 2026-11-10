@@ -57,6 +57,38 @@ export async function createBooking(db, { clientId, coach, date, time, notes }) 
   return data
 }
 
+// Coach enters a booking directly - clients at this studio arrange times with
+// their coach (in person / Zalo) rather than requesting through the app, so
+// there's no pending step: it's real as soon as the coach saves it. RLS
+// (coach_insert_scoped) only allows this for the coach's own clients, on that
+// client's assigned coach's calendar; the head coach can do it for anyone.
+// A slot already taken by that coach fails with Postgres code 23505 (the
+// bookings_coach_slot_unique index) - callers use that to skip, not abort.
+export async function createCoachBooking(db, { clientId, coach, date, time }) {
+  const { data, error } = await db
+    .from('bookings')
+    .insert({ client_id: clientId, coach_id: coach, date, time, status: 'confirmed' })
+    .select('*').single()
+  if (error) throw error
+  return data
+}
+
+// Sessions run 60 minutes but a booking only stores its start time, and the
+// unique index only blocks an identical start - so 09:00 and 09:30 for the
+// same coach can both exist. This finds what a new start time would collide
+// with: `exact` (same start, cannot be saved) and `near` (starts within the
+// hour either side - allowed, but worth a warning).
+export const SESSION_MINUTES = 60
+const toMinutes = (t) => { const [h, m] = String(t).split(':').map(Number); return h * 60 + (m || 0) }
+export function findSlotClashes(bookings, coach, date, time) {
+  const at = toMinutes(time)
+  const sameDay = (bookings || []).filter((b) => b.coach_id === coach && b.date === date && b.status !== 'cancelled')
+  return {
+    exact: sameDay.find((b) => b.time === time) || null,
+    near: sameDay.filter((b) => b.time !== time && Math.abs(toMinutes(b.time) - at) < SESSION_MINUTES),
+  }
+}
+
 export async function cancelMyBooking(db, id) {
   const { data, error } = await db
     .from('bookings')

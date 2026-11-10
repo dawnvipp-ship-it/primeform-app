@@ -1,9 +1,13 @@
 import { Fragment, useMemo, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
-import { listCoachBookings, confirmBooking, rejectBooking, groupWeeklyTotalsByCoach, SLOT_TIMES } from '../../data/bookings'
+import {
+  listCoachBookings, confirmBooking, rejectBooking, createCoachBooking, findSlotClashes,
+  groupWeeklyTotalsByCoach, SLOT_TIMES,
+} from '../../data/bookings'
+import { listClients } from '../../data/clients'
 import { COACHES } from '../../data/coaches'
-import { InlineLoader, Eyebrow, Card, Empty, Stat, showToast } from '../../components/ui/primitives'
+import { InlineLoader, Eyebrow, Card, Empty, Stat, Modal, showToast, confirmDialog } from '../../components/ui/primitives'
 import { IconChevron, IconCheck, IconX } from '../../components/ui/Icons'
 import { localISODate } from '../../lib/date'
 
@@ -27,6 +31,15 @@ const toISO = localISODate
 function formatShort(d) { return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }) }
 function formatMonthLabel(d) { return d.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' }) }
 function shortName(full) { return full ? full.split(' ').slice(-1)[0] : '' }
+function dayLabel(iso) {
+  const d = new Date(`${iso}T00:00:00`)
+  return `${DAY_LABELS[(d.getDay() + 6) % 7]} ${formatShort(d)}`
+}
+// Accent-insensitive match so typing "quy" finds "Quý", "dung" finds "Dũng".
+function fold(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd')
+}
+const REPEAT_OPTIONS = [1, 4, 8]
 
 export default function Bookings() {
   const { db, isHeadCoach, coachFullName } = useAuth()
@@ -55,19 +68,89 @@ export default function Bookings() {
     () => listCoachBookings(db, { from: weekStart, to: weekEnd }),
     [db, weekStart, weekEnd]
   )
-  const { data: monthBookings, loading: loadingMonth } = useAsync(
+  const { data: monthBookings, loading: loadingMonth, reload: reloadMonth } = useAsync(
     () => listCoachBookings(db, { from: monthStart, to: monthEnd }),
     [db, monthStart, monthEnd]
   )
+  // RLS already scopes this to the caller's own clients (everyone, for the head coach).
+  const { data: clients } = useAsync(() => listClients(db), [db])
+
+  // Whose calendar a new booking lands on. A regular coach only ever books
+  // their own; the head coach picks a coach tab first - in the whole-studio
+  // view there's no single calendar to add to, so the grid stays read-only.
+  const bookingCoach = isHeadCoach ? (selectedView === 'all' ? null : selectedView) : coachFullName
+  const [draft, setDraft] = useState(null) // { date, time, clientId, repeat, search }
+  const [saving, setSaving] = useState(false)
+  const [picked, setPicked] = useState(null) // existing booking opened from the grid
 
   async function act(id, fn) {
     try {
       await fn(db, id)
-      await Promise.all([reloadPending(), reloadWeek()])
+      await Promise.all([reloadPending(), reloadWeek(), reloadMonth()])
     } catch (e) {
       showToast(e.message || 'Không thực hiện được, thử lại.')
     }
   }
+
+  function openDraft(date, time) {
+    if (!bookingCoach) { showToast('Chọn tab của một HLV để nhập lịch.'); return }
+    setDraft({ date, time, clientId: null, repeat: 1, search: '' })
+  }
+
+  // One insert per week. A slot that's already taken is skipped and reported
+  // rather than aborting the whole series; any other error stops it.
+  async function saveDraft() {
+    if (!draft?.clientId || !bookingCoach || saving) return
+    setSaving(true)
+    const start = new Date(`${draft.date}T00:00:00`)
+    let saved = 0
+    const skipped = []
+    let failure = null
+    for (let i = 0; i < draft.repeat; i++) {
+      const day = addDays(start, i * 7)
+      try {
+        await createCoachBooking(db, { clientId: draft.clientId, coach: bookingCoach, date: toISO(day), time: draft.time })
+        saved++
+      } catch (e) {
+        if (e.code === '23505') skipped.push(formatShort(day))
+        else { failure = e; break }
+      }
+    }
+    setSaving(false)
+    if (saved > 0) await Promise.all([reloadWeek(), reloadMonth()])
+    if (failure) {
+      showToast(failure.code === '42501' ? 'Không có quyền nhập lịch cho khách này.' : (failure.message || 'Không lưu được, thử lại.'))
+      if (saved === 0) return
+    } else if (skipped.length) {
+      showToast(`Đã lưu ${saved} buổi. Bỏ qua ${skipped.length} buổi đã có lịch: ${skipped.join(', ')}`)
+    } else {
+      showToast(saved > 1 ? `Đã lưu ${saved} buổi` : 'Đã lưu lịch')
+    }
+    setDraft(null)
+  }
+
+  async function cancelPicked() {
+    const b = picked
+    if (!b) return
+    // Close this sheet first - the confirm dialog is its own modal.
+    setPicked(null)
+    const ok = await confirmDialog(
+      `Huỷ lịch của ${b.client_name ?? 'khách'} lúc ${b.time} ${dayLabel(b.date)}?`,
+      { title: 'Huỷ lịch tập', danger: true, confirmLabel: 'Huỷ lịch' }
+    )
+    if (ok) await act(b.id, rejectBooking)
+  }
+
+  const coachClients = useMemo(() => {
+    if (!bookingCoach) return []
+    return (clients || [])
+      .filter((c) => c.coach === bookingCoach && c.active !== false)
+      .sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', 'vi'))
+  }, [clients, bookingCoach])
+  const draftClients = draft ? coachClients.filter((c) => fold(c.full_name).includes(fold(draft.search))) : []
+  const draftClash = draft && bookingCoach
+    ? findSlotClashes(weekBookings, bookingCoach, draft.date, draft.time)
+    : { exact: null, near: [] }
 
   const viewBookings = useMemo(() => {
     const all = weekBookings ?? []
@@ -172,6 +255,12 @@ export default function Bookings() {
           </div>
         )}
 
+        <div className="muted" style={{ fontSize: 12 }}>
+          {bookingCoach
+            ? 'Bấm vào ô trống để nhập lịch cho khách. Bấm vào tên khách để xem hoặc huỷ.'
+            : 'Chọn tab của một HLV để nhập lịch. Bấm vào tên khách để xem hoặc huỷ.'}
+        </div>
+
         {loadingWeek ? <InlineLoader /> : (
           <div style={{ overflowX: 'auto', marginTop: 6 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '56px repeat(7, minmax(96px, 1fr))', minWidth: 760 }}>
@@ -202,6 +291,8 @@ export default function Bookings() {
                       return (
                         <div
                           key={i}
+                          className={cellBookings.length === 0 ? 'slot-cell-add' : undefined}
+                          onClick={cellBookings.length === 0 ? () => openDraft(iso, t) : undefined}
                           style={{
                             borderTop: onHour ? '1px solid var(--pf-line-soft)' : 'none',
                             borderLeft: '1px solid var(--pf-line-soft)',
@@ -211,8 +302,10 @@ export default function Bookings() {
                           {cellBookings.map((b) => (
                             <div
                               key={b.id}
+                              onClick={() => setPicked(b)}
                               title={`${b.client_name ?? ''} · ${STATUS_LABEL[b.status] ?? b.status}`}
                               style={{
+                                cursor: 'pointer',
                                 fontSize: 10, borderRadius: 6, padding: '2px 5px', marginBottom: 2,
                                 color: STATUS_COLOR[b.status] ?? 'var(--pf-muted)',
                                 border: `1px solid ${STATUS_COLOR[b.status] ?? 'var(--pf-line)'}`,
@@ -261,6 +354,118 @@ export default function Bookings() {
           </>
         )}
       </Card>
+
+      <Modal open={!!draft} onClose={() => { if (!saving) setDraft(null) }} title="Nhập lịch tập">
+        {draft && (
+          <div className="stack">
+            <div className="muted" style={{ fontSize: 13 }}>
+              {dayLabel(draft.date)} · HLV {shortName(bookingCoach)}
+            </div>
+
+            <div>
+              <div className="eyebrow eyebrow-muted" style={{ marginBottom: 6 }}>Giờ bắt đầu · buổi 60 phút</div>
+              <select
+                className="select"
+                value={draft.time}
+                onChange={(e) => setDraft((d) => ({ ...d, time: e.target.value }))}
+              >
+                {SLOT_TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+
+            {draftClash.exact && (
+              <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--pf-danger)' }}>
+                Giờ này đã có lịch của {draftClash.exact.client_name ?? 'khách khác'}. Chọn giờ khác.
+              </p>
+            )}
+            {!draftClash.exact && draftClash.near.length > 0 && (
+              <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--pf-accent)' }}>
+                Chồng giờ với {draftClash.near.map((b) => `${b.client_name ?? 'khách'} lúc ${b.time}`).join(', ')}. Vẫn lưu được.
+              </p>
+            )}
+
+            <div>
+              <div className="eyebrow eyebrow-muted" style={{ marginBottom: 6 }}>Khách hàng</div>
+              <input
+                className="input"
+                placeholder="Tìm tên khách…"
+                value={draft.search}
+                onChange={(e) => setDraft((d) => ({ ...d, search: e.target.value }))}
+              />
+              <div style={{ marginTop: 8, maxHeight: 232, overflowY: 'auto', border: '1px solid var(--pf-line)', borderRadius: 10 }}>
+                {draftClients.length === 0 ? (
+                  <div className="muted" style={{ padding: 14, fontSize: 13 }}>
+                    {coachClients.length === 0 ? 'HLV này chưa có khách nào.' : 'Không tìm thấy khách phù hợp.'}
+                  </div>
+                ) : draftClients.map((c) => {
+                  const selected = draft.clientId === c.id
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setDraft((d) => ({ ...d, clientId: c.id }))}
+                      style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+                        width: '100%', padding: '11px 14px', textAlign: 'left', cursor: 'pointer',
+                        background: selected ? 'rgba(201,169,97,.14)' : 'transparent',
+                        border: 'none', borderBottom: '1px solid var(--pf-line-soft)',
+                        color: selected ? 'var(--pf-accent)' : 'var(--pf-text)', fontSize: 14,
+                      }}
+                    >
+                      <span style={{ fontWeight: 600 }}>{c.full_name}</span>
+                      <span className="muted" style={{ fontSize: 12, flexShrink: 0 }}>
+                        còn {c.remaining_sessions ?? '—'} buổi
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div>
+              <div className="eyebrow eyebrow-muted" style={{ marginBottom: 6 }}>Lặp lại cùng giờ hằng tuần</div>
+              <div className="seg-tabs">
+                {REPEAT_OPTIONS.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={`seg-tab${draft.repeat === n ? ' active' : ''}`}
+                    onClick={() => setDraft((d) => ({ ...d, repeat: n }))}
+                  >
+                    {n === 1 ? 'Chỉ buổi này' : `${n} tuần`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              className="btn btn-primary btn-block"
+              disabled={!draft.clientId || saving || !!draftClash.exact}
+              onClick={saveDraft}
+            >
+              {saving ? 'Đang lưu…' : draft.repeat > 1 ? `Lưu ${draft.repeat} buổi` : 'Lưu lịch'}
+            </button>
+          </div>
+        )}
+      </Modal>
+
+      <Modal open={!!picked} onClose={() => setPicked(null)} title={picked?.client_name ?? 'Lịch tập'}>
+        {picked && (
+          <div className="stack">
+            <div>
+              <div className="kv"><span className="kv-label">Thời gian</span><span className="kv-value">{dayLabel(picked.date)} · {picked.time}</span></div>
+              <div className="kv"><span className="kv-label">HLV</span><span className="kv-value">{picked.coach_id}</span></div>
+              <div className="kv">
+                <span className="kv-label">Trạng thái</span>
+                <span className="kv-value" style={{ color: STATUS_COLOR[picked.status] }}>{STATUS_LABEL[picked.status] ?? picked.status}</span>
+              </div>
+            </div>
+            {(picked.status === 'pending' || picked.status === 'confirmed') && (
+              <button className="btn btn-danger btn-block" onClick={cancelPicked}>Huỷ lịch này</button>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }

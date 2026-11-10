@@ -261,6 +261,10 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
   .modal-panel { border-radius: 16px; padding-bottom: 24px; }
 }
 
+/* Coach schedule grid: an empty slot can be tapped to enter a booking. */
+.slot-cell-add { cursor: pointer; }
+.slot-cell-add:hover { background: rgba(201,169,97,.08); }
+
 .fade-in { animation: fade .4s ease both; }
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 

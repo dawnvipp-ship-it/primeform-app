@@ -116,11 +116,23 @@ export function ToastHost() {
   }, [])
   if (toasts.length === 0) return null
   return createPortal(
+    // Full-width, untransformed container: a transform here would make it the
+    // containing block for the fixed-position .toast children, and since those
+    // are out of flow the container collapses to zero width - every toast then
+    // shrank to one word per line. The toasts sit in normal flow instead.
     <div style={{
-      position: 'fixed', left: '50%', bottom: 'calc(var(--bottomnav-h) + 16px)', transform: 'translateX(-50%)',
+      position: 'fixed', left: 0, right: 0, bottom: 'calc(var(--bottomnav-h, 0px) + 16px)', padding: '0 16px',
       zIndex: 300, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', pointerEvents: 'none',
     }}>
-      {toasts.map((t) => <div key={t.id} className="toast fade-in">{t.message}</div>)}
+      {toasts.map((t) => (
+        <div
+          key={t.id}
+          className="toast fade-in"
+          style={{ position: 'static', transform: 'none', maxWidth: 440, textAlign: 'center', lineHeight: 1.45, borderRadius: 18 }}
+        >
+          {t.message}
+        </div>
+      ))}
     </div>,
     document.body
   )
