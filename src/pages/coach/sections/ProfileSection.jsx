@@ -25,19 +25,21 @@ export default function ProfileSection({ client, onSaved }) {
   const [saved, setSaved] = useState(false)
   const [err, setErr] = useState('')
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
+  // Linked to the reception app: it owns total/used sessions and overwrites them on every
+  // sync, so they are read-only here and never sent when saving the rest of the profile.
+  const linked = !!client.reception_client_id
 
   async function save() {
     setBusy(true); setErr(''); setSaved(false)
     const total = Number(f.total_sessions) || 0
     const used = Number(f.used_sessions) || 0
-    if (used > total) { setErr('Số buổi đã tập không thể lớn hơn trọn gói.'); setBusy(false); return }
+    if (!linked && used > total) { setErr('Số buổi đã tập không thể lớn hơn trọn gói.'); setBusy(false); return }
     try {
       await updateClient(db, client.id, {
         full_name: f.full_name.trim(),
         phone: f.phone.trim() || null,
         email: f.email.trim() || null,
-        total_sessions: total,
-        used_sessions: used,
+        ...(linked ? {} : { total_sessions: total, used_sessions: used }),
         active: f.active,
         coach: f.coach || null,
         birth_year: f.birth_year === '' ? null : Number(f.birth_year),
@@ -100,10 +102,20 @@ export default function ProfileSection({ client, onSaved }) {
       <Card className="stack">
         <Eyebrow muted>Buổi tập</Eyebrow>
         <div className="field-grid">
-          <Field label="Trọn gói"><Input type="number" value={f.total_sessions} onChange={set('total_sessions')} /></Field>
-          <Field label="Đã tập"><Input type="number" value={f.used_sessions} onChange={set('used_sessions')} /></Field>
+          <Field label="Trọn gói"><Input type="number" value={linked ? client.total_sessions : f.total_sessions} onChange={set('total_sessions')} disabled={linked} /></Field>
+          <Field label="Đã tập"><Input type="number" value={linked ? client.used_sessions : f.used_sessions} onChange={set('used_sessions')} disabled={linked} /></Field>
         </div>
-        <div className="muted" style={{ fontSize: 13 }}>Còn lại: <strong style={{ color: 'var(--pf-accent)' }}>{remaining} buổi</strong> (tự tính)</div>
+        {linked ? (
+          <>
+            <div className="muted" style={{ fontSize: 13 }}>Còn lại: <strong style={{ color: 'var(--pf-accent)' }}>{client.remaining_sessions} buổi</strong></div>
+            <div className="muted" style={{ fontSize: 12 }}>
+              Số buổi đồng bộ từ lễ tân (app reception), không sửa ở đây. Muốn đổi, sửa ở reception.
+              {' '}Đã tập {client.lifetime_sessions} buổi · {client.contracts_count} hợp đồng.
+            </div>
+          </>
+        ) : (
+          <div className="muted" style={{ fontSize: 13 }}>Còn lại: <strong style={{ color: 'var(--pf-accent)' }}>{remaining} buổi</strong> (tự tính)</div>
+        )}
       </Card>
 
       {err && <div style={{ color: 'var(--pf-danger)', fontSize: 13 }}>{err}</div>}

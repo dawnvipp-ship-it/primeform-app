@@ -131,6 +131,13 @@ export default function Sessions() {
           <div className="kv"><span className="kv-label">Đã tập</span><span className="kv-value">{me.used_sessions} buổi</span></div>
           <div className="kv"><span className="kv-label">Còn lại</span><span className="kv-value" style={{ color: 'var(--pf-accent)' }}>{me.remaining_sessions} buổi</span></div>
         </div>
+        {/* Lifetime numbers come from the reception app, so they only exist for linked clients. */}
+        {me.reception_client_id && (
+          <div style={{ marginTop: 6, paddingTop: 12, borderTop: '1px solid var(--pf-line)' }}>
+            <div className="kv"><span className="kv-label">Tổng số buổi đã tập</span><span className="kv-value">{me.lifetime_sessions} buổi</span></div>
+            <div className="kv"><span className="kv-label">Số hợp đồng</span><span className="kv-value">{me.contracts_count}</span></div>
+          </div>
+        )}
       </Card>
 
       <Card className="stack">
