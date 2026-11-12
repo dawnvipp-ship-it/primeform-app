@@ -21,7 +21,7 @@ export const GUIDE_GROUPS = [
 // body: array of paragraphs. action: ONE small thing for today.
 export const GUIDE_CARDS = [
   {
-    id: 'PF01', group: 'bat-dau', approved: false,
+    id: 'PF01', group: 'bat-dau', approved: true,
     title: 'Bắt đầu đúng quan trọng hơn bắt đầu nhanh',
     summary: 'Cơ thể cần thời gian thích nghi với một lịch tập mới.',
     body: [
@@ -34,7 +34,7 @@ export const GUIDE_CARDS = [
     action: "Sau buổi tập kế tiếp, hãy nói với HLV một điều bạn thấy dễ và một điều bạn thấy chưa quen.",
   },
   {
-    id: 'PF02', group: 'bat-dau', approved: false,
+    id: 'PF02', group: 'bat-dau', approved: true,
     title: 'Vì sao 3 tuần đầu chưa thấy thay đổi?',
     summary: 'Thay đổi ban đầu không phải lúc nào cũng hiện rõ trên cân hoặc hình thể.',
     body: [
@@ -47,7 +47,7 @@ export const GUIDE_CARDS = [
     action: 'Xem lại lịch tập và thói quen tuần vừa qua. Chọn một điều bạn có thể tiếp tục duy trì trong tuần tới.',
   },
   {
-    id: 'PF03', group: 'ket-qua', approved: false,
+    id: 'PF03', group: 'ket-qua', approved: true,
     title: 'Cân nặng dao động',
     summary: 'Cân nặng thay đổi hằng ngày do nhiều yếu tố ngoài mỡ cơ thể.',
     body: [
@@ -60,7 +60,7 @@ export const GUIDE_CARDS = [
     action: 'Ghi lại con số hôm nay như một dữ liệu bình thường và tiếp tục sinh hoạt như thường lệ.',
   },
   {
-    id: 'PF04', group: 'ket-qua', approved: false,
+    id: 'PF04', group: 'ket-qua', approved: true,
     title: 'Đừng chỉ nhìn vào một chỉ số',
     summary: 'Cân nặng, vòng eo và body fat phản ánh những khía cạnh khác nhau.',
     body: [
@@ -74,7 +74,7 @@ export const GUIDE_CARDS = [
     action: "Mở trang Tiến độ và xem một chỉ số khác ngoài cân nặng.",
   },
   {
-    id: 'PF05', group: 'co-the', approved: false,
+    id: 'PF05', group: 'co-the', approved: true,
     title: 'Cơ bắp cần thời gian để phát triển',
     summary: 'Tăng cơ là quá trình thích nghi cần tập luyện và phục hồi phù hợp.',
     body: [
@@ -87,7 +87,7 @@ export const GUIDE_CARDS = [
     action: "Ghi lại một bài tập bạn thấy nhẹ nhàng hơn so với tháng trước và chia sẻ với HLV.",
   },
   {
-    id: 'PF06', group: 'co-the', approved: false,
+    id: 'PF06', group: 'co-the', approved: true,
     title: 'Giảm mỡ không phải là giảm cân liên tục',
     summary: 'Tiến trình giảm mỡ không nhất thiết đi cùng cân nặng giảm đều mỗi tuần.',
     body: [
@@ -100,7 +100,7 @@ export const GUIDE_CARDS = [
     action: "Nhìn vào xu hướng 3 đến 4 tuần gần đây thay vì chỉ lần cân gần nhất.",
   },
   {
-    id: 'PF07', group: 'phuc-hoi', approved: false,
+    id: 'PF07', group: 'phuc-hoi', approved: true,
     title: 'Giấc ngủ và khả năng phục hồi',
     summary: 'Giấc ngủ là một phần của quá trình cơ thể thích nghi với tập luyện.',
     body: [
@@ -113,7 +113,7 @@ export const GUIDE_CARDS = [
     action: 'Tối nay, thử đi ngủ sớm hơn thường lệ khoảng 20 phút.',
   },
   {
-    id: 'PF08', group: 'phuc-hoi', approved: false,
+    id: 'PF08', group: 'phuc-hoi', approved: true,
     title: 'Khi cuộc sống quá bận rộn',
     summary: 'Điều chỉnh kỳ vọng tập luyện khi công việc và cuộc sống thay đổi.',
     body: [
@@ -126,7 +126,7 @@ export const GUIDE_CARDS = [
     action: "Nhắn HLV một câu về lịch tuần này, kể cả khi bạn chưa chắc sẽ tập được bao nhiêu buổi.",
   },
   {
-    id: 'PF09', group: 'phuc-hoi', approved: false,
+    id: 'PF09', group: 'phuc-hoi', approved: true,
     title: 'Nước và thói quen hằng ngày',
     summary: 'Duy trì đều đặn thay vì cố bù một lần.',
     body: [
@@ -139,7 +139,7 @@ export const GUIDE_CARDS = [
     action: "Đặt một chai nước ở nơi bạn hay ngồi làm việc và uống vài ngụm mỗi khi nhìn thấy nó.",
   },
   {
-    id: 'PF10', group: 'duy-tri', approved: false,
+    id: 'PF10', group: 'duy-tri', approved: true,
     title: 'Khi bạn lỡ một buổi tập',
     summary: 'Một buổi tập bị bỏ lỡ không quyết định toàn bộ quá trình.',
     body: [
@@ -152,7 +152,7 @@ export const GUIDE_CARDS = [
     action: "Nhắn HLV để chọn một khung giờ cho buổi tập kế tiếp.",
   },
   {
-    id: 'PF11', group: 'duy-tri', approved: false,
+    id: 'PF11', group: 'duy-tri', approved: true,
     title: 'Một bữa ăn không quyết định hành trình',
     summary: 'Không cần phản ứng cực đoan sau một bữa ăn khác kế hoạch.',
     body: [
@@ -165,7 +165,7 @@ export const GUIDE_CARDS = [
     action: "Ở bữa kế tiếp, ăn theo kế hoạch như bình thường và uống đủ nước.",
   },
   {
-    id: 'PF12', group: 'an-toan', approved: false,
+    id: 'PF12', group: 'an-toan', approved: true,
     title: 'Khi nào nên gặp chuyên gia?',
     summary: 'Giới hạn hỗ trợ của HLV và khi nào nên tìm đến nhân viên y tế.',
     body: [
