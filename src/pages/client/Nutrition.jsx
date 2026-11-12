@@ -5,6 +5,8 @@ import { getMyClient } from '../../data/clients'
 import { getMealPlan } from '../../data/mealPlans'
 import { SkeletonScreen, Eyebrow, Card, Empty } from '../../components/ui/primitives'
 import MacroRing from '../../components/ui/MacroRing'
+import { todayDayIndex, isRestDay, parseMeals, perMealAverage } from '../../lib/mealPlan'
+import { MealCard, PerMealStrip } from '../../components/ui/MealCard'
 
 const MACRO_LEGEND = [
   { key: 'protein', label: 'Protein', color: 'var(--pf-gold)' },
@@ -105,7 +107,7 @@ function ExchangeTable({ exchange }) {
 
 export default function Nutrition() {
   const { db } = useAuth()
-  const [active, setActive] = useState(0)
+  const [picked, setPicked] = useState(null)
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     const plan = me ? await getMealPlan(db, me.id) : null
@@ -116,7 +118,19 @@ export default function Nutrition() {
   const plan = data?.plan
   const ms = plan?.meal_structure || {}
   const days = (ms.days || []).filter((d) => (d.label || d.meals))
+  // Open on today's day when the tab labels carry a weekday ("T2 · REST"); otherwise the first tab, as before.
+  const todayIdx = todayDayIndex(days)
+  const active = picked ?? todayIdx ?? 0
   const cur = days[active]
+
+  const restMacros = ms.macros_rest && (ms.macros_rest.calories || ms.macros_rest.protein) ? ms.macros_rest : null
+  const trainMacros = { calories: plan?.calories, protein: plan?.protein, carbs: plan?.carbs, fat: plan?.fat }
+  // Which macro set belongs to the selected day. Without rest macros every day uses the one set.
+  const macrosFor = (day) => (restMacros && day && isRestDay(day.label) ? restMacros : trainMacros)
+  const meals = cur ? parseMeals(cur.meals) : null
+  const avg = meals ? perMealAverage(macrosFor(cur), meals.length) : null
+  // Today's macro card goes first; the other one follows.
+  const todayRest = todayIdx !== null && restMacros ? isRestDay(days[todayIdx].label) : false
 
   return (
     <div className="screen stack fade-in">
@@ -142,27 +156,37 @@ export default function Nutrition() {
             </p>
           </Card>
 
-          <MacroCard title="Ngày tập" calories={plan.calories} protein={plan.protein} carbs={plan.carbs} fat={plan.fat} />
-
-          {ms.macros_rest && (ms.macros_rest.calories || ms.macros_rest.protein) && (
-            <MacroCard
-              title="Ngày nghỉ"
-              calories={ms.macros_rest.calories} protein={ms.macros_rest.protein}
-              carbs={ms.macros_rest.carbs} fat={ms.macros_rest.fat}
-            />
-          )}
+          {(() => {
+            const trainCard = (
+              <MacroCard key="t" title={todayIdx !== null && restMacros && !todayRest ? 'Hôm nay · Ngày tập' : 'Ngày tập'}
+                calories={plan.calories} protein={plan.protein} carbs={plan.carbs} fat={plan.fat} />
+            )
+            const restCard = restMacros && (
+              <MacroCard key="r" title={todayRest ? 'Hôm nay · Ngày nghỉ' : 'Ngày nghỉ'}
+                calories={restMacros.calories} protein={restMacros.protein} carbs={restMacros.carbs} fat={restMacros.fat} />
+            )
+            return todayRest ? [restCard, trainCard] : [trainCard, restCard]
+          })()}
 
           {days.length > 0 && (
             <>
               <Eyebrow muted>Thực đơn 7 ngày</Eyebrow>
               <div className="seg-tabs">
                 {days.map((d, i) => (
-                  <button key={i} onClick={() => setActive(i)} className={`seg-tab${i === active ? ' active' : ''}`}>
-                    {d.label || `Ngày ${i + 1}`}
+                  <button key={i} onClick={() => setPicked(i)} className={`seg-tab${i === active ? ' active' : ''}`}>
+                    {d.label || `Ngày ${i + 1}`}{i === todayIdx && <span style={{ display: 'inline-block', width: 5, height: 5, borderRadius: '50%', background: 'var(--pf-accent)', marginLeft: 6, verticalAlign: 'middle' }} />}
                   </button>
                 ))}
               </div>
-              {cur && <Card><RichLines text={cur.meals} /></Card>}
+              {cur && active === todayIdx && <div className="faint" style={{ fontSize: 12 }}>Thực đơn hôm nay</div>}
+              {meals ? (
+                <>
+                  <PerMealStrip avg={avg} mealCount={meals.length} />
+                  {meals.map((m, i) => <MealCard key={`${m.n}-${i}`} meal={m} />)}
+                </>
+              ) : (
+                cur && <Card><RichLines text={cur.meals} /></Card>
+              )}
             </>
           )}
 
