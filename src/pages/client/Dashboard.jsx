@@ -8,6 +8,11 @@ import { listPrograms, listPhases, listCompletions } from '../../data/programs'
 import { listMyBookings } from '../../data/bookings'
 import { HABITS, getRecentHabitLogs, toggleHabit, setHabitValue } from '../../data/habits'
 import { targetsFrom, daysUntil } from '../../lib/journey'
+import { listProgressLogs } from '../../data/progress'
+import { GUIDE_CARDS } from '../../data/guide'
+import { pickSuggestion } from '../../lib/guideRules'
+import { getTapped } from '../../lib/guideMemory'
+import { GuideEntry, GuideSuggestion, useGuideBase } from '../../components/ui/GuideCards'
 import HabitRow from '../../components/ui/HabitRow'
 import { Eyebrow, Card, showToast } from '../../components/ui/primitives'
 import { IconChevron, IconClipboard, IconDroplet, IconMoon, IconDumbbell, IconLeaf } from '../../components/ui/Icons'
@@ -60,19 +65,22 @@ function formatDate(iso) {
 export default function Dashboard() {
   const { db, client, logout } = useAuth()
   const navigate = useNavigate()
+  const guideBase = useGuideBase()
 
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     if (!me) return null
-    const [assessment, programs, phaseRows, completions, bookings, habitLogs] = await Promise.all([
+    const [assessment, programs, phaseRows, completions, bookings, habitLogs, progressLogs] = await Promise.all([
       getAssessment(db, me.id),
       listPrograms(db, me.id),
       listPhases(db, me.id),
       listCompletions(db, me.id),
       listMyBookings(db),
       getRecentHabitLogs(db, me.id),
+      // Cẩm nang suggestions look at weight/waist history; a failure here must not break the dashboard.
+      listProgressLogs(db, me.id).catch(() => []),
     ])
-    return { me, assessment, programs, phaseRows, completions, bookings, habitLogs }
+    return { me, assessment, programs, phaseRows, completions, bookings, habitLogs, progressLogs }
   }, [db])
 
   // Local, optimistically-updated copy - habit taps shouldn't wait on a
@@ -86,6 +94,13 @@ export default function Dashboard() {
   const { me, assessment, programs, phaseRows, completions, bookings } = data
 
   const targets = targetsFrom(assessment)
+
+  // Cẩm nang: one suggestion at most, only from approved cards; the entry card only exists once something is approved.
+  const suggestion = pickSuggestion({
+    startDate: me.start_date, logs: data.progressLogs, habitLogs, assessment,
+    cards: GUIDE_CARDS, tappedAt: getTapped(me.id),
+  })
+  const hasGuide = GUIDE_CARDS.some((c) => c.approved && c.body.length > 0)
 
   // Sleep / water: log an amount; it counts as done once it reaches the target.
   async function onSetHabitValue(key, value) {
@@ -189,6 +204,9 @@ export default function Dashboard() {
           />
         ))}
       </Card>
+
+      {suggestion && <GuideSuggestion suggestion={suggestion} clientId={me.id} base={guideBase} />}
+      {hasGuide && <GuideEntry base={guideBase} />}
 
       {me.remaining_sessions <= LOW_SESSIONS_THRESHOLD && (
         <Card style={{ borderColor: 'var(--pf-danger)' }}>

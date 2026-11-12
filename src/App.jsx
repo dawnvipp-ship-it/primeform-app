@@ -12,6 +12,8 @@ const Nutrition    = lazy(() => import('./pages/client/Nutrition'))
 const Progress     = lazy(() => import('./pages/client/Progress'))
 const Sessions     = lazy(() => import('./pages/client/Sessions'))
 const Messages     = lazy(() => import('./pages/client/Messages'))
+const Guide        = lazy(() => import('./pages/client/Guide'))
+const GuideArticle = lazy(() => import('./pages/client/GuideArticle'))
 const CoachLogin   = lazy(() => import('./pages/coach/CoachLogin'))
 const CoachLayout  = lazy(() => import('./pages/coach/CoachLayout'))
 const ClientList   = lazy(() => import('./pages/coach/ClientList'))
@@ -58,6 +60,8 @@ export default function App() {
           <Route path="progress" element={<Progress />} />
           <Route path="sessions" element={<Sessions />} />
           <Route path="messages" element={<Messages />} />
+          <Route path="guide" element={<Guide />} />
+          <Route path="guide/:id" element={<GuideArticle />} />
         </Route>
 
         {/* Coach dashboard */}
@@ -83,6 +87,8 @@ export default function App() {
             <Route path="progress" element={<Progress />} />
             <Route path="sessions" element={<Sessions />} />
             <Route path="messages" element={<Messages />} />
+            <Route path="guide" element={<Guide />} />
+            <Route path="guide/:id" element={<GuideArticle />} />
           </Route>
         </Route>
 
