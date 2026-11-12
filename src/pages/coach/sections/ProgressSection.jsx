@@ -170,7 +170,10 @@ export default function ProgressSection({ clientId }) {
           {logs.map((l) => (
             <div key={l.id} className="row-between" style={{ padding: '12px 16px', borderBottom: '1px solid var(--pf-line-soft)' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{l.log_date}</div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>
+                  {l.log_date}
+                  {l.source === 'client' && <span className="tag" style={{ marginLeft: 8 }}>khách tự nhập</span>}
+                </div>
                 <div className="muted" style={{ fontSize: 12 }}>
                   {[
                     l.weight && `${l.weight}kg`,

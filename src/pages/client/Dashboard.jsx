@@ -6,10 +6,11 @@ import { getMyClient } from '../../data/clients'
 import { getAssessment } from '../../data/assessments'
 import { listPrograms, listPhases, listCompletions } from '../../data/programs'
 import { listMyBookings } from '../../data/bookings'
-import { HABITS, getRecentHabitLogs, toggleHabit, computeStreak } from '../../data/habits'
-import { lastSevenDays } from '../../lib/journey'
+import { HABITS, getRecentHabitLogs, toggleHabit, setHabitValue } from '../../data/habits'
+import { targetsFrom, daysUntil } from '../../lib/journey'
+import HabitRow from '../../components/ui/HabitRow'
 import { Eyebrow, Card, showToast } from '../../components/ui/primitives'
-import { IconChevron, IconClipboard, IconDroplet, IconMoon, IconDumbbell, IconLeaf, IconCheck } from '../../components/ui/Icons'
+import { IconChevron, IconClipboard, IconDroplet, IconMoon, IconDumbbell, IconLeaf } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
 import NotificationPrompt from '../../components/notify/NotificationPrompt'
 import { localISODate } from '../../lib/date'
@@ -83,6 +84,20 @@ export default function Dashboard() {
   if (!data?.me) return <div className="screen"><div className="empty">Không tìm thấy hồ sơ.</div></div>
 
   const { me, assessment, programs, phaseRows, completions, bookings } = data
+
+  const targets = targetsFrom(assessment)
+
+  // Sleep / water: log an amount; it counts as done once it reaches the target.
+  async function onSetHabitValue(key, value) {
+    const habit = HABITS.find((h) => h.key === key)
+    const done = value >= targets[habit.numeric.target]
+    setHabitLogs((prev) => [
+      ...prev.filter((l) => !(l.habit_key === key && l.log_date === todayStr())),
+      { habit_key: key, log_date: todayStr(), done, value },
+    ])
+    try { await setHabitValue(db, me.id, key, value, done) }
+    catch (e) { showToast(e.message || 'Không lưu được, thử lại.') }
+  }
 
   async function onToggleHabit(key, currentlyDone) {
     const next = !currentlyDone
@@ -165,43 +180,14 @@ export default function Dashboard() {
         <SessionRing total={me.total_sessions} used={me.used_sessions} />
       </Card>
 
-      <Card className="stack" style={{ gap: 4 }}>
+      <Card className="stack" style={{ gap: 0 }}>
         <Eyebrow muted>Thói quen hôm nay</Eyebrow>
-        {HABITS.map((h) => {
-          const Icon = HABIT_ICONS[h.key]
-          const done = habitLogs.some((l) => l.habit_key === h.key && l.log_date === todayStr() && l.done)
-          const streak = computeStreak(habitLogs, h.key)
-          return (
-            <button
-              key={h.key}
-              onClick={() => onToggleHabit(h.key, done)}
-              className="row-between"
-              style={{ background: 'none', border: 'none', padding: '8px 0', width: '100%', textAlign: 'left', cursor: 'pointer' }}
-            >
-              <div className="row" style={{ gap: 10 }}>
-                <Icon width={18} height={18} style={{ color: done ? 'var(--pf-accent)' : 'var(--pf-muted)' }} />
-                <div>
-                  <span style={{ fontWeight: 600, color: done ? 'var(--pf-text)' : 'var(--pf-muted)' }}>{h.label}</span>
-                  <div className="week-dots" style={{ marginTop: 5 }} aria-label="7 ngày gần nhất">
-                    {lastSevenDays(habitLogs, h.key).map((d) => (
-                      <span key={d.date} className={`week-dot${d.done ? ' on' : ''}${d.isToday ? ' today' : ''}`} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="row" style={{ gap: 10 }}>
-                {streak > 1 && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--pf-accent)' }}>{streak} ngày</span>}
-                <span style={{
-                  width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', flexShrink: 0,
-                  border: `1px solid ${done ? 'var(--pf-accent)' : 'var(--pf-line)'}`,
-                  background: done ? 'var(--pf-accent)' : 'transparent',
-                }}>
-                  {done && <IconCheck width={13} height={13} style={{ color: 'var(--pf-obsidian)' }} />}
-                </span>
-              </div>
-            </button>
-          )
-        })}
+        {HABITS.map((h) => (
+          <HabitRow
+            key={h.key} habit={h} Icon={HABIT_ICONS[h.key]} logs={habitLogs} targets={targets}
+            onToggle={onToggleHabit} onSetValue={onSetHabitValue}
+          />
+        ))}
       </Card>
 
       {me.remaining_sessions <= LOW_SESSIONS_THRESHOLD && (
@@ -215,7 +201,15 @@ export default function Dashboard() {
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: '1fr', gap: 12 }}>
-        <Card><Eyebrow muted>Mục tiêu</Eyebrow><div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{assessment?.goal || '—'}</div></Card>
+        <Card>
+          <Eyebrow muted>Mục tiêu</Eyebrow>
+          <div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{assessment?.goal || '—'}</div>
+          {targets.date && daysUntil(targets.date) !== null && (
+            <div style={{ marginTop: 4, fontSize: 12, color: 'var(--pf-muted)' }}>
+              {daysUntil(targets.date) >= 0 ? `Còn ${daysUntil(targets.date)} ngày · ${formatDate(targets.date)}` : `Mốc ${formatDate(targets.date)} đã qua`}
+            </div>
+          )}
+        </Card>
         <Card>
           <Eyebrow muted>Giai đoạn</Eyebrow>
           <div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{currentPhase || '—'}</div>

@@ -1,5 +1,5 @@
 import { Card, Eyebrow } from './primitives'
-import { JOURNEY_METRICS, journeyFor, formatDelta, fmt } from '../../lib/journey'
+import { JOURNEY_METRICS, journeyFor, formatDelta, fmt, daysUntil } from '../../lib/journey'
 
 function fullDate(iso) {
   const [y, m, d] = iso.split('-')
@@ -66,14 +66,21 @@ function JourneyRow({ j }) {
 
 // "Hành trình của bạn": per metric, the starting point (initial assessment value,
 // else the first coach measurement), where the client is now, and the target.
-export default function JourneyCard({ assessment, logs }) {
+export default function JourneyCard({ assessment, logs, targetDate }) {
   const rows = JOURNEY_METRICS.map((m) => journeyFor(m, assessment, logs)).filter((j) => j.baseline && j.current)
   if (rows.length === 0) return null
   return (
     <Card className="journey stack-lg">
       <div>
         <Eyebrow>Hành trình của bạn</Eyebrow>
-        <div className="faint" style={{ fontSize: 12.5, marginTop: 6 }}>Từ số đo ban đầu đến hôm nay</div>
+        <div className="faint" style={{ fontSize: 12.5, marginTop: 6 }}>
+          Từ số đo ban đầu đến hôm nay
+          {targetDate && daysUntil(targetDate) !== null && (
+            daysUntil(targetDate) >= 0
+              ? ` · còn ${daysUntil(targetDate)} ngày đến mốc ${fullDate(targetDate)}`
+              : ` · mốc ${fullDate(targetDate)} đã qua`
+          )}
+        </div>
       </div>
       {rows.map((j) => <JourneyRow key={j.metric.key} j={j} />)}
       <div className="faint" style={{ fontSize: 12 }}>

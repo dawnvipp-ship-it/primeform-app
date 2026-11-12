@@ -15,6 +15,21 @@ export async function addProgressLog(db, clientId, fields) {
   return data
 }
 
+// Client self-reported weight (source 'client'): at most one per day, only today's
+// date, weight only - the database policy enforces all three (see migration
+// health_targets_and_self_logging). Updates today's entry if there already is one.
+export async function saveClientWeight(db, clientId, date, weight) {
+  const { data: existing, error: readErr } = await db
+    .from('progress_logs').select('id').eq('client_id', clientId).eq('log_date', date).eq('source', 'client').maybeSingle()
+  if (readErr) throw readErr
+  const q = existing
+    ? db.from('progress_logs').update({ weight }).eq('id', existing.id)
+    : db.from('progress_logs').insert({ client_id: clientId, log_date: date, weight, source: 'client' })
+  const { data, error } = await q.select('*').single()
+  if (error) throw error
+  return data
+}
+
 export async function deleteProgressLog(db, id) {
   const { error } = await db.from('progress_logs').delete().eq('id', id)
   if (error) throw error

@@ -13,7 +13,7 @@ import { localISODate } from './date'
 export const JOURNEY_METRICS = [
   { key: 'weight', label: 'Cân nặng', unit: 'kg', assessmentKey: 'weight', targetKey: 'target_weight' },
   { key: 'body_fat', label: 'Body fat', unit: '%', assessmentKey: 'body_fat', targetKey: 'target_body_fat' },
-  { key: 'waist', label: 'Vòng eo', unit: 'cm' },
+  { key: 'waist', label: 'Vòng eo', unit: 'cm', targetKey: 'target_waist' },
 ]
 
 // A measurement of 0 / blank / garbage means "not entered".
@@ -26,7 +26,7 @@ function pos(v) {
 function logsWith(logs, key) {
   return (logs || [])
     .filter((l) => pos(l[key]) !== null && l.log_date)
-    .map((l) => ({ date: l.log_date, value: pos(l[key]) }))
+    .map((l) => ({ date: l.log_date, value: pos(l[key]), source: l.source || 'coach' }))
     .sort((a, b) => a.date.localeCompare(b.date))
 }
 
@@ -38,10 +38,14 @@ export function journeyFor(metric, assessment, logs) {
   const series = logsWith(logs, metric.key)
   const fromAssessment = metric.assessmentKey ? pos(assessment?.[metric.assessmentKey]) : null
 
+  // Clients can now log their own weight (source 'client'). The starting point
+  // should still be what the coach measured, so prefer coach rows for the baseline.
+  const coachSeries = series.filter((p) => p.source !== 'client')
+  const first = (coachSeries.length > 0 ? coachSeries : series)[0]
   const baseline = fromAssessment !== null
     ? { value: fromAssessment, date: null, from: 'assessment' }
-    : series.length > 0
-      ? { value: series[0].value, date: series[0].date, from: 'log' }
+    : first
+      ? { value: first.value, date: first.date, from: 'log' }
       : null
   const last = series.length > 0 ? series[series.length - 1] : null
   const target = metric.targetKey ? pos(assessment?.[metric.targetKey]) : null
@@ -61,6 +65,39 @@ export function journeyFor(metric, assessment, logs) {
     baseline.value > target ? last.value <= target : last.value >= target
   )
   return { metric, baseline, current: last, target, delta, progress, reached, single }
+}
+
+// ---------- daily targets (set by the coach, with studio defaults) ----------
+
+export const TARGET_DEFAULTS = { sleepHours: 7, waterLiters: 2, sessionsPerWeek: 3 }
+
+const posOr = (v, d) => { const n = pos(v); return n !== null ? n : d }
+
+/** Targets for one client; any value the coach left blank falls back to the default. */
+export function targetsFrom(assessment) {
+  const spw = assessment?.target_sessions_per_week
+  return {
+    sleepHours: posOr(assessment?.target_sleep_hours, TARGET_DEFAULTS.sleepHours),
+    waterLiters: posOr(assessment?.target_water_liters, TARGET_DEFAULTS.waterLiters),
+    // 0 is a legitimate "no weekly target", so only null/blank falls back.
+    sessionsPerWeek: spw === null || spw === undefined || spw === '' || !Number.isFinite(Number(spw)) ? TARGET_DEFAULTS.sessionsPerWeek : Number(spw),
+    date: assessment?.target_date || null,
+  }
+}
+
+/** Whole days from today to an ISO date (negative = already passed). Local calendar days. */
+export function daysUntil(iso, now = new Date()) {
+  if (!iso) return null
+  const [y, m, d] = iso.split('-').map(Number)
+  const a = new Date(y, m - 1, d)
+  const b = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return Math.round((a - b) / 86400000)
+}
+
+/** Sessions a client would do in a calendar month at `perWeek` a week. */
+export function monthSessionTarget(perWeek, key) {
+  if (!perWeek) return 0
+  return Math.round((perWeek * daysInMonth(key)) / 7)
 }
 
 // ---------- months (calendar months) ----------

@@ -6,6 +6,7 @@ import { IconCheck } from '../../../components/ui/Icons'
 
 const EMPTY = {
   goal: '', weight: '', target_weight: '', body_fat: '', target_body_fat: '', specific_goal: '',
+  target_waist: '', target_date: '', target_sleep_hours: '', target_water_liters: '', target_sessions_per_week: '',
   injuries: '', posture_notes: '', mobility_notes: '', lifestyle_notes: '', coach_notes: '',
   occupation: '', height: '', training_experience: '', weekly_availability: '', prior_pt_experience: '',
   equipment: '', meals_per_day: '', eating_habits: '', tracking_app: '', allergies: '',
@@ -34,6 +35,9 @@ export default function AssessmentSection({ clientId }) {
         weight: num(f.weight), target_weight: num(f.target_weight),
         body_fat: num(f.body_fat), target_body_fat: num(f.target_body_fat),
         specific_goal: f.specific_goal || null,
+        target_waist: num(f.target_waist), target_date: f.target_date || null,
+        target_sleep_hours: num(f.target_sleep_hours), target_water_liters: num(f.target_water_liters),
+        target_sessions_per_week: num(f.target_sessions_per_week),
         injuries: f.injuries || null, posture_notes: f.posture_notes || null,
         mobility_notes: f.mobility_notes || null, lifestyle_notes: f.lifestyle_notes || null,
         coach_notes: f.coach_notes || null,
@@ -62,6 +66,17 @@ export default function AssessmentSection({ clientId }) {
           <Field label="Body fat mục tiêu"><Input type="number" value={f.target_body_fat} onChange={set('target_body_fat')} /></Field>
         </div>
         <Field label="Mục tiêu cụ thể"><Input value={f.specific_goal} onChange={set('specific_goal')} placeholder="VD: Giảm 8-10kg trong 3 tháng" /></Field>
+      </Card>
+
+      <Card className="stack">
+        <Eyebrow muted>Mục tiêu khách thấy trong app</Eyebrow>
+        <div className="field-grid">
+          <Field label="Vòng eo mục tiêu (cm)"><Input type="number" value={f.target_waist} onChange={set('target_waist')} /></Field>
+          <Field label="Đạt mục tiêu trước ngày"><Input type="date" value={f.target_date || ''} onChange={set('target_date')} /></Field>
+          <Field label="Ngủ tối thiểu (giờ/đêm)"><Input type="number" step="0.5" value={f.target_sleep_hours} onChange={set('target_sleep_hours')} placeholder="Để trống = 7" /></Field>
+          <Field label="Nước (lít/ngày)"><Input type="number" step="0.25" value={f.target_water_liters} onChange={set('target_water_liters')} placeholder="Để trống = 2" /></Field>
+          <Field label="Số buổi tập mỗi tuần"><Input type="number" value={f.target_sessions_per_week} onChange={set('target_sessions_per_week')} placeholder="Để trống = 3" /></Field>
+        </div>
       </Card>
 
       <Card className="stack">

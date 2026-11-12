@@ -4,7 +4,7 @@ import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
 import { getAssessment } from '../../data/assessments'
 import { getRecentHabitLogs } from '../../data/habits'
-import { listProgressLogs, listPhotos, signedPhotoUrl } from '../../data/progress'
+import { listProgressLogs, listPhotos, signedPhotoUrl, saveClientWeight } from '../../data/progress'
 import { listPrograms, listCompletions, computeMuscleHeat } from '../../data/programs'
 import { SkeletonScreen, Eyebrow, Card, Empty, showToast } from '../../components/ui/primitives'
 import { IconShare } from '../../components/ui/Icons'
@@ -12,6 +12,9 @@ import MuscleBodyMap from '../../components/ui/MuscleBodyMap'
 import BeforeAfterCompare from '../../components/ui/BeforeAfterCompare'
 import JourneyCard from '../../components/ui/JourneyCard'
 import MonthlyProgress from '../../components/ui/MonthlyProgress'
+import WeighIn from '../../components/ui/WeighIn'
+import { targetsFrom } from '../../lib/journey'
+import { localISODate } from '../../lib/date'
 import { buildProgressShareCard, shareOrDownload } from '../../lib/shareCard'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import logo from '../../assets/logo.png'
@@ -81,6 +84,8 @@ function computeDeltaLines(logs) {
 export default function Progress() {
   const { db } = useAuth()
   const [sharing, setSharing] = useState(false)
+  // Rows added/updated by the self-weigh-in this visit, merged over what was loaded.
+  const [localLogs, setLocalLogs] = useState(null)
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     if (!me) return null
@@ -99,7 +104,18 @@ export default function Progress() {
   if (loading) return <div className="screen"><SkeletonScreen /></div>
   if (!data) return <div className="screen"><Empty title="Không tìm thấy hồ sơ." /></div>
 
-  const { me, logs, photos, muscleHeat, assessment, habitLogs } = data
+  const { me, photos, muscleHeat, assessment, habitLogs } = data
+  const logs = localLogs ?? data.logs
+  const targets = targetsFrom(assessment)
+  const clientEntries = logs.filter((l) => l.source === 'client' && l.weight != null)
+
+  async function onSaveWeight(kg) {
+    const row = await saveClientWeight(db, me.id, localISODate(), kg)
+    setLocalLogs((prev) => {
+      const base = prev ?? data.logs
+      return [...base.filter((l) => l.id !== row.id), row].sort((a, b) => a.log_date.localeCompare(b.log_date))
+    })
+  }
   const hasLogs = logs.length > 0
   const hasMuscleData = Object.keys(muscleHeat).length > 0
 
@@ -153,8 +169,9 @@ export default function Progress() {
         )}
       </div>
 
-      <JourneyCard assessment={assessment} logs={logs} />
-      <MonthlyProgress assessment={assessment} logs={logs} habitLogs={habitLogs} monthlySessions={me.monthly_sessions} />
+      <JourneyCard assessment={assessment} logs={logs} targetDate={targets.date} />
+      <WeighIn entries={clientEntries} onSave={onSaveWeight} />
+      <MonthlyProgress assessment={assessment} logs={logs} habitLogs={habitLogs} monthlySessions={me.monthly_sessions} targets={targets} />
 
       {hasMuscleData && (
         <Card className="stack">

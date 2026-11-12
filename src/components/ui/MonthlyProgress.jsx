@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { Card, Eyebrow } from './primitives'
 import { IconChevron, IconBack } from './Icons'
 import {
-  JOURNEY_METRICS, monthsToShow, monthLabel, monthChange, habitMonth, formatDelta, fmt, sessionsInMonth, shiftMonth,
+  JOURNEY_METRICS, monthsToShow, monthLabel, monthChange, habitMonth, formatDelta, fmt, sessionsInMonth, shiftMonth, monthSessionTarget,
 } from '../../lib/journey'
 import { HABITS } from '../../data/habits'
 
 // Calendar-month view: how each body metric moved that month, and how steady the
 // daily habits were. Month list is capped to the window of habit logs the page
 // fetched (6 months).
-export default function MonthlyProgress({ assessment, logs, habitLogs, monthlySessions }) {
+export default function MonthlyProgress({ assessment, logs, habitLogs, monthlySessions, targets }) {
   const months = monthsToShow()               // newest first
   const [idx, setIdx] = useState(0)
   const key = months[idx]
@@ -20,6 +20,7 @@ export default function MonthlyProgress({ assessment, logs, habitLogs, monthlySe
 
   const sessionsNow = sessionsInMonth(monthlySessions, key)
   const sessionsPrev = sessionsInMonth(monthlySessions, shiftMonth(key, -1))
+  const sessionGoal = targets ? monthSessionTarget(targets.sessionsPerWeek, key) : 0
 
   const habitRows = HABITS.map((h) => ({ h, s: habitMonth(habitLogs, h.key, key) }))
   const anyHabit = habitRows.some((r) => r.s.done > 0)
@@ -50,8 +51,16 @@ export default function MonthlyProgress({ assessment, logs, habitLogs, monthlySe
                 {sessionsPrev !== null ? `Tháng trước: ${sessionsPrev} buổi · ` : ''}theo sổ của studio
               </div>
             </div>
-            <div className="journey-num now">{sessionsNow}<small>buổi</small></div>
+            <div className="journey-num now" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {sessionsNow}<small>{sessionGoal > 0 ? ` / ${sessionGoal} buổi` : ' buổi'}</small>
+            </div>
           </div>
+          {sessionGoal > 0 && (
+            <div className="stack" style={{ gap: 6, marginTop: 12 }}>
+              <div className="bar-track"><div className={sessionsNow >= sessionGoal ? 'bar-fill done' : 'bar-fill'} style={{ width: `${Math.min(100, Math.round((sessionsNow / sessionGoal) * 100))}%` }} /></div>
+              <div className="faint" style={{ fontSize: 12 }}>Mục tiêu {targets.sessionsPerWeek} buổi/tuần, khoảng {sessionGoal} buổi/tháng</div>
+            </div>
+          )}
           <hr className="divider" style={{ marginTop: 'var(--s5)' }} />
         </>
       )}
