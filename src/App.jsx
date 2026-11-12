@@ -82,6 +82,7 @@ export default function App() {
         <Route path="/coach/preview" element={<PreviewClient />}>
           <Route element={<ClientLayout basePath="/coach/preview" previewMode />}>
             <Route index element={<Dashboard />} />
+            <Route path="assessment" element={<Assessment />} />
             <Route path="program" element={<Program />} />
             <Route path="nutrition" element={<Nutrition />} />
             <Route path="progress" element={<Progress />} />

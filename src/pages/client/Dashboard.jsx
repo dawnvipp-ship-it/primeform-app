@@ -65,6 +65,7 @@ function formatDate(iso) {
 export default function Dashboard() {
   const { db, client, logout } = useAuth()
   const navigate = useNavigate()
+  // /app for a real client, /coach/preview when a coach views as the client - links must stay inside it.
   const guideBase = useGuideBase()
 
   const { data, loading } = useAsync(async () => {
@@ -238,7 +239,7 @@ export default function Dashboard() {
       </div>
 
       {nextBooking && (
-        <Card className="row-between" onClick={() => navigate('/app/sessions')} style={{ cursor: 'pointer' }}>
+        <Card className="row-between" onClick={() => navigate(`${guideBase}/sessions`)} style={{ cursor: 'pointer' }}>
           <div>
             <Eyebrow muted>Lịch hẹn gần nhất</Eyebrow>
             <div className="pf-display" style={{ fontSize: 22, marginTop: 6 }}>
@@ -257,7 +258,7 @@ export default function Dashboard() {
 
       <Card
         className="row-between"
-        onClick={() => navigate('/app/program', { state: { phase: currentPhase, dayId: nextDay?.id } })}
+        onClick={() => navigate(`${guideBase}/program`, { state: { phase: currentPhase, dayId: nextDay?.id } })}
         style={{ cursor: 'pointer' }}
       >
         <div>
@@ -267,7 +268,7 @@ export default function Dashboard() {
         <span style={{ color: 'var(--pf-accent)' }}><IconChevron /></span>
       </Card>
 
-      <Card className="row-between" onClick={() => navigate('/app/assessment')} style={{ cursor: 'pointer' }}>
+      <Card className="row-between" onClick={() => navigate(`${guideBase}/assessment`)} style={{ cursor: 'pointer' }}>
         <div className="row" style={{ gap: 10 }}>
           <IconClipboard width={18} height={18} style={{ color: 'var(--pf-muted)' }} />
           <span style={{ fontWeight: 600 }}>Đánh giá ban đầu</span>
