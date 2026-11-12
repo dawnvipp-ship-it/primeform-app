@@ -2,12 +2,16 @@ import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { getMyClient } from '../../data/clients'
+import { getAssessment } from '../../data/assessments'
+import { getRecentHabitLogs } from '../../data/habits'
 import { listProgressLogs, listPhotos, signedPhotoUrl } from '../../data/progress'
 import { listPrograms, listCompletions, computeMuscleHeat } from '../../data/programs'
 import { SkeletonScreen, Eyebrow, Card, Empty, showToast } from '../../components/ui/primitives'
 import { IconShare } from '../../components/ui/Icons'
 import MuscleBodyMap from '../../components/ui/MuscleBodyMap'
 import BeforeAfterCompare from '../../components/ui/BeforeAfterCompare'
+import JourneyCard from '../../components/ui/JourneyCard'
+import MonthlyProgress from '../../components/ui/MonthlyProgress'
 import { buildProgressShareCard, shareOrDownload } from '../../lib/shareCard'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import logo from '../../assets/logo.png'
@@ -80,19 +84,22 @@ export default function Progress() {
   const { data, loading } = useAsync(async () => {
     const me = await getMyClient(db)
     if (!me) return null
-    const [logs, photos, programs, completions] = await Promise.all([
+    // 190 days of habit logs = the 6 months the monthly view can show, and stays
+    // under the 1000-row cap of a single Supabase query (4 habits x ~190 days).
+    const [logs, photos, programs, completions, assessment, habitLogs] = await Promise.all([
       listProgressLogs(db, me.id), listPhotos(db, me.id), listPrograms(db, me.id), listCompletions(db, me.id),
+      getAssessment(db, me.id), getRecentHabitLogs(db, me.id, 190),
     ])
     const withUrls = await Promise.all(
       photos.map(async (p) => ({ ...p, url: await signedPhotoUrl(db, p.photo_path).catch(() => null) }))
     )
-    return { me, logs, photos: withUrls, muscleHeat: computeMuscleHeat(programs, completions) }
+    return { me, logs, photos: withUrls, assessment, habitLogs, muscleHeat: computeMuscleHeat(programs, completions) }
   }, [db])
 
   if (loading) return <div className="screen"><SkeletonScreen /></div>
   if (!data) return <div className="screen"><Empty title="Không tìm thấy hồ sơ." /></div>
 
-  const { me, logs, photos, muscleHeat } = data
+  const { me, logs, photos, muscleHeat, assessment, habitLogs } = data
   const hasLogs = logs.length > 0
   const hasMuscleData = Object.keys(muscleHeat).length > 0
 
@@ -145,6 +152,9 @@ export default function Progress() {
           </button>
         )}
       </div>
+
+      <JourneyCard assessment={assessment} logs={logs} />
+      <MonthlyProgress assessment={assessment} logs={logs} habitLogs={habitLogs} monthlySessions={me.monthly_sessions} />
 
       {hasMuscleData && (
         <Card className="stack">

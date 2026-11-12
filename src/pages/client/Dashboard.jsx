@@ -7,6 +7,7 @@ import { getAssessment } from '../../data/assessments'
 import { listPrograms, listPhases, listCompletions } from '../../data/programs'
 import { listMyBookings } from '../../data/bookings'
 import { HABITS, getRecentHabitLogs, toggleHabit, computeStreak } from '../../data/habits'
+import { lastSevenDays } from '../../lib/journey'
 import { Eyebrow, Card, showToast } from '../../components/ui/primitives'
 import { IconChevron, IconClipboard, IconDroplet, IconMoon, IconDumbbell, IconLeaf, IconCheck } from '../../components/ui/Icons'
 import SessionRing from '../../components/ui/SessionRing'
@@ -179,7 +180,14 @@ export default function Dashboard() {
             >
               <div className="row" style={{ gap: 10 }}>
                 <Icon width={18} height={18} style={{ color: done ? 'var(--pf-accent)' : 'var(--pf-muted)' }} />
-                <span style={{ fontWeight: 600, color: done ? 'var(--pf-text)' : 'var(--pf-muted)' }}>{h.label}</span>
+                <div>
+                  <span style={{ fontWeight: 600, color: done ? 'var(--pf-text)' : 'var(--pf-muted)' }}>{h.label}</span>
+                  <div className="week-dots" style={{ marginTop: 5 }} aria-label="7 ngày gần nhất">
+                    {lastSevenDays(habitLogs, h.key).map((d) => (
+                      <span key={d.date} className={`week-dot${d.done ? ' on' : ''}${d.isToday ? ' today' : ''}`} />
+                    ))}
+                  </div>
+                </div>
               </div>
               <div className="row" style={{ gap: 10 }}>
                 {streak > 1 && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--pf-accent)' }}>{streak} ngày</span>}

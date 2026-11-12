@@ -313,3 +313,31 @@ h1, h2, h3 { font-family: var(--pf-display); font-weight: 500; line-height: 1.1;
 .ctable th { text-align: left; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--pf-muted); padding: 10px 12px; border-bottom: 1px solid var(--pf-line); font-weight: 600; }
 .ctable td { padding: 14px 12px; border-bottom: 1px solid var(--pf-line-soft); font-size: 14px; }
 .ctable tr:hover td { background: var(--pf-surface); cursor: pointer; }
+
+/* ---------- Journey (Tiến độ: ban đầu → hiện tại → mục tiêu) ---------- */
+.journey { position: relative; overflow: hidden; }
+.journey::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: linear-gradient(90deg, var(--pf-gold-deep), var(--pf-gold-bright) 60%, transparent);
+}
+.journey-metric + .journey-metric { border-top: 1px solid var(--pf-line-soft); padding-top: var(--s5); }
+.journey-cols { display: grid; gap: var(--s3); align-items: end; }
+.journey-num { font-family: var(--pf-display); font-weight: 500; font-size: 26px; line-height: 1; letter-spacing: -0.02em; }
+.journey-num small { font-size: 13px; font-weight: 500; color: var(--pf-muted); margin-left: 3px; letter-spacing: 0; }
+.journey-num.now { font-size: 36px; color: var(--pf-gold-bright); }
+.journey-cap { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--pf-muted); margin-top: 6px; }
+.bar-track { height: 6px; border-radius: 999px; background: var(--pf-line); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--pf-gold-deep), var(--pf-gold-bright)); transition: width .6s ease; }
+.bar-fill.done { background: var(--pf-ok); }
+
+/* ---------- Month switcher + habit dots ---------- */
+.month-nav { display: flex; align-items: center; justify-content: space-between; }
+.month-btn {
+  width: 36px; height: 36px; display: grid; place-items: center; border-radius: 999px;
+  background: transparent; border: 1px solid var(--pf-line); color: var(--pf-text);
+}
+.month-btn:disabled { opacity: .25; cursor: default; }
+.week-dots { display: flex; gap: 4px; align-items: center; }
+.week-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pf-line); }
+.week-dot.on { background: var(--pf-gold); }
+.week-dot.today { box-shadow: 0 0 0 1.5px var(--pf-gold-deep); }
